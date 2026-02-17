@@ -1,10 +1,13 @@
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
+
+
 
 
 
@@ -34,7 +37,7 @@ model Region {
 model System {
   id                     String   @id @default(uuid())
   brand                  String
-  model                  String   @unique
+  model                  String   
   systemType             SystemType
   tankMaterial           TankMaterial
   capacityLitres         Int
@@ -78,6 +81,34 @@ model ExtraPrice {
   regionId String
   price    Decimal
 }
+
+model PricingConfirmation {
+  id                String   @id @default(uuid())
+
+  // Who / where
+  regionCode         String
+  systemId           String
+
+  // What was selected
+  extraIds           String[] @default([])
+
+  // Price snapshot (ex-GST unless stated)
+  basePriceExGst     Decimal
+  extrasTotalExGst   Decimal
+  subtotalExGst      Decimal
+  gst                Decimal
+  totalIncGst        Decimal
+
+  createdAt          DateTime @default(now())
+
+  @@index([regionCode])
+  @@index([systemId])
+}
+
+
+
+
+
 
 
 enum UserRole {
