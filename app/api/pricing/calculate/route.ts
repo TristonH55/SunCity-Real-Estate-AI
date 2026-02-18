@@ -94,6 +94,10 @@
 //   }
 // }
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
 
