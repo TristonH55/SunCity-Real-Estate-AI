@@ -7,6 +7,9 @@ Commands end with a semicolon ;
 CREATE DB USER suncity_admin WITH PASSWORD 'SunCity1234#';
 
 node -e "require('bcryptjs').hash('SunCity1234#', 12).then(console.log)"
+or
+node -e "require('bcryptjs').hash('SunCity1234#', 10).then(console.log)"
+
 
 
 // PUSH LIVE
