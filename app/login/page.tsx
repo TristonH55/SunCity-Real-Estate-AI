@@ -1,7 +1,7 @@
+"use client";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-"use client";
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
