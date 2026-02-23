@@ -222,10 +222,10 @@
 
 
 // NEW TEST
+"use client";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -254,7 +254,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900 px-8 py-10 max-w-4xl mx-auto">
 
-      {/* 🔴 DEPLOY TEST — THIS MUST SHOW ON VERCEL */}
+      {/* 🔴 DEPLOY TEST — MUST SHOW ON VERCEL */}
       <div className="mb-6 rounded-lg bg-red-600 text-white p-4 text-center font-bold">
         DEPLOY TEST — IF YOU SEE THIS, VERCEL UPDATED
       </div>
