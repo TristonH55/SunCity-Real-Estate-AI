@@ -232,15 +232,29 @@ import SystemList from "./components/SystemList";
 import ExtrasList from "./components/ExtrasList";
 import PriceSummary from "./components/PriceSummary";
 
+type PriceResponse = {
+  systemPriceExGst: number;
+  extrasTotalExGst: number;
+  subtotalExGst: number;
+  gst: number;
+  totalIncGst: number;
+};
+
 export default function PricingClient() {
   const [region, setRegion] = useState<string | null>(null);
   const [systemType, setSystemType] = useState<string | null>(null);
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
-  const [calculatedPrice, setCalculatedPrice] = useState<any | null>(null);
+  const [calculatedPrice, setCalculatedPrice] = useState<PriceResponse | null>(null);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 px-8 py-10 max-w-4xl mx-auto">
+
+      {/* 🔴 DEPLOY TEST — MUST SHOW ON VERCEL */}
+      <div className="mb-6 rounded-lg bg-red-600 text-white p-4 text-center font-bold">
+        DEPLOY TEST — IF YOU SEE THIS, VERCEL UPDATED
+      </div>
+
       {/* Logo */}
       <div className="mb-8 flex justify-center">
         <Image
@@ -258,6 +272,7 @@ export default function PricingClient() {
           setRegion(val);
           setSelectedSystemId(null);
           setSelectedExtras([]);
+          setCalculatedPrice(null);
         }}
       />
 
@@ -267,6 +282,7 @@ export default function PricingClient() {
           setSystemType(val);
           setSelectedSystemId(null);
           setSelectedExtras([]);
+          setCalculatedPrice(null);
         }}
       />
 
@@ -278,6 +294,7 @@ export default function PricingClient() {
           onSelect={(id) => {
             setSelectedSystemId(id);
             setSelectedExtras([]);
+            setCalculatedPrice(null);
           }}
         />
       )}
@@ -287,7 +304,10 @@ export default function PricingClient() {
           region={region}
           systemType={systemType}
           selectedExtras={selectedExtras}
-          onChange={setSelectedExtras}
+          onChange={(extras) => {
+            setSelectedExtras(extras);
+            setCalculatedPrice(null);
+          }}
         />
       )}
 
