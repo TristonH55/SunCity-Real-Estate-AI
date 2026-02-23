@@ -14,8 +14,8 @@ node -e "require('bcryptjs').hash('SunCity1234#', 10).then(console.log)"
 
 // PUSH LIVE
 Make sure to change .ENV urls
-
-
+##
+seed Db with "npx prisma db seed"
 
 SunCity1234#
 

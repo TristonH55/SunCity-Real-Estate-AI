@@ -152,6 +152,7 @@ export default function PricingPage() {
   const [systemType, setSystemType] = useState<string | null>(null);
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [calculatedPrice, setCalculatedPrice] = useState<any | null>(null);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 px-8 py-10 max-w-4xl mx-auto">

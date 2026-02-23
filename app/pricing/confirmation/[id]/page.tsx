@@ -135,7 +135,10 @@
 //     </div>
 //   );
 // }
-///////////TEST BELOW//////////////////
+
+
+
+///////////LIVE USE THIS BELOW//////////////////
 import { prisma } from "lib/prisma";
 import { notFound } from "next/navigation";
 
@@ -225,5 +228,8 @@ export default async function ConfirmationPage({ params }: PageProps) {
     </div>
   );
 }
+
+
+/////TEST ONLY
 
 
