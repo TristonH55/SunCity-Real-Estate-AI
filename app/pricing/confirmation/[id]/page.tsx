@@ -139,6 +139,98 @@
 
 
 ///////////LIVE USE THIS BELOW//////////////////
+// import { prisma } from "lib/prisma";
+// import { notFound } from "next/navigation";
+
+// type PageProps = {
+//   params: Promise<{
+//     id: string;
+//   }>;
+// };
+
+// export default async function ConfirmationPage({ params }: PageProps) {
+//   // ✅ UNWRAP params (THIS IS THE FIX)
+//   const { id } = await params;
+
+//   if (!id) {
+//     notFound();
+//   }
+
+//   const confirmation = await prisma.pricingConfirmation.findUnique({
+//     where: { id },
+//   });
+
+//   if (!confirmation) {
+//     notFound();
+//   }
+
+//   const money = (value: unknown) =>
+//     Number(value).toLocaleString("en-AU");
+
+//   return (
+//     <div className="min-h-screen bg-white px-8 py-10 max-w-3xl mx-auto">
+//       <h1 className="text-3xl font-bold text-gray-900 mb-2">
+//         Price Confirmation
+//       </h1>
+
+//       <p className="text-gray-700 mb-6">
+//         This price has been locked and recorded. It cannot be modified.
+//         SunCity will contact you shortly.
+//       </p>
+
+//       <div className="border border-gray-300 rounded-xl p-6 bg-white shadow-sm space-y-4">
+//         <div className="text-sm text-gray-700">
+//           <span className="font-medium">Confirmation ID</span>
+//           <div className="font-mono text-gray-900 break-all mt-1">
+//             {confirmation.id}
+//           </div>
+//         </div>
+
+//         <div className="border-t pt-4 space-y-3 text-gray-900">
+//           <div className="flex justify-between">
+//             <span>Base price (ex-GST)</span>
+//             <span>${money(confirmation.basePriceExGst)}</span>
+//           </div>
+
+//           <div className="flex justify-between">
+//             <span>Extras total (ex-GST)</span>
+//             <span>${money(confirmation.extrasTotalExGst)}</span>
+//           </div>
+
+//           <div className="flex justify-between font-medium">
+//             <span>Subtotal (ex-GST)</span>
+//             <span>${money(confirmation.subtotalExGst)}</span>
+//           </div>
+
+//           <div className="flex justify-between text-gray-700">
+//             <span>GST (10%)</span>
+//             <span>${money(confirmation.gst)}</span>
+//           </div>
+
+//           <div className="flex justify-between text-xl font-bold border-t pt-4">
+//             <span>Total (inc-GST)</span>
+//             <span>${money(confirmation.totalIncGst)}</span>
+//           </div>
+//         </div>
+
+//         <div className="mt-6 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+//           <span className="h-2 w-2 bg-green-600 rounded-full"></span>
+//           Price locked successfully
+//         </div>
+
+//         <a
+//           href={`/api/pricing/confirmation/${confirmation.id}/pdf`}
+//           className="mt-6 inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-black transition"
+//         >
+//           Download PDF
+//         </a>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+/////TEST ONLY
 import { prisma } from "lib/prisma";
 import { notFound } from "next/navigation";
 
@@ -149,20 +241,35 @@ type PageProps = {
 };
 
 export default async function ConfirmationPage({ params }: PageProps) {
-  // ✅ UNWRAP params (THIS IS THE FIX)
   const { id } = await params;
 
-  if (!id) {
-    notFound();
-  }
+  if (!id) notFound();
 
+  // 1️⃣ Fetch confirmation (NO include!)
   const confirmation = await prisma.pricingConfirmation.findUnique({
     where: { id },
   });
 
-  if (!confirmation) {
-    notFound();
-  }
+  if (!confirmation) notFound();
+
+  // 2️⃣ Fetch related system
+  const system = await prisma.system.findUnique({
+    where: { id: confirmation.systemId },
+    select: {
+      brand: true,
+      model: true,
+      capacityLitres: true,
+      tankMaterial: true,
+    },
+  });
+
+  // 3️⃣ Fetch region (adjust field if yours is regionId instead)
+  const region = await prisma.region.findUnique({
+    where: { code: confirmation.regionCode },
+    select: {
+      name: true,
+    },
+  });
 
   const money = (value: unknown) =>
     Number(value).toLocaleString("en-AU");
@@ -178,7 +285,39 @@ export default async function ConfirmationPage({ params }: PageProps) {
         SunCity will contact you shortly.
       </p>
 
-      <div className="border border-gray-300 rounded-xl p-6 bg-white shadow-sm space-y-4">
+      <div className="border border-gray-300 rounded-xl p-6 bg-white shadow-sm space-y-6">
+
+        {/* 🔹 SYSTEM DETAILS */}
+        {system && (
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <h2 className="text-lg font-semibold mb-2 text-black">
+              Selected Hot Water System
+            </h2>
+
+            <div className="text-sm text-gray-800 space-y-1">
+              <div>
+                <strong>Brand:</strong> {system.brand}
+              </div>
+              <div>
+                <strong>Model:</strong> {system.model}
+              </div>
+              <div>
+                <strong>Capacity:</strong> {system.capacityLitres}L
+              </div>
+              <div>
+                <strong>Tank:</strong>{" "}
+                {system.tankMaterial.replace("_", " ")}
+              </div>
+              {region && (
+                <div>
+                  <strong>Region:</strong> {region.name}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 🔹 CONFIRMATION ID */}
         <div className="text-sm text-gray-700">
           <span className="font-medium">Confirmation ID</span>
           <div className="font-mono text-gray-900 break-all mt-1">
@@ -186,6 +325,7 @@ export default async function ConfirmationPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* 🔹 PRICE BREAKDOWN */}
         <div className="border-t pt-4 space-y-3 text-gray-900">
           <div className="flex justify-between">
             <span>Base price (ex-GST)</span>
@@ -213,14 +353,16 @@ export default async function ConfirmationPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="mt-6 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+        {/* 🔹 STATUS */}
+        <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
           <span className="h-2 w-2 bg-green-600 rounded-full"></span>
           Price locked successfully
         </div>
 
+        {/* 🔹 PDF */}
         <a
           href={`/api/pricing/confirmation/${confirmation.id}/pdf`}
-          className="mt-6 inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-black transition"
+          className="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-black transition"
         >
           Download PDF
         </a>
@@ -228,8 +370,4 @@ export default async function ConfirmationPage({ params }: PageProps) {
     </div>
   );
 }
-
-
-/////TEST ONLY
-
 
