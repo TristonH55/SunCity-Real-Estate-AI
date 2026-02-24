@@ -233,6 +233,8 @@
 /////TEST ONLY
 import { prisma } from "lib/prisma";
 import { notFound } from "next/navigation";
+import Image from "next/image";
+
 
 type PageProps = {
   params: Promise<{
@@ -286,6 +288,16 @@ export default async function ConfirmationPage({ params }: PageProps) {
       </p>
 
       <div className="border border-gray-300 rounded-xl p-6 bg-white shadow-sm space-y-6">
+      <div className="flex justify-left mb-6">
+      <Image
+          src="/images/suncity-logo-transparient.jpg.png"
+          alt="SunCity Hot Water Logo"
+          width={220}
+          height={80}
+          priority
+          className="object-contain drop-shadow-sm"
+        />
+      </div>
 
         {/* 🔹 SYSTEM DETAILS */}
         {system && (
