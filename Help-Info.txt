@@ -19,6 +19,7 @@ seed Db with "npx prisma db seed"
 
 SunCity1234#
 
+app domain: https://sun-city-insurance.vercel.app/pricing
 
 DATABASE WORKING LOCAL...
 

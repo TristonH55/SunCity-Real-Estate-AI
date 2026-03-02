@@ -235,26 +235,19 @@ import { prisma } from "lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 
-
 type PageProps = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
 export default async function ConfirmationPage({ params }: PageProps) {
   const { id } = await params;
-
   if (!id) notFound();
 
-  // 1️⃣ Fetch confirmation (NO include!)
   const confirmation = await prisma.pricingConfirmation.findUnique({
     where: { id },
   });
-
   if (!confirmation) notFound();
 
-  // 2️⃣ Fetch related system
   const system = await prisma.system.findUnique({
     where: { id: confirmation.systemId },
     select: {
@@ -265,16 +258,15 @@ export default async function ConfirmationPage({ params }: PageProps) {
     },
   });
 
-  // 3️⃣ Fetch region (adjust field if yours is regionId instead)
   const region = await prisma.region.findUnique({
     where: { code: confirmation.regionCode },
-    select: {
-      name: true,
-    },
+    select: { name: true },
   });
 
-  const money = (value: unknown) =>
-    Number(value).toLocaleString("en-AU");
+  const money = (v: unknown) =>
+    Number(v).toLocaleString("en-AU");
+
+  const customer = confirmation.customerSnapshot as any;
 
   return (
     <div className="min-h-screen bg-white px-8 py-10 max-w-3xl mx-auto">
@@ -288,93 +280,82 @@ export default async function ConfirmationPage({ params }: PageProps) {
       </p>
 
       <div className="border border-gray-300 rounded-xl p-6 bg-white shadow-sm space-y-6">
-      <div className="flex justify-left mb-6">
-      <Image
+        <Image
           src="/images/suncity-logo-transparient.jpg.png"
           alt="SunCity Hot Water Logo"
           width={220}
           height={80}
           priority
-          className="object-contain drop-shadow-sm"
+          className="object-contain mb-4"
         />
-      </div>
 
-        {/* 🔹 SYSTEM DETAILS */}
         {system && (
           <div className="border rounded-lg p-4 bg-gray-50">
             <h2 className="text-lg font-semibold mb-2 text-black">
               Selected Hot Water System
             </h2>
-
             <div className="text-sm text-gray-800 space-y-1">
-              <div>
-                <strong>Brand:</strong> {system.brand}
-              </div>
-              <div>
-                <strong>Model:</strong> {system.model}
-              </div>
-              <div>
-                <strong>Capacity:</strong> {system.capacityLitres}L
-              </div>
+              <div><strong>Brand:</strong> {system.brand}</div>
+              <div><strong>Model:</strong> {system.model}</div>
+              <div><strong>Capacity:</strong> {system.capacityLitres}L</div>
               <div>
                 <strong>Tank:</strong>{" "}
                 {system.tankMaterial.replace("_", " ")}
               </div>
-              {region && (
-                <div>
-                  <strong>Region:</strong> {region.name}
-                </div>
-              )}
+              {region && <div><strong>Region:</strong> {region.name}</div>}
             </div>
           </div>
         )}
 
-        {/* 🔹 CONFIRMATION ID */}
-        <div className="text-sm text-gray-700">
-          <span className="font-medium">Confirmation ID</span>
-          <div className="font-mono text-gray-900 break-all mt-1">
-            {confirmation.id}
+        {customer && (
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <h2 className="text-lg font-semibold mb-2 text-black">
+              Customer Details
+            </h2>
+            <div className="text-sm text-gray-800 space-y-1">
+              <div>
+                <strong>Name:</strong> {customer.firstName} {customer.lastName}
+              </div>
+              <div>
+                <strong>Email:</strong> {customer.email}
+              </div>
+              <div>
+                <strong>Phone:</strong> {customer.phone}
+              </div>
+              <div>
+                <strong>Suburb:</strong> {customer.suburb}
+              </div>
+            </div>
           </div>
+        )}
+
+        <div className="text-sm text-gray-700">
+          <strong>Confirmation ID</strong>
+          <div className="font-mono mt-1">{confirmation.id}</div>
         </div>
 
-        {/* 🔹 PRICE BREAKDOWN */}
-        <div className="border-t pt-4 space-y-3 text-gray-900">
+        <div className="border-t pt-4 space-y-2 text-black">
           <div className="flex justify-between">
             <span>Base price (ex-GST)</span>
             <span>${money(confirmation.basePriceExGst)}</span>
           </div>
-
           <div className="flex justify-between">
-            <span>Extras total (ex-GST)</span>
+            <span>Extras (ex-GST)</span>
             <span>${money(confirmation.extrasTotalExGst)}</span>
           </div>
-
-          <div className="flex justify-between font-medium">
-            <span>Subtotal (ex-GST)</span>
-            <span>${money(confirmation.subtotalExGst)}</span>
-          </div>
-
-          <div className="flex justify-between text-gray-700">
-            <span>GST (10%)</span>
-            <span>${money(confirmation.gst)}</span>
-          </div>
-
-          <div className="flex justify-between text-xl font-bold border-t pt-4">
+          <div className="flex justify-between font-bold">
             <span>Total (inc-GST)</span>
             <span>${money(confirmation.totalIncGst)}</span>
           </div>
         </div>
 
-        {/* 🔹 STATUS */}
-        <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-          <span className="h-2 w-2 bg-green-600 rounded-full"></span>
-          Price locked successfully
-        </div>
-
-        {/* 🔹 PDF */}
+       <div className="mt-6 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+        <span className="h-2 w-2 bg-green-600 rounded-full"></span>
+        Price locked successfully
+       </div>
         <a
           href={`/api/pricing/confirmation/${confirmation.id}/pdf`}
-          className="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-black transition"
+          className="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold"
         >
           Download PDF
         </a>

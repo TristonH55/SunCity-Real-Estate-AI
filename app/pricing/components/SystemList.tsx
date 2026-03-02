@@ -536,20 +536,20 @@ const BRAND_STYLES: Record<
   string,
   { bg: string; border: string; text: string }
 > = {
-  Rheem: {
-    bg: "bg-rose-50",
+  "Rheem Stellar": {
+    bg: "bg-rose-900",
     border: "border-rose-200",
     text: "text-rose-900",
   },
-  Dux: {
-    bg: "bg-sky-50",
+  "Dux / Thermann": {
+    bg: "bg-rose-600",
     border: "border-sky-200",
-    text: "text-sky-900",
+    text: "text-white",
   },
   "AquaMAX / Vulcan": {
-    bg: "bg-amber-50",
+    bg: "bg-sky-600",
     border: "border-amber-200",
-    text: "text-amber-900",
+    text: "text-white",
   },
   Solahart: {
     bg: "bg-emerald-50",

@@ -164,7 +164,7 @@ export default function PricingPage() {
         <Image
           src="/images/suncity-logo-transparient.jpg.png"
           alt="SunCity Certified Insurance Provider"
-          width={260}
+          width={350}
           height={80}
           priority
         />

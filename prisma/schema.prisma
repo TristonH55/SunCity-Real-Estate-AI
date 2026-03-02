@@ -98,7 +98,7 @@ model PricingConfirmation {
   subtotalExGst      Decimal
   gst                Decimal
   totalIncGst        Decimal
-
+  customerSnapshot   Json?
   createdAt          DateTime @default(now())
 
   @@index([regionCode])
