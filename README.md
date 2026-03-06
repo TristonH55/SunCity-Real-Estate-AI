@@ -166,4 +166,6 @@ Built with  for SunCity Hot Water partners to make quoting fast, secure, and acc
 is used as the middleware to convert the Human nameing into the suncity Dataset for SYSTEM_TYPE, enquiry_types, property_types & system_locations
 the endpoint will become 
 # http://localhost:3000/api/elevenlabs/middleware/ai-lead
+# or 
+# https://sun-city-insurance.vercel.app/api/elevenlabs/middleware/ai-lead
 ##
