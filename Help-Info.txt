@@ -10,7 +10,7 @@ node -e "require('bcryptjs').hash('SunCity1234#', 12).then(console.log)"
 or
 node -e "require('bcryptjs').hash('SunCity1234#', 10).then(console.log)"
 
-
+sudo service postgresql status
 
 // PUSH LIVE
 Make sure to change .ENV urls

@@ -109,7 +109,7 @@ cd sun-city-insurance
 
 npm install
 
-3. Set up environment variablesCreate .env.local in the root folder:env
+3. Set up environment variablesCreate .env in the root folder:env
 
 # Database (Neon or local Postgres)
 DATABASE_URL="postgresql://user:pass@your-host.neon.tech/dbname?sslmode=require"
@@ -125,7 +125,7 @@ CMS_API_SECRET="your-unity-crm-secret"
 # Resend (email sending)
 RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ADMIN_EMAIL="admin@suncityhotwater.com.au"
-RESEND_FROM_EMAIL="SunCity <admin@suncityhotwater.com.au>"  # After domain verification
+RESEND_FROM_EMAIL="admin@suncityhotwater.com.au"  # After domain verification
 
 # App base URL (used in emails & CMS payload)
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
@@ -161,3 +161,9 @@ Questions or need help? Open an issue or contact Oop Design.
 
 Built with  for SunCity Hot Water partners to make quoting fast, secure, and accurate.Last updated: March 2026
 
+##
+# app/api/elevenlabs/middleware/ai-lead/route.ts
+is used as the middleware to convert the Human nameing into the suncity Dataset for SYSTEM_TYPE, enquiry_types, property_types & system_locations
+the endpoint will become 
+# http://localhost:3000/api/elevenlabs/middleware/ai-lead
+##
