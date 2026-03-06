@@ -252,17 +252,42 @@ export async function POST(req: Request) {
        SANITISE AI VALUES
     ------------------------------*/
 
-    lead_data.property_type =
-      propertyMap[clean(lead_data.property_type)] || "8884";
+    // Property
+    if (!["8884","1b54","7b71","a0fe"].includes(lead_data.property_type)) {
+      lead_data.property_type =
+        propertyMap[clean(lead_data.property_type)] || "8884";
+    }
 
-    lead_data.system_type =
-      systemTypeMap[clean(lead_data.system_type)] || "c730";
+    // System type
+    if (!["c730","412c","8563","43c8","bc1e","4577"].includes(lead_data.system_type)) {
+      const sys = clean(lead_data.system_type);
 
-    lead_data.system_location =
-      locationMap[clean(lead_data.system_location)] || "9603";
+      if (sys?.includes("gas")) lead_data.system_type = "412c";
+      else if (sys?.includes("electric")) lead_data.system_type = "c730";
+      else if (sys?.includes("solar")) lead_data.system_type = "8563";
+      else if (sys?.includes("heat")) lead_data.system_type = "43c8";
+      else lead_data.system_type = "c730";
+    }
 
-    lead_data.enquiry_type =
-      enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
+    // System location
+    if (!["9603","db09","e4d8","a1f1"].includes(lead_data.system_location)) {
+      const loc = clean(lead_data.system_location);
+
+      if (loc?.includes("outside")) lead_data.system_location = "db09";
+      else if (loc?.includes("roof")) lead_data.system_location = "e4d8";
+      else if (loc?.includes("inside")) lead_data.system_location = "9603";
+      else lead_data.system_location = "9603";
+    }
+
+    // Enquiry type
+    if (!["f176","57d8","7f48","4ce7"].includes(lead_data.enquiry_type)) {
+      lead_data.enquiry_type =
+        enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
+    }
+
+    /* -----------------------------
+       CLEAN FIELDS
+    ------------------------------*/
 
     if (!lead_data.enquiry) {
       lead_data.enquiry = "Hot water system enquiry from AI assistant";
@@ -287,8 +312,8 @@ export async function POST(req: Request) {
        ENV VARIABLES
     ------------------------------*/
 
-    const username = process.env.CMS_API_KEY;
-    const password = process.env.CMS_API_SECRET;
+    const username = process.env.CMS_API_KEY?.trim();
+    const password = process.env.CMS_API_SECRET?.trim();
 
     console.log("ENV CHECK:", username ? "KEY OK" : "KEY MISSING");
     console.log("ENV CHECK:", password ? "SECRET OK" : "SECRET MISSING");
@@ -297,9 +322,8 @@ export async function POST(req: Request) {
       throw new Error("Missing CMS API credentials");
     }
 
-    const auth = `Basic ${Buffer.from(`${username}:${password}`).toString(
-      "base64"
-    )}`;
+    const auth =
+      "Basic " + Buffer.from(username + ":" + password).toString("base64");
 
     /* -----------------------------
        SEND TO CRM
@@ -322,10 +346,23 @@ export async function POST(req: Request) {
     console.log("CRM Status:", res.status);
     console.log("CRM Response:", text);
 
+    if (!res.ok) {
+      return NextResponse.json(
+        {
+          error: "CRM rejected request",
+          crm_status: res.status,
+          crm_response: text,
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
+      success: true,
       crm_status: res.status,
       crm_response: text,
     });
+
   } catch (error) {
     console.error("AI Lead Error:", error);
 
