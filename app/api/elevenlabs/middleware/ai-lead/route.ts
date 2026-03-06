@@ -201,7 +201,21 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { lead_data, contact_data } = body;
+    let { lead_data, contact_data } = body;
+
+    if (!lead_data || !contact_data) {
+      return NextResponse.json(
+        { error: "Invalid payload structure" },
+        { status: 400 }
+      );
+    }
+
+    /* -----------------------------
+       CLEAN INPUT
+    ------------------------------*/
+
+    const clean = (v: any) =>
+      typeof v === "string" ? v.trim().toLowerCase() : v;
 
     const propertyMap: any = {
       house: "8884",
@@ -236,33 +250,55 @@ export async function POST(req: Request) {
       parts: "4ce7",
     };
 
-    /* CLEAN INPUT */
+    /* -----------------------------
+       SANITISE AI RESPONSES
+    ------------------------------*/
 
-    const clean = (v: any) =>
-      typeof v === "string" ? v.trim().toLowerCase() : v;
+    const propertyValue = clean(lead_data.property_type);
+    const systemValue = clean(lead_data.system_type);
+    const locationValue = clean(lead_data.system_location);
+    const enquiryValue = clean(lead_data.enquiry_type);
 
-    lead_data.property_type =
-      propertyMap[clean(lead_data.property_type)] || "8884";
+    lead_data.property_type = propertyMap[propertyValue] || "8884";
+    lead_data.system_type = systemTypeMap[systemValue] || "c730";
+    lead_data.system_location = locationMap[locationValue] || "9603";
+    lead_data.enquiry_type = enquiryTypeMap[enquiryValue] || "f176";
 
-    lead_data.system_type =
-      systemTypeMap[clean(lead_data.system_type)] || "c730";
+    /* -----------------------------
+       FIX BAD AI STRINGS
+    ------------------------------*/
 
-    lead_data.system_location =
-      locationMap[clean(lead_data.system_location)] || "9603";
+    if (typeof lead_data.system_location === "string") {
+      const loc = clean(lead_data.system_location);
 
-    lead_data.enquiry_type =
-      enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
+      if (loc.includes("inside")) lead_data.system_location = "9603";
+      if (loc.includes("outside")) lead_data.system_location = "db09";
+      if (loc.includes("roof")) lead_data.system_location = "e4d8";
+    }
+
+    if (typeof lead_data.system_type === "string") {
+      const sys = clean(lead_data.system_type);
+
+      if (sys.includes("electric")) lead_data.system_type = "c730";
+      if (sys.includes("gas")) lead_data.system_type = "412c";
+      if (sys.includes("solar")) lead_data.system_type = "8563";
+      if (sys.includes("heat")) lead_data.system_type = "43c8";
+    }
+
+    /* -----------------------------
+       DEFAULTS
+    ------------------------------*/
 
     if (!lead_data.enquiry) {
       lead_data.enquiry = "Hot water system enquiry from AI assistant";
     }
 
-    if (!contact_data.email) {
-      delete contact_data.email;
-    }
-
     if (lead_data.source_url) {
       lead_data.source_url = lead_data.source_url.trim();
+    }
+
+    if (!contact_data.email || contact_data.email === "") {
+      delete contact_data.email;
     }
 
     const payload = {
@@ -272,10 +308,26 @@ export async function POST(req: Request) {
 
     console.log("Sending to CRM:", payload);
 
+    /* -----------------------------
+       AUTH
+    ------------------------------*/
+
     const username = process.env.CMS_API_KEY;
     const password = process.env.CMS_API_SECRET;
 
+    if (!username || !password) {
+      console.error("❌ CMS API credentials missing in Vercel ENV");
+      return NextResponse.json(
+        { error: "CMS credentials not configured" },
+        { status: 500 }
+      );
+    }
+
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
+
+    /* -----------------------------
+       SEND TO CRM
+    ------------------------------*/
 
     const res = await fetch(
       "https://jobs.suncityhotwater.com.au/api/leads/add",
@@ -291,13 +343,25 @@ export async function POST(req: Request) {
 
     const text = await res.text();
 
+    console.log("CRM Status:", res.status);
     console.log("CRM Response:", text);
 
+    if (!res.ok) {
+      return NextResponse.json(
+        {
+          error: "CRM rejected request",
+          crm_status: res.status,
+          crm_response: text,
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
+      success: true,
       crm_status: res.status,
       crm_response: text,
     });
-
   } catch (error) {
     console.error("AI Lead Error:", error);
 
