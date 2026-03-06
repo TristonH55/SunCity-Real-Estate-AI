@@ -201,6 +201,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    console.log("Incoming AI payload:", body);
+
     let { lead_data, contact_data } = body;
 
     if (!lead_data || !contact_data) {
@@ -209,10 +211,6 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    /* -----------------------------
-       CLEAN INPUT
-    ------------------------------*/
 
     const clean = (v: any) =>
       typeof v === "string" ? v.trim().toLowerCase() : v;
@@ -251,43 +249,20 @@ export async function POST(req: Request) {
     };
 
     /* -----------------------------
-       SANITISE AI RESPONSES
+       SANITISE AI VALUES
     ------------------------------*/
 
-    const propertyValue = clean(lead_data.property_type);
-    const systemValue = clean(lead_data.system_type);
-    const locationValue = clean(lead_data.system_location);
-    const enquiryValue = clean(lead_data.enquiry_type);
+    lead_data.property_type =
+      propertyMap[clean(lead_data.property_type)] || "8884";
 
-    lead_data.property_type = propertyMap[propertyValue] || "8884";
-    lead_data.system_type = systemTypeMap[systemValue] || "c730";
-    lead_data.system_location = locationMap[locationValue] || "9603";
-    lead_data.enquiry_type = enquiryTypeMap[enquiryValue] || "f176";
+    lead_data.system_type =
+      systemTypeMap[clean(lead_data.system_type)] || "c730";
 
-    /* -----------------------------
-       FIX BAD AI STRINGS
-    ------------------------------*/
+    lead_data.system_location =
+      locationMap[clean(lead_data.system_location)] || "9603";
 
-    if (typeof lead_data.system_location === "string") {
-      const loc = clean(lead_data.system_location);
-
-      if (loc.includes("inside")) lead_data.system_location = "9603";
-      if (loc.includes("outside")) lead_data.system_location = "db09";
-      if (loc.includes("roof")) lead_data.system_location = "e4d8";
-    }
-
-    if (typeof lead_data.system_type === "string") {
-      const sys = clean(lead_data.system_type);
-
-      if (sys.includes("electric")) lead_data.system_type = "c730";
-      if (sys.includes("gas")) lead_data.system_type = "412c";
-      if (sys.includes("solar")) lead_data.system_type = "8563";
-      if (sys.includes("heat")) lead_data.system_type = "43c8";
-    }
-
-    /* -----------------------------
-       DEFAULTS
-    ------------------------------*/
+    lead_data.enquiry_type =
+      enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
 
     if (!lead_data.enquiry) {
       lead_data.enquiry = "Hot water system enquiry from AI assistant";
@@ -309,21 +284,22 @@ export async function POST(req: Request) {
     console.log("Sending to CRM:", payload);
 
     /* -----------------------------
-       AUTH
+       ENV VARIABLES
     ------------------------------*/
 
     const username = process.env.CMS_API_KEY;
     const password = process.env.CMS_API_SECRET;
 
+    console.log("ENV CHECK:", username ? "KEY OK" : "KEY MISSING");
+    console.log("ENV CHECK:", password ? "SECRET OK" : "SECRET MISSING");
+
     if (!username || !password) {
-      console.error("❌ CMS API credentials missing in Vercel ENV");
-      return NextResponse.json(
-        { error: "CMS credentials not configured" },
-        { status: 500 }
-      );
+      throw new Error("Missing CMS API credentials");
     }
 
-    const auth = Buffer.from(`${username}:${password}`).toString("base64");
+    const auth = `Basic ${Buffer.from(`${username}:${password}`).toString(
+      "base64"
+    )}`;
 
     /* -----------------------------
        SEND TO CRM
@@ -335,7 +311,7 @@ export async function POST(req: Request) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Basic ${auth}`,
+          Authorization: auth,
         },
         body: JSON.stringify(payload),
       }
@@ -346,19 +322,7 @@ export async function POST(req: Request) {
     console.log("CRM Status:", res.status);
     console.log("CRM Response:", text);
 
-    if (!res.ok) {
-      return NextResponse.json(
-        {
-          error: "CRM rejected request",
-          crm_status: res.status,
-          crm_response: text,
-        },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
-      success: true,
       crm_status: res.status,
       crm_response: text,
     });
@@ -366,7 +330,10 @@ export async function POST(req: Request) {
     console.error("AI Lead Error:", error);
 
     return NextResponse.json(
-      { error: "Middleware error", details: String(error) },
+      {
+        error: "Middleware error",
+        details: String(error),
+      },
       { status: 500 }
     );
   }
