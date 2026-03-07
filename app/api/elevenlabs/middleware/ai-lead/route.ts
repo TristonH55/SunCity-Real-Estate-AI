@@ -212,6 +212,18 @@ export async function POST(req: Request) {
       );
     }
 
+    /* -----------------------------
+       LOG VERCEL OUTBOUND IP
+    ------------------------------*/
+
+    try {
+      const ipTest = await fetch("https://api.ipify.org?format=json");
+      const ipData = await ipTest.json();
+      console.log("VERCEL OUTBOUND IP:", ipData.ip);
+    } catch (err) {
+      console.log("IP CHECK FAILED");
+    }
+
     const clean = (v: any) =>
       typeof v === "string" ? v.trim().toLowerCase() : v;
 
@@ -369,6 +381,7 @@ export async function POST(req: Request) {
       crm_status: res.status,
       crm_response: text,
     });
+
   } catch (error) {
     console.error("AI Lead Error:", error);
 
