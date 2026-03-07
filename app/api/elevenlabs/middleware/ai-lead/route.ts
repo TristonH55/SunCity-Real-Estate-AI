@@ -396,10 +396,290 @@
 // }
 
 //////V TEST
+// import { NextResponse } from "next/server";
+
+// export async function POST(req: Request) {
+//   try {
+//     const body = await req.json();
+
+//     console.log("Incoming AI payload:", body);
+
+//     let { lead_data, contact_data } = body;
+
+//     if (!lead_data || !contact_data) {
+//       return NextResponse.json(
+//         { error: "Invalid payload structure" },
+//         { status: 400 }
+//       );
+//     }
+
+//     /* -----------------------------
+//        LOG VERCEL OUTBOUND IP
+//     ------------------------------*/
+
+//     try {
+//       const ipTest = await fetch("https://api.ipify.org?format=json");
+//       const ipData = await ipTest.json();
+//       console.log("VERCEL OUTBOUND IP:", ipData.ip);
+//     } catch {
+//       console.log("IP CHECK FAILED");
+//     }
+
+//     const clean = (v: any) =>
+//       typeof v === "string" ? v.trim().toLowerCase() : v;
+
+//     const propertyMap: any = {
+//       house: "8884",
+//       unit: "1b54",
+//       townhouse: "7b71",
+//       commercial: "a0fe",
+//     };
+
+//     const systemTypeMap: any = {
+//       electric: "c730",
+//       gas: "412c",
+//       solar: "8563",
+//       "heat pump": "43c8",
+//       "not sure": "bc1e",
+//       none: "4577",
+//     };
+
+//     const locationMap: any = {
+//       inside: "9603",
+//       outside: "db09",
+//       roof: "e4d8",
+//       none: "a1f1",
+//     };
+
+//     const enquiryTypeMap: any = {
+//       installation: "f176",
+//       replacement: "f176",
+//       quote: "f176",
+//       repair: "57d8",
+//       service: "57d8",
+//       advice: "7f48",
+//       parts: "4ce7",
+//     };
+
+//     /* -----------------------------
+//        SANITISE AI VALUES
+//     ------------------------------*/
+
+//     if (!["8884", "1b54", "7b71", "a0fe"].includes(lead_data.property_type)) {
+//       lead_data.property_type =
+//         propertyMap[clean(lead_data.property_type)] || "8884";
+//     }
+
+//     if (
+//       !["c730", "412c", "8563", "43c8", "bc1e", "4577"].includes(
+//         lead_data.system_type
+//       )
+//     ) {
+//       const sys = clean(lead_data.system_type);
+
+//       if (sys?.includes("gas")) lead_data.system_type = "412c";
+//       else if (sys?.includes("electric")) lead_data.system_type = "c730";
+//       else if (sys?.includes("solar")) lead_data.system_type = "8563";
+//       else if (sys?.includes("heat")) lead_data.system_type = "43c8";
+//       else lead_data.system_type = "c730";
+//     }
+
+//     if (!["9603", "db09", "e4d8", "a1f1"].includes(lead_data.system_location)) {
+//       const loc = clean(lead_data.system_location);
+
+//       if (loc?.includes("outside")) lead_data.system_location = "db09";
+//       else if (loc?.includes("roof")) lead_data.system_location = "e4d8";
+//       else if (loc?.includes("inside")) lead_data.system_location = "9603";
+//       else lead_data.system_location = "9603";
+//     }
+
+//     if (!["f176", "57d8", "7f48", "4ce7"].includes(lead_data.enquiry_type)) {
+//       lead_data.enquiry_type =
+//         enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
+//     }
+
+//     /* -----------------------------
+//        PROFANITY / SPAM FILTER
+//     ------------------------------*/
+
+//     const bannedWords = [
+//       "fuck",
+//       "shit",
+//       "bitch",
+//       "asshole",
+//       "cunt",
+//       "scam",
+//       "spam",
+//       "test"
+//     ];
+
+//     const enquiryText = clean(lead_data.enquiry || "");
+
+//     if (bannedWords.some(word => enquiryText.includes(word))) {
+
+//       console.log("BLOCKED PROFANITY/SPAM:", enquiryText);
+
+//       return NextResponse.json({
+//         blocked: true,
+//         reason: "Profanity detected"
+//       });
+//     }
+
+//     /* -----------------------------
+//        CLEAN FIELDS
+//     ------------------------------*/
+
+//     if (!lead_data.enquiry) {
+//       lead_data.enquiry = "Hot water system enquiry from AI assistant";
+//     }
+
+//     if (lead_data.source_url) {
+//       lead_data.source_url = lead_data.source_url.trim();
+//     }
+
+//     if (!contact_data.email || contact_data.email === "") {
+//       delete contact_data.email;
+//     }
+
+//     /* -----------------------------
+//        ADD UTM VALUES
+//     ------------------------------*/
+
+//     lead_data.utm_source = "AI Booking";
+//     lead_data.utm_medium = "Elevenlabs";
+
+//     const payload = {
+//       lead_data,
+//       contact_data,
+//     };
+
+//     console.log("Sending to CRM:", payload);
+
+//     /* -----------------------------
+//        ENV VARIABLES
+//     ------------------------------*/
+
+//     const username = process.env.CMS_API_KEY?.trim();
+//     const password = process.env.CMS_API_SECRET?.trim();
+
+//     console.log("ENV CHECK:", username ? "KEY OK" : "KEY MISSING");
+//     console.log("ENV CHECK:", password ? "SECRET OK" : "SECRET MISSING");
+
+//     if (!username || !password) {
+//       throw new Error("Missing CMS API credentials");
+//     }
+
+//     const credentials = Buffer.from(
+//       `${username}:${password}`
+//     ).toString("base64");
+
+//     const authHeader = `Basic ${credentials}`;
+
+//     console.log("AUTH HEADER SENT:", authHeader);
+
+//     /* -----------------------------
+//        SEND TO CRM
+//     ------------------------------*/
+
+//     const res = await fetch(
+//       "https://jobs.suncityhotwater.com.au/api/leads/add",
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: authHeader,
+//           "User-Agent": "SunCity-AI-Agent",
+//           Accept: "application/json",
+//         },
+//         body: JSON.stringify(payload),
+//       }
+//     );
+
+//     const text = await res.text();
+
+//     console.log("CRM Status:", res.status);
+//     console.log("CRM Response:", text);
+
+//     if (!res.ok) {
+//       return NextResponse.json(
+//         {
+//           error: "CRM rejected request",
+//           crm_status: res.status,
+//           crm_response: text,
+//         },
+//         { status: 500 }
+//       );
+//     }
+
+//     return NextResponse.json({
+//       success: true,
+//       crm_status: res.status,
+//       crm_response: text,
+//     });
+
+//   } catch (error) {
+//     console.error("AI Lead Error:", error);
+
+//     return NextResponse.json(
+//       {
+//         error: "Middleware error",
+//         details: String(error),
+//       },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+////////////////
 import { NextResponse } from "next/server";
+
+const rateLimit = new Map();
 
 export async function POST(req: Request) {
   try {
+
+    /* -----------------------------
+       SECRET HEADER PROTECTION
+    ------------------------------*/
+
+    const secret = req.headers.get("x-ai-secret");
+
+    if (secret !== process.env.AI_WEBHOOK_SECRET) {
+      console.log("Blocked request: invalid secret");
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    /* -----------------------------
+       BASIC RATE LIMIT
+    ------------------------------*/
+
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+
+    const now = Date.now();
+    const window = 60 * 60 * 1000; // 1 hour
+
+    const requests = rateLimit.get(ip) || [];
+
+    const filtered = requests.filter((t: number) => now - t < window);
+
+    if (filtered.length >= 5) {
+      console.log("Rate limit exceeded:", ip);
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
+      );
+    }
+
+    filtered.push(now);
+    rateLimit.set(ip, filtered);
+
+    /* -----------------------------
+       READ BODY
+    ------------------------------*/
+
     const body = await req.json();
 
     console.log("Incoming AI payload:", body);
@@ -413,20 +693,37 @@ export async function POST(req: Request) {
       );
     }
 
-    /* -----------------------------
-       LOG VERCEL OUTBOUND IP
-    ------------------------------*/
-
-    try {
-      const ipTest = await fetch("https://api.ipify.org?format=json");
-      const ipData = await ipTest.json();
-      console.log("VERCEL OUTBOUND IP:", ipData.ip);
-    } catch {
-      console.log("IP CHECK FAILED");
-    }
-
     const clean = (v: any) =>
       typeof v === "string" ? v.trim().toLowerCase() : v;
+
+    /* -----------------------------
+       PROFANITY FILTER
+    ------------------------------*/
+
+    const bannedWords = [
+      "fuck",
+      "shit",
+      "bitch",
+      "cunt",
+      "asshole",
+      "scam",
+      "spam"
+    ];
+
+    const enquiryText = clean(lead_data.enquiry || "");
+
+    if (bannedWords.some((w) => enquiryText.includes(w))) {
+
+      console.log("Blocked profanity:", enquiryText);
+
+      return NextResponse.json({
+        blocked: true
+      });
+    }
+
+    /* -----------------------------
+       MAPPING
+    ------------------------------*/
 
     const propertyMap: any = {
       house: "8884",
@@ -461,20 +758,13 @@ export async function POST(req: Request) {
       parts: "4ce7",
     };
 
-    /* -----------------------------
-       SANITISE AI VALUES
-    ------------------------------*/
-
-    if (!["8884", "1b54", "7b71", "a0fe"].includes(lead_data.property_type)) {
+    if (!["8884","1b54","7b71","a0fe"].includes(lead_data.property_type)) {
       lead_data.property_type =
         propertyMap[clean(lead_data.property_type)] || "8884";
     }
 
-    if (
-      !["c730", "412c", "8563", "43c8", "bc1e", "4577"].includes(
-        lead_data.system_type
-      )
-    ) {
+    if (!["c730","412c","8563","43c8","bc1e","4577"].includes(lead_data.system_type)) {
+
       const sys = clean(lead_data.system_type);
 
       if (sys?.includes("gas")) lead_data.system_type = "412c";
@@ -484,7 +774,8 @@ export async function POST(req: Request) {
       else lead_data.system_type = "c730";
     }
 
-    if (!["9603", "db09", "e4d8", "a1f1"].includes(lead_data.system_location)) {
+    if (!["9603","db09","e4d8","a1f1"].includes(lead_data.system_location)) {
+
       const loc = clean(lead_data.system_location);
 
       if (loc?.includes("outside")) lead_data.system_location = "db09";
@@ -493,92 +784,50 @@ export async function POST(req: Request) {
       else lead_data.system_location = "9603";
     }
 
-    if (!["f176", "57d8", "7f48", "4ce7"].includes(lead_data.enquiry_type)) {
+    if (!["f176","57d8","7f48","4ce7"].includes(lead_data.enquiry_type)) {
       lead_data.enquiry_type =
         enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
     }
 
     /* -----------------------------
-       PROFANITY / SPAM FILTER
-    ------------------------------*/
-
-    const bannedWords = [
-      "fuck",
-      "shit",
-      "bitch",
-      "asshole",
-      "cunt",
-      "scam",
-      "spam",
-      "test"
-    ];
-
-    const enquiryText = clean(lead_data.enquiry || "");
-
-    if (bannedWords.some(word => enquiryText.includes(word))) {
-
-      console.log("BLOCKED PROFANITY/SPAM:", enquiryText);
-
-      return NextResponse.json({
-        blocked: true,
-        reason: "Profanity detected"
-      });
-    }
-
-    /* -----------------------------
-       CLEAN FIELDS
-    ------------------------------*/
-
-    if (!lead_data.enquiry) {
-      lead_data.enquiry = "Hot water system enquiry from AI assistant";
-    }
-
-    if (lead_data.source_url) {
-      lead_data.source_url = lead_data.source_url.trim();
-    }
-
-    if (!contact_data.email || contact_data.email === "") {
-      delete contact_data.email;
-    }
-
-    /* -----------------------------
-       ADD UTM VALUES
+       ADD UTM
     ------------------------------*/
 
     lead_data.utm_source = "AI Booking";
     lead_data.utm_medium = "Elevenlabs";
 
+    /* -----------------------------
+       CLEAN EMAIL
+    ------------------------------*/
+
+    if (!contact_data.email || contact_data.email === "") {
+      delete contact_data.email;
+    }
+
     const payload = {
       lead_data,
-      contact_data,
+      contact_data
     };
 
     console.log("Sending to CRM:", payload);
 
     /* -----------------------------
-       ENV VARIABLES
+       AUTH
     ------------------------------*/
 
     const username = process.env.CMS_API_KEY?.trim();
     const password = process.env.CMS_API_SECRET?.trim();
 
-    console.log("ENV CHECK:", username ? "KEY OK" : "KEY MISSING");
-    console.log("ENV CHECK:", password ? "SECRET OK" : "SECRET MISSING");
-
     if (!username || !password) {
-      throw new Error("Missing CMS API credentials");
+      throw new Error("Missing CMS credentials");
     }
 
-    const credentials = Buffer.from(
-      `${username}:${password}`
-    ).toString("base64");
-
-    const authHeader = `Basic ${credentials}`;
-
-    console.log("AUTH HEADER SENT:", authHeader);
+    const auth =
+      "Basic " +
+      Buffer.from(`${username}:${password}`).toString("base64");
 
     /* -----------------------------
-       SEND TO CRM
+       SEND
     ------------------------------*/
 
     const res = await fetch(
@@ -587,9 +836,7 @@ export async function POST(req: Request) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: authHeader,
-          "User-Agent": "SunCity-AI-Agent",
-          Accept: "application/json",
+          Authorization: auth,
         },
         body: JSON.stringify(payload),
       }
@@ -602,29 +849,19 @@ export async function POST(req: Request) {
 
     if (!res.ok) {
       return NextResponse.json(
-        {
-          error: "CRM rejected request",
-          crm_status: res.status,
-          crm_response: text,
-        },
+        { error: "CRM rejected request" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      crm_status: res.status,
-      crm_response: text,
-    });
+    return NextResponse.json({ success: true });
 
   } catch (error) {
+
     console.error("AI Lead Error:", error);
 
     return NextResponse.json(
-      {
-        error: "Middleware error",
-        details: String(error),
-      },
+      { error: "Server error" },
       { status: 500 }
     );
   }
