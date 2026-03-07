@@ -329,13 +329,18 @@ export async function POST(req: Request) {
        SEND TO CRM
     ------------------------------*/
 
+    const credentials = Buffer.from(
+      `${username}:${password}`
+    ).toString("base64");
+    
     const res = await fetch(
       "https://jobs.suncityhotwater.com.au/api/leads/add",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: auth,
+          "Authorization": `Basic ${credentials}`,
+          "User-Agent": "SunCity-AI-Agent"
         },
         body: JSON.stringify(payload),
       }
