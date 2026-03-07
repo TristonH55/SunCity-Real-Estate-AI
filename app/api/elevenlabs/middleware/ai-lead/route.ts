@@ -252,14 +252,16 @@ export async function POST(req: Request) {
        SANITISE AI VALUES
     ------------------------------*/
 
-    // Property
-    if (!["8884","1b54","7b71","a0fe"].includes(lead_data.property_type)) {
+    if (!["8884", "1b54", "7b71", "a0fe"].includes(lead_data.property_type)) {
       lead_data.property_type =
         propertyMap[clean(lead_data.property_type)] || "8884";
     }
 
-    // System type
-    if (!["c730","412c","8563","43c8","bc1e","4577"].includes(lead_data.system_type)) {
+    if (
+      !["c730", "412c", "8563", "43c8", "bc1e", "4577"].includes(
+        lead_data.system_type
+      )
+    ) {
       const sys = clean(lead_data.system_type);
 
       if (sys?.includes("gas")) lead_data.system_type = "412c";
@@ -269,8 +271,7 @@ export async function POST(req: Request) {
       else lead_data.system_type = "c730";
     }
 
-    // System location
-    if (!["9603","db09","e4d8","a1f1"].includes(lead_data.system_location)) {
+    if (!["9603", "db09", "e4d8", "a1f1"].includes(lead_data.system_location)) {
       const loc = clean(lead_data.system_location);
 
       if (loc?.includes("outside")) lead_data.system_location = "db09";
@@ -279,8 +280,7 @@ export async function POST(req: Request) {
       else lead_data.system_location = "9603";
     }
 
-    // Enquiry type
-    if (!["f176","57d8","7f48","4ce7"].includes(lead_data.enquiry_type)) {
+    if (!["f176", "57d8", "7f48", "4ce7"].includes(lead_data.enquiry_type)) {
       lead_data.enquiry_type =
         enquiryTypeMap[clean(lead_data.enquiry_type)] || "f176";
     }
@@ -322,25 +322,27 @@ export async function POST(req: Request) {
       throw new Error("Missing CMS API credentials");
     }
 
-    const auth =
-      "Basic " + Buffer.from(username + ":" + password).toString("base64");
+    const credentials = Buffer.from(
+      `${username}:${password}`
+    ).toString("base64");
+
+    const authHeader = `Basic ${credentials}`;
+
+    console.log("AUTH HEADER SENT:", authHeader);
 
     /* -----------------------------
        SEND TO CRM
     ------------------------------*/
 
-    const credentials = Buffer.from(
-      `${username}:${password}`
-    ).toString("base64");
-    
     const res = await fetch(
       "https://jobs.suncityhotwater.com.au/api/leads/add",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Basic ${credentials}`,
-          "User-Agent": "SunCity-AI-Agent"
+          Authorization: authHeader,
+          "User-Agent": "SunCity-AI-Agent",
+          Accept: "application/json",
         },
         body: JSON.stringify(payload),
       }
@@ -367,7 +369,6 @@ export async function POST(req: Request) {
       crm_status: res.status,
       crm_response: text,
     });
-
   } catch (error) {
     console.error("AI Lead Error:", error);
 
