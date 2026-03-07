@@ -61,58 +61,117 @@
 // }
 
 /////V2
-import { prisma } from "lib/prisma";
-import { requireRole } from "lib/require-role";
+// import { prisma } from "lib/prisma";
+// import { requireRole } from "lib/require-role";
+
+// export default async function Dashboard() {
+//   const session = await requireRole("insurer");
+
+//   const confirmations = await prisma.pricingConfirmation.findMany({
+//     orderBy: { createdAt: "desc" },
+//     take: 20,
+//   });
+
+//   return (
+//     <div className="min-h-screen bg-gray-100 p-10 text-black">
+//       <h1 className="text-3xl font-bold text-[#db231f] mb-8">
+//         {session.user.companyName} Dashboard
+//       </h1>
+
+//       <div className="bg-white rounded-xl shadow">
+//         <div className="bg-[#db231f] text-white px-6 py-2 rounded-t-xl font-semibold">
+//           Recent Quotes
+//         </div>
+
+//         <table className="w-full text-sm">
+//           <thead className="bg-gray-50 text-gray-700">
+//             <tr>
+//               <th className="p-3 text-left">Confirmation</th>
+//               <th className="p-3 text-left">Total</th>
+//               <th className="p-3 text-left">Date</th>
+//               <th className="p-3 text-left"></th>
+//             </tr>
+//           </thead>
+
+//           <tbody>
+//             {confirmations.map((c) => (
+//               <tr key={c.id} className="border-t">
+//                 <td className="p-3 font-mono text-xs">
+//                   {c.id.slice(0, 8)}
+//                 </td>
+
+//                 <td className="p-3">
+//                   ${Number(c.totalIncGst).toLocaleString("en-AU")}
+//                 </td>
+
+//                 <td className="p-3">
+//                   {new Date(c.createdAt).toLocaleDateString()}
+//                 </td>
+
+//                 <td className="p-3">
+//                   <a
+//                     href={`/pricing/confirmation/${c.id}`}
+//                     target="_blank"
+//                     className="text-[#db231f] font-semibold"
+//                   >
+//                     View
+//                   </a>
+//                 </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//       </div>
+//     </div>
+//   );
+// }
+
+////////////V3
+import { prisma } from "../../lib/prisma";
+import { getServerSession } from "next-auth";
 
 export default async function Dashboard() {
-  const session = await requireRole("insurer");
-
   const confirmations = await prisma.pricingConfirmation.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10 text-black">
-      <h1 className="text-3xl font-bold text-[#db231f] mb-8">
-        {session.user.companyName} Dashboard
-      </h1>
+    <div className="flex justify-center py-10 bg-gray-100 min-h-screen">
+      <div className="w-full max-w-[1000px] bg-white shadow rounded-lg p-6">
 
-      <div className="bg-white rounded-xl shadow">
-        <div className="bg-[#db231f] text-white px-6 py-2 rounded-t-xl font-semibold">
-          Recent Quotes
-        </div>
+        <h1 className="text-2xl font-bold mb-6 text-red-600">
+          Your Confirmations
+        </h1>
 
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-700">
-            <tr>
-              <th className="p-3 text-left">Confirmation</th>
-              <th className="p-3 text-left">Total</th>
-              <th className="p-3 text-left">Date</th>
-              <th className="p-3 text-left"></th>
+          <thead>
+            <tr className="border-b text-black">
+              <th className="text-left py-2">Confirmation</th>
+              <th className="text-left py-2">Total</th>
+              <th className="text-left py-2">Date</th>
+              <th className="text-left py-2">View</th>
             </tr>
           </thead>
 
           <tbody>
             {confirmations.map((c) => (
-              <tr key={c.id} className="border-t">
-                <td className="p-3 font-mono text-xs">
-                  {c.id.slice(0, 8)}
+              <tr key={c.id} className="border-b text-black">
+                <td className="py-2">{c.id}</td>
+
+                <td>
+                  ${Number(c.totalIncGst).toLocaleString()}
                 </td>
 
-                <td className="p-3">
-                  ${Number(c.totalIncGst).toLocaleString("en-AU")}
+                <td>
+                  {new Date(c.createdAt).toLocaleDateString("en-AU")}
                 </td>
 
-                <td className="p-3">
-                  {new Date(c.createdAt).toLocaleDateString()}
-                </td>
-
-                <td className="p-3">
+                <td>
                   <a
                     href={`/pricing/confirmation/${c.id}`}
                     target="_blank"
-                    className="text-[#db231f] font-semibold"
+                    className="text-blue-600 underline"
                   >
                     View
                   </a>
@@ -121,6 +180,7 @@ export default async function Dashboard() {
             ))}
           </tbody>
         </table>
+
       </div>
     </div>
   );
