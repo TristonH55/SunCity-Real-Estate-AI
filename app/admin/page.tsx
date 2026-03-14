@@ -334,6 +334,8 @@
 import { prisma } from "../../lib/prisma";
 import ApproveButton from "./components/ApproveButton";
 import DeleteUserButton from "./components/DeleteUserButton";
+import DeleteConfirmationButton from "./components/DeleteConfirmationButton";
+
 
 export default async function AdminPage() {
 
@@ -448,6 +450,7 @@ export default async function AdminPage() {
                 <th className="text-left py-2">Total</th>
                 <th className="text-left py-2">Date</th>
                 <th className="text-left py-2">View</th>
+                <th className="text-left py-2">Delete</th>
               </tr>
             </thead>
 
@@ -466,20 +469,22 @@ export default async function AdminPage() {
                   </td>
 
                   <td>
+                <a
+                href={`/pricing/confirmation/${c.id}`}
+                target="_blank"
+                className="text-blue-600 underline"
+                >
+                View
+                </a>
+            </td>
 
-                    <a
-                      href={`/pricing/confirmation/${c.id}`}
-                      target="_blank"
-                      className="text-blue-600 underline"
-                    >
-                      View
-                    </a>
+            <td>
+            <DeleteConfirmationButton id={c.id} />
+            </td>
 
-                  </td>
+            </tr>
 
-                </tr>
-
-              ))}
+            ))}
 
             </tbody>
 

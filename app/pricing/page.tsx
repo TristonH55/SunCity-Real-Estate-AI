@@ -436,7 +436,7 @@ export default function PricingPage() {
       block: "start",
     });
   }}
-  className="lg:hidden fixed bottom-6 right-6 bg-[#000000] text-white px-4 py-3 rounded-full shadow-lg text-sm font-semibold"
+  className="lg:hidden fixed bottom-26 right-6 bg-[#000000] text-white px-4 py-3 rounded-full shadow-lg text-sm font-semibold"
 >
   Top
 </button>
