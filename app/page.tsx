@@ -6,9 +6,22 @@ export default function HomePage() {
     <div className="min-h-screen bg-white text-gray-900 pb-24">
 
       {/* HERO */}
+      
       <section className="text-center py-16 px-6 bg-gray-50">
+        {/* LOGO */}
+
+      <div className="mb-8 flex justify-center">
+        <Image
+          src="/images/suncity-logo-transparient.jpg.png"
+          alt="SunCity Certified Insurance Provider"
+          width={350}
+          height={80}
+          priority
+        />
+      </div>
+
         <h1 className="text-4xl font-bold mb-4 text-red-600">
-          SunCity Hot Water Insurance Portal
+          Hot Water Insurance Portal
         </h1>
 
         <p className="max-w-xl mx-auto text-gray-600 mb-8">
