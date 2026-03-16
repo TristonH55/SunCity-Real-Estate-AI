@@ -44,3 +44,5 @@ next-env.d.ts
 
 /Help-Info.txt
 Help-file
+Help-file.txt
+help-*.txt 
