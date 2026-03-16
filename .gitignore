@@ -42,7 +42,6 @@ next-env.d.ts
 
 /app/generated/prisma
 
-/Help-Info.txt
-Help-file
+
+
 Help-file.txt
-help-*.txt 
