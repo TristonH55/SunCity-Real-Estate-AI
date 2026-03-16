@@ -26,11 +26,23 @@ export default function LoginPage() {
       redirect: false,
     });
 
+    // if (res?.error) {
+    //   setError("Invalid credentials or account not approved");
+    //   setLoading(false);
+    //   return;
+    // }
+    ///new
     if (res?.error) {
       setError("Invalid credentials or account not approved");
       setLoading(false);
       return;
     }
+    
+    // refresh session then redirect
+    router.replace("/pricing");
+    router.refresh();
+
+
 
     router.push("/pricing");
   }
