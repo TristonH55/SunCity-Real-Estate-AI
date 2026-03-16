@@ -130,7 +130,7 @@ export default function HomePage() {
       />
 
       <h3 className="font-bold text-lg text-green-600 mb-2">
-        STEP 3333333 — Confirm Price
+        STEP 3 — Confirm Price
       </h3>
 
       <p className="text-sm text-gray-600">

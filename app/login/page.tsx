@@ -32,11 +32,13 @@ export default function LoginPage() {
     //   return;
     // }
     ///new
-    if (res?.error) {
+    if (!res || !res.ok) {
       setError("Invalid credentials or account not approved");
       setLoading(false);
       return;
     }
+    
+    router.replace("/pricing");
     
     // refresh session then redirect
     router.replace("/pricing");
