@@ -393,9 +393,37 @@ if (onCompletionChange) {
                   className="flex items-center justify-between p-3 rounded border"
                 >
 
-                  <div>
+                  {/* <div>
                     <span>{e.name}</span>
-                  </div>
+                  </div> */}
+
+<div className="flex flex-col">
+  <span>{e.name}</span>
+
+  {/* Info PDF links */}
+  {e.name.toLowerCase().includes("safe tray") && (
+    <a
+      href="/pdfs/Internal-hot-water-systems-safe-tray-and-mildred-valve.pdf"
+      target="_blank"
+      className="text-xs text-blue-600 underline mt-1"
+    >
+      Info PDF
+    </a>
+  )}
+
+  {e.name.toLowerCase().includes("concrete base") && (
+    <a
+      href="/pdfs/external-hot-water-systems-support-base.pdf"
+      target="_blank"
+      className="text-xs text-blue-600 underline mt-1"
+    >
+      Info PDF
+    </a>
+  )}
+</div>
+
+
+
 
                   <div className="flex items-center gap-4">
 

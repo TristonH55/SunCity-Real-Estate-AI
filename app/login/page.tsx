@@ -7,47 +7,89 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { update } = useSession();
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+//   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+//     e.preventDefault();
+//     setLoading(true);
+//     setError("");
 
-    const form = new FormData(e.currentTarget);
+//     const form = new FormData(e.currentTarget);
 
-    const res = await signIn("credentials", {
-      email: form.get("email"),
-      password: form.get("password"),
-      redirect: false,
-    });
+//     const res = await signIn("credentials", {
+//       email: form.get("email"),
+//       password: form.get("password"),
+//       redirect: false,
+//     });
 
-    // if (res?.error) {
-    //   setError("Invalid credentials or account not approved");
-    //   setLoading(false);
-    //   return;
-    // }
-    ///new
-    if (!res || !res.ok) {
-      setError("Invalid credentials or account not approved");
-      setLoading(false);
-      return;
-    }
+//     // if (res?.error) {
+//     //   setError("Invalid credentials or account not approved");
+//     //   setLoading(false);
+//     //   return;
+//     // }
+//     ///new
+//     if (!res || !res.ok) {
+//       setError("Invalid credentials or account not approved");
+//       setLoading(false);
+//       return;
+//     }
     
-    router.replace("/pricing");
+//     //router.replace("/pricing");
     
-    // refresh session then redirect
-    router.replace("/pricing");
-    router.refresh();
+//     // force session refresh
+// const session = await update();
+
+// if (session?.user?.role === "admin") {
+//   router.replace("/admin");
+// } else {
+//   router.replace("/pricing");
+// }
 
 
 
-    router.push("/pricing");
+//     // refresh session then redirect
+//     router.replace("/pricing");
+//     router.refresh();
+
+
+
+//     router.push("/pricing");
+//   }
+
+async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  const form = new FormData(e.currentTarget);
+
+  const res = await signIn("credentials", {
+    email: form.get("email"),
+    password: form.get("password"),
+    redirect: false,
+  });
+
+  if (!res || !res.ok) {
+    setError("Invalid credentials or account not approved");
+    setLoading(false);
+    return;
   }
+
+  // refresh the session so we can read the role
+  const session = await update();
+
+  if (session?.user?.role === "admin") {
+    router.replace("/admin");
+  } else {
+    router.replace("/pricing");
+  }
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
