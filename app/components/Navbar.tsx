@@ -182,7 +182,10 @@ export default function Navbar() {
           </Link>
         ) : (
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => 
+              signOut({ 
+                callbackUrl: "/login", 
+              })}
             className="flex flex-col items-center text-gray-700 hover:text-black"
           >
             <LogOut size={22} />

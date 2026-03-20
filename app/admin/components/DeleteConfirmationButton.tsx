@@ -14,6 +14,7 @@ export default function DeleteConfirmationButton({ id }: { id: string }) {
 
     await fetch(`/api/admin/delete-confirmation/${id}`, {
       method: "DELETE",
+      credentials: "include", // 🔥 REQUIRED
     });
 
     router.refresh();

@@ -41,7 +41,6 @@ export default function LoginPage() {
 //     }
     
 //     //router.replace("/pricing");
-    
 //     // force session refresh
 // const session = await update();
 
@@ -81,8 +80,12 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     return;
   }
 
-  // refresh the session so we can read the role
-  const session = await update();
+  // ✅ Wait for session to update properly
+  await update();
+
+  // ✅ Now fetch fresh session (correct way)
+  const sessionRes = await fetch("/api/auth/session");
+  const session = await sessionRes.json();
 
   if (session?.user?.role === "admin") {
     router.replace("/admin");

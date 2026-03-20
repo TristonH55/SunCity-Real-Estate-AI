@@ -217,18 +217,35 @@ export async function POST(req: Request) {
     });
 
     // 📧 SEND ADMIN APPROVAL EMAIL (RESEND)
-    await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/send-admin-approval`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          email: user.email,
-          companyName: user.companyName,
-        }),
-      }
-    );
+    // await fetch(
+    //   `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/send-admin-approval`,
+    //   {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({
+    //       userId: user.id,
+    //       email: user.email,
+    //       companyName: user.companyName,
+    //     }),
+    //   }
+    // );
+    const baseUrl =
+    process.env.NEXTAUTH_URL || "http://localhost:3000";
+  
+  await fetch(`${baseUrl}/api/auth/send-admin-approval`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: user.id,
+      email: user.email,
+      companyName: user.companyName,
+    }),
+  });
+
+
+
+
+
 
     return NextResponse.json({ success: true });
   } catch (error) {
