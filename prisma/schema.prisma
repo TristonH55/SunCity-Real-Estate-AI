@@ -98,6 +98,10 @@ model PricingConfirmation {
   subtotalExGst      Decimal
   gst                Decimal
   totalIncGst        Decimal
+
+  // NEW 👇
+  notes              String?     // internal notes
+  images             String[]    @default([]) // uploaded image URLs
   customerSnapshot   Json?
   createdAt          DateTime @default(now())
 

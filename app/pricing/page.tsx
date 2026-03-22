@@ -268,7 +268,7 @@
 //   );
 // }
 
-///// TEST MOBILE READY VERSION
+///// TEST MOBILE READY VERSION last tested working//
 "use client";
 
 export const dynamic = "force-dynamic";
@@ -448,3 +448,5 @@ export default function PricingPage() {
 
   );
 }
+
+/////test only

@@ -138,6 +138,77 @@
 // };
 
 /////TEST 2 / ABOVE IS WORKING///
+// import Credentials from "next-auth/providers/credentials";
+// import bcrypt from "bcryptjs";
+// import { prisma } from "./prisma";
+// import type { AuthOptions } from "next-auth";
+
+// export const authOptions: AuthOptions = {
+//   session: {
+//     strategy: "jwt",
+//   },
+//   providers: [
+//     Credentials({
+//       name: "Credentials",
+//       credentials: {
+//         email: { label: "Email", type: "email" },
+//         password: { label: "Password", type: "password" },
+//       },
+//       async authorize(credentials) {
+//         if (!credentials?.email || !credentials.password) {
+//           return null;
+//         }
+
+//         const email = credentials.email.trim().toLowerCase();
+//         const password = credentials.password.trim();
+
+//         const user = await prisma.user.findUnique({
+//           where: { email },
+//         });
+
+//         if (!user) return null;
+//         if (!user.approved) return null;
+
+//         const valid = await bcrypt.compare(
+//           password,
+//           user.passwordHash
+//         );
+
+//         if (!valid) return null;
+
+//         return {
+//           id: user.id,
+//           email: user.email,
+//           role: user.role,
+//           approved: user.approved,
+//           companyName: user.companyName,
+//         };
+//       },
+//     }),
+//   ],
+//   callbacks: {
+//     async jwt({ token, user }) {
+//       if (user) {
+//         token.id = user.id;
+//         token.role = user.role;
+//         token.approved = user.approved;
+//         token.companyName = user.companyName;
+//       }
+//       return token;
+//     },
+//     async session({ session, token }) {
+//       if (session.user) {
+//         session.user.id = token.id as string;
+//         session.user.role = token.role as "admin" | "insurer";
+//         session.user.approved = token.approved as boolean;
+//         session.user.companyName = token.companyName as string;
+//       }
+//       return session;
+//     },
+//   },
+// };
+
+/////TEST 3 ONLY TEST
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
@@ -147,6 +218,23 @@ export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
   },
+
+  // ✅ 🔥 CRITICAL FIX FOR PRODUCTION
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
   providers: [
     Credentials({
       name: "Credentials",
@@ -186,6 +274,7 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
