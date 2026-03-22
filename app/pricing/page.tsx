@@ -466,25 +466,10 @@ import PriceSummary from "./components/PriceSummary";
 
 export default function PricingPage() {
 
-  // 🔥 DEBUG SESSION
+  // 🔥 SESSION
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    console.log("🔥 PRICING PAGE LOADED");
-    console.log("SESSION STATUS:", status);
-    console.log("SESSION DATA:", session);
-  }, [status, session]);
-
-  // ✅ 🔥 CRITICAL FIX — WAIT FOR SESSION
-  if (status === "loading") {
-    console.log("⏳ Waiting for session...");
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-  }
-
+  // 🔥 STATE (MUST ALWAYS BE CALLED)
   const [region, setRegion] = useState<string | null>(null);
   const [systemType, setSystemType] = useState<string | null>(null);
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
@@ -493,6 +478,23 @@ export default function PricingPage() {
 
   const extrasRef = useRef<HTMLDivElement | null>(null);
   const systemsRef = useRef<HTMLDivElement | null>(null);
+
+  // 🔥 DEBUG
+  useEffect(() => {
+    console.log("🔥 PRICING PAGE LOADED");
+    console.log("SESSION STATUS:", status);
+    console.log("SESSION DATA:", session);
+  }, [status, session]);
+
+  // ✅ NOW SAFE TO CONDITIONALLY RETURN
+  if (status === "loading") {
+    console.log("⏳ Waiting for session...");
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 px-8 py-10 max-w-7xl mx-auto">
