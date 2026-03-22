@@ -216,13 +216,8 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
 
-  // 🔥 DEBUG LOGS
-  console.log("NAV STATUS:", status);
-  console.log("NAV SESSION:", session);
-
-  // ⛔ WAIT until session is ready
   if (status === "loading") {
-    return null; // or a loader if you want
+    return null;
   }
 
   const active = "text-green-600";
@@ -237,10 +232,14 @@ export default function Navbar() {
           <span className="text-xs">Home</span>
         </Link>
 
-        <Link href="/pricing" className={`flex flex-col items-center ${pathname.startsWith("/pricing") ? active : inactive}`}>
+        {/* 🔥 FIX: Hard navigation to avoid next-auth race condition */}
+        <button
+          onClick={() => { window.location.href = "/pricing"; }}
+          className={`flex flex-col items-center ${pathname.startsWith("/pricing") ? active : inactive}`}
+        >
           <DollarSign size={22} />
           <span className="text-xs">Prices</span>
-        </Link>
+        </button>
 
         {session && (
           <Link href="/dashboard" className={`flex flex-col items-center ${pathname.startsWith("/dashboard") ? active : inactive}`}>
