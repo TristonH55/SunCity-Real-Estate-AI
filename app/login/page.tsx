@@ -15,52 +15,42 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { update } = useSession();
 
-//   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-//     e.preventDefault();
-//     setLoading(true);
-//     setError("");
-
-//     const form = new FormData(e.currentTarget);
-
-//     const res = await signIn("credentials", {
-//       email: form.get("email"),
-//       password: form.get("password"),
-//       redirect: false,
-//     });
-
-//     // if (res?.error) {
-//     //   setError("Invalid credentials or account not approved");
-//     //   setLoading(false);
-//     //   return;
-//     // }
-//     ///new
-//     if (!res || !res.ok) {
-//       setError("Invalid credentials or account not approved");
-//       setLoading(false);
-//       return;
-//     }
-    
-//     //router.replace("/pricing");
-//     // force session refresh
-// const session = await update();
-
-// if (session?.user?.role === "admin") {
-//   router.replace("/admin");
-// } else {
-//   router.replace("/pricing");
-// }
 
 
+// async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+//   e.preventDefault();
+//   setLoading(true);
+//   setError("");
 
-//     // refresh session then redirect
-//     router.replace("/pricing");
-//     router.refresh();
+//   const form = new FormData(e.currentTarget);
 
+//   const res = await signIn("credentials", {
+//     email: form.get("email"),
+//     password: form.get("password"),
+//     redirect: false,
+//   });
 
-
-//     router.push("/pricing");
+//   if (!res || !res.ok) {
+//     setError("Invalid credentials or account not approved");
+//     setLoading(false);
+//     return;
 //   }
 
+//   // ✅ Wait for session to update properly
+//   await update();
+
+//   // ✅ Now fetch fresh session (correct way)
+//   const sessionRes = await fetch("/api/auth/session");
+//   const session = await sessionRes.json();
+
+//   if (session?.user?.role === "admin") {
+//     router.replace("/admin");
+//   } else {
+//     router.replace("/pricing");
+//   }
+// }
+
+///V2
 async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
   e.preventDefault();
   setLoading(true);
@@ -80,19 +70,17 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     return;
   }
 
-  // ✅ Wait for session to update properly
+  // ✅ wait for session to update
   await update();
 
-  // ✅ Now fetch fresh session (correct way)
-  const sessionRes = await fetch("/api/auth/session");
-  const session = await sessionRes.json();
+  // ✅ DO NOT fetch /api/auth/session
+  // just wait a moment and redirect
 
-  if (session?.user?.role === "admin") {
-    router.replace("/admin");
-  } else {
-    router.replace("/pricing");
-  }
+  setTimeout(() => {
+    router.replace("/admin"); // always send here first
+  }, 300);
 }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
