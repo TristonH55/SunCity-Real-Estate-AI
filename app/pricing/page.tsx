@@ -475,6 +475,16 @@ export default function PricingPage() {
     console.log("SESSION DATA:", session);
   }, [status, session]);
 
+  // ✅ 🔥 CRITICAL FIX — WAIT FOR SESSION
+  if (status === "loading") {
+    console.log("⏳ Waiting for session...");
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
   const [region, setRegion] = useState<string | null>(null);
   const [systemType, setSystemType] = useState<string | null>(null);
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);

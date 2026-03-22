@@ -202,7 +202,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Home,
   DollarSign,
@@ -213,9 +213,17 @@ import {
 } from "lucide-react";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
-  const router = useRouter();
+
+  // 🔥 DEBUG LOGS
+  console.log("NAV STATUS:", status);
+  console.log("NAV SESSION:", session);
+
+  // ⛔ WAIT until session is ready
+  if (status === "loading") {
+    return null; // or a loader if you want
+  }
 
   const active = "text-green-600";
   const inactive = "text-gray-700 hover:text-black";
@@ -224,87 +232,45 @@ export default function Navbar() {
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md z-50">
       <div className="max-w-5xl mx-auto flex justify-around py-3">
 
-        {/* HOME */}
-        <Link
-          href="/"
-          className={`flex flex-col items-center ${
-            pathname === "/" ? active : inactive
-          }`}
-        >
+        <Link href="/" className={`flex flex-col items-center ${pathname === "/" ? active : inactive}`}>
           <Home size={22} />
           <span className="text-xs">Home</span>
         </Link>
 
-        {/* 🔥 PRICING (FIXED) */}
-        <Link
-          href="/pricing"
-          onClick={async (e) => {
-            e.preventDefault();
-
-            // ✅ force session sync
-            await fetch("/api/auth/session");
-
-            // ✅ then navigate
-            router.push("/pricing");
-          }}
-          className={`flex flex-col items-center ${
-            pathname.startsWith("/pricing") ? active : inactive
-          }`}
-        >
+        <Link href="/pricing" className={`flex flex-col items-center ${pathname.startsWith("/pricing") ? active : inactive}`}>
           <DollarSign size={22} />
           <span className="text-xs">Prices</span>
         </Link>
 
-        {/* DASHBOARD */}
         {session && (
-          <Link
-            href="/dashboard"
-            className={`flex flex-col items-center ${
-              pathname.startsWith("/dashboard") ? active : inactive
-            }`}
-          >
+          <Link href="/dashboard" className={`flex flex-col items-center ${pathname.startsWith("/dashboard") ? active : inactive}`}>
             <LayoutDashboard size={22} />
             <span className="text-xs">Dashboard</span>
           </Link>
         )}
 
-        {/* ADMIN (admin only) */}
         {session?.user?.role === "admin" && (
-          <Link
-            href="/admin"
-            className={`flex flex-col items-center ${
-              pathname.startsWith("/admin") ? active : inactive
-            }`}
-          >
+          <Link href="/admin" className={`flex flex-col items-center ${pathname.startsWith("/admin") ? active : inactive}`}>
             <Shield size={22} />
             <span className="text-xs">Admin</span>
           </Link>
         )}
 
-        {/* LOGIN / LOGOUT */}
         {!session ? (
-          <Link
-            href="/login"
-            className={`flex flex-col items-center ${
-              pathname === "/login" ? active : inactive
-            }`}
-          >
+          <Link href="/login" className={`flex flex-col items-center ${pathname === "/login" ? active : inactive}`}>
             <LogIn size={22} />
             <span className="text-xs">Login</span>
           </Link>
         ) : (
           <button
-            onClick={() =>
-              signOut({
-                callbackUrl: "/login",
-              })
-            }
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex flex-col items-center text-gray-700 hover:text-black"
           >
             <LogOut size={22} />
             <span className="text-xs">Logout</span>
           </button>
         )}
+
       </div>
     </nav>
   );
