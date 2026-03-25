@@ -449,9 +449,9 @@ if (onCompletionChange) {
 
           </div>
           {!allAnswered && (
-            <div className="mt-3 text-sm text-red-600">
-              Please answer all extras before continuing.
-            </div>
+            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm font-semibold text-red-600 flex items-center gap-2">
+            ⚠️ Please answer all extras before continuing.
+          </div>
           )}
         </div>
 

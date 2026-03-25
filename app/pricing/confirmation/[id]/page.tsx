@@ -539,9 +539,21 @@ export default async function ConfirmationPage({ params }: PageProps) {
                 <strong>Phone:</strong> {customer.phone}
               </div>
 
-              <div>
+              {/* <div>
                 <strong>Suburb:</strong> {customer.suburb}
+              </div> */}
+              <div>
+              <strong>Address:</strong>{" "}
+              {customer.address || "Not provided"}
               </div>
+
+            <div>
+              <strong>Suburb:</strong> {customer.suburb}
+            </div>
+
+            <div>
+              <strong>Postcode:</strong> {customer.postcode}
+            </div>
             </div>
           </div>
         )}

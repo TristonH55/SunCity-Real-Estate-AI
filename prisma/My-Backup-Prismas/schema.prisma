@@ -7,6 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
+
+
+
+
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -16,8 +22,6 @@ model User {
   approved      Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  jobNotes      JobNote[] // ✅ NEW
 }
 
 model Region {
@@ -28,6 +32,7 @@ model Region {
   systemPrices SystemPrice[]
   extraPrices  ExtraPrice[]
 }
+
 
 model System {
   id                     String   @id @default(uuid())
@@ -45,6 +50,8 @@ model System {
 
   systemPrices           SystemPrice[]
 }
+
+
 
 model SystemPrice {
   id       String @id @default(uuid())
@@ -69,7 +76,7 @@ model Extra {
 model ExtraPrice {
   id       String @id @default(uuid())
   extra    Extra  @relation(fields: [extraId], references: [id])
-  extraId  String
+  extraId String
   region   Region @relation(fields: [regionId], references: [id])
   regionId String
   price    Decimal
@@ -78,41 +85,38 @@ model ExtraPrice {
 model PricingConfirmation {
   id                String   @id @default(uuid())
 
+  // Who / where
   regionCode         String
   systemId           String
+  
+  // ✅ ADD THIS LINE HERE
   insurerId          String?
 
+  // What was selected
   extraIds           String[] @default([])
 
+  // Price snapshot (ex-GST unless stated)
   basePriceExGst     Decimal
   extrasTotalExGst   Decimal
   subtotalExGst      Decimal
   gst                Decimal
   totalIncGst        Decimal
 
-  notes              String?
-  images             String[] @default([])
+  // NEW 
+  notes              String?     // internal notes
+  images             String[]    @default([]) // uploaded image URLs
   customerSnapshot   Json?
   createdAt          DateTime @default(now())
-
-  notesLog           JobNote[] // ✅ NEW
-  lastViewedByInsurer DateTime?
-  lastViewedByAdmin   DateTime?
 
   @@index([regionCode])
   @@index([systemId])
 }
 
-model JobNote {
-  id        String   @id @default(uuid())
-  jobId     String
-  userId    String
-  message   String
-  createdAt DateTime @default(now())
 
-  job   PricingConfirmation @relation(fields: [jobId], references: [id])
-  user  User                @relation(fields: [userId], references: [id])
-}
+
+
+
+
 
 enum UserRole {
   admin

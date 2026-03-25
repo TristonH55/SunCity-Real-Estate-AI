@@ -127,6 +127,7 @@ const extras = await prisma.extra.findMany({
         lastName?: string;
         email?: string;
         phone?: string;
+        address?: string;
         suburb?: string;
         postcode?: string;
         propertyType?: string;
@@ -176,6 +177,11 @@ const extras = await prisma.extra.findMany({
           <View style={styles.customerRow}>
             <Text style={styles.label}>Mobile:</Text>
             <Text>{customer?.phone || "—"}</Text>
+          </View>
+
+          <View style={styles.customerRow}>
+            <Text style={styles.label}>Address:</Text>
+            <Text>{customer?.address || "—"}</Text>
           </View>
 
           <View style={styles.customerRow}>
