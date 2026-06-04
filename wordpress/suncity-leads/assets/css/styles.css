@@ -1,0 +1,181 @@
+.ui-form {
+  margin: 0 auto;
+  display: flex;
+  gap: 15px;
+  flex-direction: column;
+}
+.ui-form button[type=submit] {
+  background-color: #666;
+  border: none;
+  color: #fff;
+  height: 46px;
+  border-radius: 3px;
+}
+.ui-form a {
+  color: inherit;
+}
+.ui-form .ui-input-two {
+  display: flex;
+  gap: 15px;
+}
+.ui-form .ui-input-two .ui-input {
+  width: 50%;
+}
+.ui-form .ui-input {
+  border: 1px solid #666;
+  border-radius: 3px;
+  background: #fff;
+  outline: blue;
+  display: block;
+  position: relative;
+}
+.ui-form .ui-input .instructions {
+  display: none;
+  padding: 4px 8px;
+  font-size: 80%;
+}
+.ui-form .ui-input.focus .instructions {
+  display: block;
+  background-color: #71a8f8;
+  color: #031734;
+}
+.ui-form .ui-input.error .instructions {
+  display: block;
+  background-color: #ff9999;
+  color: #660000;
+}
+.ui-form .ui-input.focus {
+  border-color: #052c65;
+}
+.ui-form .ui-input.error {
+  border-color: red;
+}
+.ui-form .ui-input .ui-input-label {
+  position: absolute;
+  top: 0;
+  padding: 8px;
+  font-size: 14.96px;
+  line-height: calc(46px - (8px * 2));
+  height: calc(46px - (8px * 2));
+  color: black;
+  box-sizing: content-box;
+}
+.ui-form .ui-input.active .ui-input-label {
+  padding: 8px;
+  font-size: 11.04px;
+  line-height: 11.04px;
+  height: 11.04px;
+  color: black;
+  font-weight: bold;
+}
+.ui-form .ui-input.focus .ui-input-label {
+  color: #052c65;
+}
+.ui-form .ui-input.error .ui-input-label {
+  color: red;
+}
+.ui-form .ui-input input.ui-input-input,
+.ui-form .ui-input select.ui-input-input,
+.ui-form .ui-input textarea.ui-input-input {
+  opacity: 0;
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  padding: 23.04px 8px 8px 8px !important;
+  font-size: 14.96px;
+  line-height: 14.96px;
+  height: 14.96px;
+  min-height: unset;
+  outline: none;
+  appearance: none;
+  margin: 0;
+  display: block;
+  border-radius: 0;
+  box-sizing: content-box;
+  width: calc(100% - 16px);
+}
+.ui-form .ui-input select.ui-input-input {
+  font-size: 14.96px;
+  background-color: transparent;
+}
+.ui-form .ui-input.select {
+  background-image: url("../images/arrow.svg");
+  background-position: calc(100% - 20px) center;
+  background-repeat: no-repeat;
+}
+.ui-form .ui-input textarea.ui-input-input {
+  height: 150px;
+}
+.ui-form .ui-input.active .ui-input-input {
+  opacity: 1;
+}
+.ui-form .ui-message {
+  font-size: 12px;
+  line-height: 14px;
+}
+.ui-form .ui-loading-message {
+  display: none;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(1px);
+  border-radius: 5px;
+  align-items: center;
+  justify-content: center;
+}
+.ui-form .ui-loading-message .ui-loading-message-content {
+  width: 90%;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 0 3px #333;
+  font-size: 20px;
+}
+.ui-form.loading .ui-loading-message {
+  display: flex;
+}
+.ui-form .verification {
+  border: 1px solid #666;
+  border-radius: 3px;
+  padding: 10px;
+}
+
+.address-list {
+  position: absolute;
+  top: 100%;
+  left: -1px;
+  right: -1px;
+  max-height: 60vh;
+  border: 1px solid #052c65;
+  overflow-y: auto;
+  background-color: #fff;
+  box-shadow: 10px 0 10px #eee;
+  z-index: 999999999;
+  border-radius: 0 0 3px 3px;
+}
+
+.address-list-item {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+  color: #333;
+}
+
+.address-list-item.selected {
+  background-color: #106cf3;
+  color: #fff;
+}
+
+.address-list-item:not(:last-child).selected {
+  border-bottom: 1px solid #052c65;
+}
+
+.address-list-item:last-child {
+  border-bottom: none;
+}
+
+/*# sourceMappingURL=styles.css.map */

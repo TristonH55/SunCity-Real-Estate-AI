@@ -117,7 +117,7 @@
 //             <input
 //               key={key}
 //               placeholder={label}
-//               className="border rounded-md px-3 py-2 text-sm"
+//               className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //               value={(customer as any)[key]}
 //               onChange={(e) =>
 //                 setCustomer({ ...customer, [key]: e.target.value })
@@ -602,14 +602,14 @@
 //             placeholder="First name"
 //             value={customer.firstName}
 //             onChange={(e) => setCustomer((s) => ({ ...s, firstName: e.target.value }))}
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           />
 
 //           <input
 //             placeholder="Last name"
 //             value={customer.lastName}
 //             onChange={(e) => setCustomer((s) => ({ ...s, lastName: e.target.value }))}
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           />
 
 //           <input
@@ -617,7 +617,7 @@
 //             type="email"
 //             value={customer.email}
 //             onChange={(e) => setCustomer((s) => ({ ...s, email: e.target.value }))}
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           />
 
 //           <input
@@ -625,7 +625,7 @@
 //             type="tel"
 //             value={customer.phone}
 //             onChange={(e) => setCustomer((s) => ({ ...s, phone: e.target.value }))}
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           />
 
 //           {/* ✅ NEW AUTOCOMPLETE INPUT */}
@@ -703,7 +703,7 @@
 //             placeholder="Postcode"
 //             value={customer.postcode}
 //             onChange={(e) => setCustomer((s) => ({ ...s, postcode: e.target.value }))}
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           />
 
 //           <select
@@ -711,7 +711,7 @@
 //             onChange={(e) =>
 //               setCustomer((s) => ({ ...s, propertyType: e.target.value }))
 //             }
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           >
 //             <option value="">Choose one</option>
 //             <option value="House">House</option>
@@ -725,7 +725,7 @@
 //             onChange={(e) =>
 //               setCustomer((s) => ({ ...s, existingSystemType: e.target.value }))
 //             }
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           >
 //             <option value="">Choose one</option>
 //             <option value="Electric">Electric</option>
@@ -741,7 +741,7 @@
 //             onChange={(e) =>
 //               setCustomer((s) => ({ ...s, systemLocation: e.target.value }))
 //             }
-//             className="border rounded-md px-3 py-2 text-sm"
+//             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
 //           >
 //             <option value="">Choose one</option>
 //             <option value="Inside">Inside</option>
@@ -912,7 +912,7 @@ export default function PriceSummary({
   };
 
   if (!systemId) return null;
-  if (loading) return <p className="mt-6 text-gray-500">Calculating price…</p>;
+  if (loading) return <p className="mt-6 text-slate-400">Calculating price…</p>;
   if (!price) return null;
 
   const money = (v: number) =>
@@ -931,11 +931,11 @@ export default function PriceSummary({
     customer.address; // ✅ REQUIRED NOW
 
   return (
-    <div className="mt-8 border rounded-lg p-6 bg-gray-50 space-y-8">
+    <div className="mt-8 space-y-8">
 
       {/* Customer Details */}
-      <div className="border rounded-lg p-5 bg-white shadow-sm">
-        <h2 className="text-xl font-semibold mb-5 text-gray-900">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+        <h2 className="text-xl font-semibold mb-5 text-white">
           Customer & Property Details
         </h2>
 
@@ -945,14 +945,14 @@ export default function PriceSummary({
             placeholder="First name"
             value={customer.firstName}
             onChange={(e) => setCustomer((s) => ({ ...s, firstName: e.target.value }))}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           />
 
           <input
             placeholder="Last name"
             value={customer.lastName}
             onChange={(e) => setCustomer((s) => ({ ...s, lastName: e.target.value }))}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           />
 
           <input
@@ -960,7 +960,7 @@ export default function PriceSummary({
             type="email"
             value={customer.email}
             onChange={(e) => setCustomer((s) => ({ ...s, email: e.target.value }))}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           />
 
           <input
@@ -968,7 +968,7 @@ export default function PriceSummary({
             type="tel"
             value={customer.phone}
             onChange={(e) => setCustomer((s) => ({ ...s, phone: e.target.value }))}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           />
 
           {/* GOOGLE ADDRESS */}
@@ -997,15 +997,15 @@ export default function PriceSummary({
 
                 setSuggestions(qldOnly);
               }}
-              className="border rounded-md px-3 py-2 text-sm w-full"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition"
             />
 
             {suggestions.length > 0 && (
-              <div className="absolute z-50 bg-white border w-full mt-1 rounded shadow max-h-60 overflow-y-auto">
+              <div className="absolute z-50 bg-[#0d1220] border border-white/10 w-full mt-1 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                 {suggestions.map((s) => (
                   <div
                     key={s.place_id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                    className="p-2 hover:bg-white/10 cursor-pointer text-sm text-slate-200"
                     onClick={async () => {
                       const res = await fetch(
                         `/api/google/place-details?placeId=${s.place_id}`
@@ -1051,7 +1051,7 @@ export default function PriceSummary({
             placeholder="Postcode"
             value={customer.postcode}
             onChange={(e) => setCustomer((s) => ({ ...s, postcode: e.target.value }))}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           />
 
           <select
@@ -1059,7 +1059,7 @@ export default function PriceSummary({
             onChange={(e) =>
               setCustomer((s) => ({ ...s, propertyType: e.target.value }))
             }
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           >
             <option value="">Choose one</option>
             <option value="House">House</option>
@@ -1073,7 +1073,7 @@ export default function PriceSummary({
             onChange={(e) =>
               setCustomer((s) => ({ ...s, existingSystemType: e.target.value }))
             }
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           >
             <option value="">Choose one</option>
             <option value="Electric">Electric</option>
@@ -1089,7 +1089,7 @@ export default function PriceSummary({
             onChange={(e) =>
               setCustomer((s) => ({ ...s, systemLocation: e.target.value }))
             }
-            className="border rounded-md px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
           >
             <option value="">Choose one</option>
             <option value="Inside">Inside</option>
@@ -1103,9 +1103,9 @@ export default function PriceSummary({
 
       {/* Price Summary */}
       <div>
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Price Summary</h2>
+        <h2 className="text-xl font-semibold mb-4 text-white">Price Summary</h2>
 
-        <div className="space-y-2 text-sm text-gray-900">
+        <div className="space-y-2 text-sm text-slate-200">
           <div className="flex justify-between">
             <span>System price (ex-GST)</span>
             <span>${money(price.systemPriceExGst)}</span>
@@ -1122,9 +1122,9 @@ export default function PriceSummary({
             <span>GST (10%)</span>
             <span>${money(price.gst)}</span>
           </div>
-          <div className="flex justify-between text-lg font-bold border-t pt-3">
+          <div className="flex justify-between text-lg font-bold border-t border-white/10 pt-3 text-white">
             <span>Total (inc-GST)</span>
-            <span>${money(price.totalIncGst)}</span>
+            <span className="text-gradient">${money(price.totalIncGst)}</span>
           </div>
         </div>
       </div>
@@ -1132,16 +1132,12 @@ export default function PriceSummary({
       <button
         onClick={handleConfirm}
         disabled={confirming || !extrasComplete || !customerComplete}
-        className={`w-full py-3.5 rounded-lg font-semibold text-white ${
-          confirming || !extrasComplete || !customerComplete
-            ? "bg-gray-500 cursor-not-allowed"
-            : "bg-[#db231f] hover:bg-[#b91c1c]"
-        }`}
+        className="btn-primary w-full"
       >
         {confirming ? "Confirming…" : "Confirm & Lock Price"}
       </button>
       {!extrasComplete && (
-      <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm font-semibold text-red-600 flex items-center gap-2">
+      <div className="mt-4 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm font-semibold text-red-300 flex items-center gap-2">
         ⚠️ Please answer all extras before confirming the price.
       </div>
     )}

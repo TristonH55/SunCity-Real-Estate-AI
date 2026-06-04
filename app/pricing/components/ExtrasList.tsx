@@ -263,9 +263,9 @@ if (onCompletionChange) {
 
       {/* LOCATION SELECTOR */}
 
-      <div className="mb-6 border p-4 rounded">
+      <div className="mb-6 border border-white/10 bg-white/5 p-4 rounded-xl">
 
-        <p className="font-medium mb-3">
+        <p className="font-medium mb-3 text-slate-300">
           Location of Existing System / New Installation
         </p>
 
@@ -273,10 +273,10 @@ if (onCompletionChange) {
 
           <button
             onClick={()=>setLocation("inside")}
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-2 rounded-lg border transition ${
               location==="inside"
-                ? "bg-green-600 text-white"
-                : "bg-gray-200"
+                ? "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.4)]"
+                : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10"
             }`}
           >
             Inside
@@ -284,10 +284,10 @@ if (onCompletionChange) {
 
           <button
             onClick={()=>setLocation("outside")}
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-2 rounded-lg border transition ${
               location==="outside"
-                ? "bg-green-600 text-white"
-                : "bg-gray-200"
+                ? "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.4)]"
+                : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10"
             }`}
           >
             Outside
@@ -316,7 +316,7 @@ if (onCompletionChange) {
 
         <div className="mb-6">
 
-          <h3 className="font-medium text-green-700 mb-2">
+          <h3 className="font-medium text-emerald-300 mb-2">
             Included (no charge)
           </h3>
 
@@ -325,7 +325,7 @@ if (onCompletionChange) {
             {includedExtras.map((e)=>(
               <div
                 key={`included-${e.extraId}`}
-                className="flex items-center justify-between p-3 rounded border bg-green-50 text-green-800"
+                className="flex items-center justify-between p-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
               >
 
                 <div className="flex items-center gap-2">
@@ -362,7 +362,7 @@ if (onCompletionChange) {
 
         <div>
 
-          <h3 className="font-medium text-gray-800 mb-2">
+          <h3 className="font-medium text-slate-300 mb-2">
             Optional extras
           </h3>
 
@@ -390,7 +390,7 @@ if (onCompletionChange) {
 
                 <div
                   key={`extra-${e.extraId}`}
-                  className="flex items-center justify-between p-3 rounded border"
+                  className="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-white/5 text-white"
                 >
 
                   {/* <div>
@@ -405,7 +405,7 @@ if (onCompletionChange) {
     <a
       href="/pdfs/Internal-hot-water-systems-safe-tray-and-mildred-valve.pdf"
       target="_blank"
-      className="text-xs text-blue-600 underline mt-1"
+      className="text-xs text-sky-300 underline mt-1"
     >
       Info PDF
     </a>
@@ -415,7 +415,7 @@ if (onCompletionChange) {
     <a
       href="/pdfs/external-hot-water-systems-support-base.pdf"
       target="_blank"
-      className="text-xs text-blue-600 underline mt-1"
+      className="text-xs text-sky-300 underline mt-1"
     >
       Info PDF
     </a>
@@ -449,7 +449,7 @@ if (onCompletionChange) {
 
           </div>
           {!allAnswered && (
-            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm font-semibold text-red-600 flex items-center gap-2">
+            <div className="mt-3 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm font-semibold text-red-300 flex items-center gap-2">
             ⚠️ Please answer all extras before continuing.
           </div>
           )}

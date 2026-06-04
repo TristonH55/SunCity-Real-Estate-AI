@@ -46,17 +46,17 @@
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Users</h2>
-//             <p className="text-3xl font-bold text-black">{totalUsers}</p>
+//             <p className="text-3xl font-bold text-white">{totalUsers}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Quotes</h2>
-//             <p className="text-3xl font-bold text-black">{totalQuotes}</p>
+//             <p className="text-3xl font-bold text-white">{totalQuotes}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Recent Confirmations</h2>
-//             <p className="text-3xl font-bold text-black">{confirmations.length}</p>
+//             <p className="text-3xl font-bold text-white">{confirmations.length}</p>
 //           </div>
 
 //         </div>
@@ -71,7 +71,7 @@
 //           <table className="w-full text-sm">
 
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Email</th>
 //                 <th className="text-left py-2">Company</th>
 //                 <th className="text-left py-2">Role</th>
@@ -84,7 +84,7 @@
 
 //               {users.map((u) => (
 
-//                 <tr key={u.id} className="border-b text-black">
+//                 <tr key={u.id} className="border-b border-white/10 text-slate-200">
 
 //                   <td className="py-2">{u.email}</td>
 
@@ -125,7 +125,7 @@
 //           <table className="w-full text-sm">
 
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Confirmation</th>
 //                 <th className="text-left py-2">Total</th>
 //                 <th className="text-left py-2">Date</th>
@@ -138,7 +138,7 @@
 
 //               {confirmations.map((c) => (
 
-//                 <tr key={c.id} className="border-b text-black">
+//                 <tr key={c.id} className="border-b border-white/10 text-slate-200">
 
 //                   <td className="py-2">{c.id}</td>
 
@@ -226,17 +226,17 @@
 //         <div className="grid grid-cols-3 gap-6">
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Users</h2>
-//             <p className="text-3xl font-bold text-black">{totalUsers}</p>
+//             <p className="text-3xl font-bold text-white">{totalUsers}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Quotes</h2>
-//             <p className="text-3xl font-bold text-black">{totalQuotes}</p>
+//             <p className="text-3xl font-bold text-white">{totalQuotes}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Recent Confirmations</h2>
-//             <p className="text-3xl font-bold text-black">{confirmations.length}</p>
+//             <p className="text-3xl font-bold text-white">{confirmations.length}</p>
 //           </div>
 //         </div>
 
@@ -248,7 +248,7 @@
 
 //           <table className="w-full text-sm">
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Email</th>
 //                 <th className="text-left py-2">Company</th>
 //                 <th className="text-left py-2">Role</th>
@@ -259,7 +259,7 @@
 
 //             <tbody>
 //               {users.map((u) => (
-//                 <tr key={u.id} className="border-b text-black">
+//                 <tr key={u.id} className="border-b border-white/10 text-slate-200">
 //                   <td className="py-2">{u.email}</td>
 //                   <td>{u.companyName}</td>
 //                   <td>{u.role}</td>
@@ -282,7 +282,7 @@
 
 //           <table className="w-full text-sm">
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Confirmation</th>
 //                 <th className="text-left py-2">Total</th>
 //                 <th className="text-left py-2">Date</th>
@@ -293,7 +293,7 @@
 
 //             <tbody>
 //               {confirmations.map((c) => (
-//                 <tr key={c.id} className="border-b text-black">
+//                 <tr key={c.id} className="border-b border-white/10 text-slate-200">
 //                   <td className="py-2">{c.id}</td>
 
 //                   <td>${Number(c.totalIncGst).toLocaleString()}</td>
@@ -375,17 +375,17 @@
 //         <div className="grid grid-cols-3 gap-6">
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Users</h2>
-//             <p className="text-3xl font-bold text-black">{totalUsers}</p>
+//             <p className="text-3xl font-bold text-white">{totalUsers}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Quotes</h2>
-//             <p className="text-3xl font-bold text-black">{totalQuotes}</p>
+//             <p className="text-3xl font-bold text-white">{totalQuotes}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Recent Confirmations</h2>
-//             <p className="text-3xl font-bold text-black">{confirmations.length}</p>
+//             <p className="text-3xl font-bold text-white">{confirmations.length}</p>
 //           </div>
 //         </div>
 
@@ -397,7 +397,7 @@
 
 //           <table className="w-full text-sm">
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Email</th>
 //                 <th className="text-left py-2">Company</th>
 //                 <th className="text-left py-2">Role</th>
@@ -408,7 +408,7 @@
 
 //             <tbody>
 //               {users.map((u) => (
-//                 <tr key={u.id} className="border-b text-black">
+//                 <tr key={u.id} className="border-b border-white/10 text-slate-200">
 //                   <td className="py-2">{u.email}</td>
 //                   <td>{u.companyName}</td>
 //                   <td>{u.role}</td>
@@ -431,7 +431,7 @@
 
 //           <table className="w-full text-sm">
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Confirmation</th>
 //                 <th className="text-left py-2">Total</th>
 //                 <th className="text-left py-2">Date</th>
@@ -445,7 +445,7 @@
 //                 <React.Fragment key={c.id}>
 
 //                   {/* MAIN ROW (UNCHANGED) */}
-//                   <tr className="border-b text-black">
+//                   <tr className="border-b border-white/10 text-slate-200">
 //                     <td className="py-2">{c.id}</td>
 
 //                     <td>${Number(c.totalIncGst).toLocaleString()}</td>
@@ -553,17 +553,17 @@
 //         <div className="grid grid-cols-3 gap-6">
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Users</h2>
-//             <p className="text-3xl font-bold text-black">{totalUsers}</p>
+//             <p className="text-3xl font-bold text-white">{totalUsers}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Total Quotes</h2>
-//             <p className="text-3xl font-bold text-black">{totalQuotes}</p>
+//             <p className="text-3xl font-bold text-white">{totalQuotes}</p>
 //           </div>
 
 //           <div className="bg-white shadow rounded-lg p-6">
 //             <h2 className="text-sm text-gray-500">Recent Confirmations</h2>
-//             <p className="text-3xl font-bold text-black">{confirmations.length}</p>
+//             <p className="text-3xl font-bold text-white">{confirmations.length}</p>
 //           </div>
 //         </div>
 
@@ -575,7 +575,7 @@
 
 //           <table className="w-full text-sm">
 //             <thead>
-//               <tr className="border-b text-black">
+//               <tr className="border-b border-white/10 text-slate-200">
 //                 <th className="text-left py-2">Email</th>
 //                 <th className="text-left py-2">Company</th>
 //                 <th className="text-left py-2">Role</th>
@@ -586,7 +586,7 @@
 
 //             <tbody>
 //               {users.map((u) => (
-//                 <tr key={u.id} className="border-b text-black">
+//                 <tr key={u.id} className="border-b border-white/10 text-slate-200">
 //                   <td className="py-2">{u.email}</td>
 //                   <td>{u.companyName}</td>
 //                   <td>{u.role}</td>
@@ -609,7 +609,7 @@
 
 //           <table className="w-full text-sm">
 //           <thead>
-//             <tr className="border-b text-black">
+//             <tr className="border-b border-white/10 text-slate-200">
 //             <th className="text-left py-2">Confirmation</th>
 //             <th className="text-left py-2">Total</th>
 //             <th className="text-left py-2">Date</th>
@@ -623,7 +623,7 @@
 //               {confirmations.map((c) => (
 //                 <React.Fragment key={c.id}>
 
-//                   <tr className="border-b text-black">
+//                   <tr className="border-b border-white/10 text-slate-200">
 //                     <td className="py-2">{c.id}</td>
 
 //                     <td>${Number(c.totalIncGst).toLocaleString()}</td>
@@ -730,40 +730,40 @@ export default async function AdminPage() {
   const totalQuotes = await prisma.pricingConfirmation.count();
 
   return (
-    <div className="flex justify-center py-10 bg-gray-100 min-h-screen">
+    <div className="flex justify-center py-10 min-h-screen px-4">
       <div className="w-full max-w-[1200px] space-y-10">
 
-        <h1 className="text-3xl font-bold text-red-600">
+        <h1 className="text-3xl heading text-gradient">
           Admin Dashboard
         </h1>
 
         {/* STATS */}
         <div className="grid grid-cols-3 gap-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-sm text-gray-500">Total Users</h2>
-            <p className="text-3xl font-bold text-black">{totalUsers}</p>
+          <div className="glass-card p-6">
+            <h2 className="text-sm text-slate-400">Total Users</h2>
+            <p className="text-3xl font-bold text-white">{totalUsers}</p>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-sm text-gray-500">Total Quotes</h2>
-            <p className="text-3xl font-bold text-black">{totalQuotes}</p>
+          <div className="glass-card p-6">
+            <h2 className="text-sm text-slate-400">Total Quotes</h2>
+            <p className="text-3xl font-bold text-white">{totalQuotes}</p>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-sm text-gray-500">Recent Confirmations</h2>
-            <p className="text-3xl font-bold text-black">{confirmations.length}</p>
+          <div className="glass-card p-6">
+            <h2 className="text-sm text-slate-400">Recent Confirmations</h2>
+            <p className="text-3xl font-bold text-white">{confirmations.length}</p>
           </div>
         </div>
 
         {/* USERS */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold mb-4 text-red-600">
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
             Registered Insurers
           </h2>
 
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-black">
+              <tr className="border-b border-white/10 text-slate-200">
                 <th className="text-left py-2">Email</th>
                 <th className="text-left py-2">Company</th>
                 <th className="text-left py-2">Role</th>
@@ -774,7 +774,7 @@ export default async function AdminPage() {
 
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b text-black">
+                <tr key={u.id} className="border-b border-white/10 text-slate-200">
                   <td className="py-2">{u.email}</td>
                   <td>{u.companyName}</td>
                   <td>{u.role}</td>
@@ -790,14 +790,14 @@ export default async function AdminPage() {
         </div>
 
         {/* CONFIRMATIONS */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold mb-4 text-red-600">
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
             Recent Price Confirmations
           </h2>
 
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-black">
+              <tr className="border-b border-white/10 text-slate-200">
                 <th className="text-left py-2">Confirmation</th>
                 <th className="text-left py-2">Total</th>
                 <th className="text-left py-2">Date</th>
@@ -824,7 +824,7 @@ export default async function AdminPage() {
                   <React.Fragment key={c.id}>
 
                     {/* MAIN ROW */}
-                    <tr className="border-b text-black">
+                    <tr className="border-b border-white/10 text-slate-200">
                       <td className="py-2">{c.id}</td>
 
                       <td>${Number(c.totalIncGst).toLocaleString()}</td>
@@ -837,7 +837,7 @@ export default async function AdminPage() {
                         <a
                           href={`/pricing/confirmation/${c.id}`}
                           target="_blank"
-                          className="text-blue-600 underline"
+                          className="text-sky-300 hover:text-sky-200 underline"
                         >
                           View PDF
                         </a>
@@ -846,7 +846,7 @@ export default async function AdminPage() {
                       <td className="relative">
                         <a
                           href={`/dashboard/jobs/${c.id}`} 
-                          className="text-blue-600 underline"
+                          className="text-sky-300 hover:text-sky-200 underline"
                         >
                           Open Job
                         </a>
@@ -865,7 +865,7 @@ export default async function AdminPage() {
                     </tr>
 
                     {/* ✅ MESSAGE PREVIEW + IMAGES */}
-                    <tr className="bg-gray-50">
+                    <tr className="bg-white/5">
                       <td colSpan={6} className="p-4 space-y-3">
 
                         {/* MESSAGE PREVIEW */}
@@ -888,7 +888,7 @@ export default async function AdminPage() {
                               <img
                                 key={img}
                                 src={img}
-                                className="w-32 h-32 object-cover rounded border"
+                                className="w-32 h-32 object-cover rounded-lg border border-white/10"
                               />
                             ))}
                           </div>

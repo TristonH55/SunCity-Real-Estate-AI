@@ -308,7 +308,7 @@
 //             <h2 className="text-lg font-semibold mb-2 text-black">
 //               Selected Hot Water System
 //             </h2>
-//             <div className="text-sm text-gray-800 space-y-1">
+//             <div className="text-sm text-slate-300 space-y-1">
 //               <div><strong>Brand:</strong> {system.brand}</div>
 //               <div><strong>Model:</strong> {system.model}</div>
 //               <div><strong>Capacity:</strong> {system.capacityLitres}L</div>
@@ -344,7 +344,7 @@
 //             <h2 className="text-lg font-semibold mb-2 text-black">
 //               Customer Details
 //             </h2>
-//             <div className="text-sm text-gray-800 space-y-1">
+//             <div className="text-sm text-slate-300 space-y-1">
 //               <div>
 //                 <strong>Name:</strong> {customer.firstName} {customer.lastName}
 //               </div>
@@ -451,18 +451,18 @@ export default async function ConfirmationPage({ params }: PageProps) {
   const customer = confirmation.customerSnapshot as any;
 
   return (
-    <div className="min-h-screen bg-white px-8 py-10 max-w-3xl mx-auto">
+    <div className="min-h-screen px-6 md:px-8 py-10 max-w-3xl mx-auto">
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <h1 className="text-3xl heading text-gradient mb-2">
         Price Confirmation
       </h1>
 
-      <p className="text-gray-700 mb-6">
+      <p className="text-slate-400 mb-6">
         This price has been locked and recorded. It cannot be modified.
         SunCity will contact you shortly.
       </p>
 
-      <div className="border border-gray-300 rounded-xl p-6 bg-white shadow-sm space-y-6">
+      <div className="glass-card-strong p-6 space-y-6">
 
         <Image
           src="/images/suncity-logo-transparient.jpg.png"
@@ -474,12 +474,12 @@ export default async function ConfirmationPage({ params }: PageProps) {
         />
 
         {system && (
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h2 className="text-lg font-semibold mb-2 text-black">
+          <div className="border border-white/10 rounded-xl p-4 bg-white/5">
+            <h2 className="text-lg font-semibold mb-2 text-white">
               Selected Hot Water System
             </h2>
 
-            <div className="text-sm text-gray-800 space-y-1">
+            <div className="text-sm text-slate-300 space-y-1">
               <div><strong>Brand:</strong> {system.brand}</div>
               <div><strong>Model:</strong> {system.model}</div>
               <div><strong>Capacity:</strong> {system.capacityLitres}L</div>
@@ -500,12 +500,12 @@ export default async function ConfirmationPage({ params }: PageProps) {
         {/* EXTRAS WITH PRICES */}
 
         {extras.length > 0 && (
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h2 className="text-lg font-semibold mb-2 text-black">
+          <div className="border border-white/10 rounded-xl p-4 bg-white/5">
+            <h2 className="text-lg font-semibold mb-2 text-white">
               Selected Extras
             </h2>
 
-            <div className="text-sm text-gray-800 space-y-1">
+            <div className="text-sm text-slate-300 space-y-1">
               {extras.map((e) => (
                 <div
                   key={e.extraId}
@@ -520,12 +520,12 @@ export default async function ConfirmationPage({ params }: PageProps) {
         )}
 
         {customer && (
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h2 className="text-lg font-semibold mb-2 text-black">
+          <div className="border border-white/10 rounded-xl p-4 bg-white/5">
+            <h2 className="text-lg font-semibold mb-2 text-white">
               Customer Details
             </h2>
 
-            <div className="text-sm text-gray-800 space-y-1">
+            <div className="text-sm text-slate-300 space-y-1">
               <div>
                 <strong>Name:</strong>{" "}
                 {customer.firstName} {customer.lastName}
@@ -558,14 +558,14 @@ export default async function ConfirmationPage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="text-sm text-gray-700">
+        <div className="text-sm text-slate-400">
           <strong>Confirmation ID</strong>
-          <div className="font-mono mt-1">
+          <div className="font-mono mt-1 text-slate-300">
             {confirmation.id}
           </div>
         </div>
 
-        <div className="border-t pt-4 space-y-2 text-black">
+        <div className="border-t border-white/10 pt-4 space-y-2 text-slate-200">
 
           <div className="flex justify-between">
             <span>Base price (ex-GST)</span>
@@ -577,21 +577,21 @@ export default async function ConfirmationPage({ params }: PageProps) {
             <span>${money(confirmation.extrasTotalExGst)}</span>
           </div>
 
-          <div className="flex justify-between font-bold">
+          <div className="flex justify-between font-bold text-lg text-white">
             <span>Total (inc-GST)</span>
-            <span>${money(confirmation.totalIncGst)}</span>
+            <span className="text-gradient">${money(confirmation.totalIncGst)}</span>
           </div>
 
         </div>
 
-        <div className="mt-6 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-          <span className="h-2 w-2 bg-green-600 rounded-full"></span>
+        <div className="mt-6 inline-flex items-center gap-2 bg-emerald-500/15 text-emerald-300 px-4 py-2 rounded-full text-sm font-medium">
+          <span className="h-2 w-2 bg-emerald-400 rounded-full"></span>
           Price locked successfully
         </div>
 
         <a
           href={`/api/pricing/confirmation/${confirmation.id}/pdf`}
-          className="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold"
+          className="btn-primary"
         >
           Download PDF
         </a>

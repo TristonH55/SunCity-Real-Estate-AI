@@ -537,34 +537,34 @@ const BRAND_STYLES: Record<
   { bg: string; border: string; text: string }
 > = {
   "Rheem Stellar": {
-    bg: "bg-rose-900",
-    border: "border-rose-200",
-    text: "text-rose-900",
+    bg: "bg-rose-500/10",
+    border: "border-rose-400/30",
+    text: "text-rose-200",
   },
   "Dux / Thermann": {
-    bg: "bg-rose-600",
-    border: "border-sky-200",
-    text: "text-white",
+    bg: "bg-sky-500/10",
+    border: "border-sky-400/30",
+    text: "text-sky-200",
   },
   "AquaMAX / Vulcan": {
-    bg: "bg-sky-600",
-    border: "border-amber-200",
-    text: "text-white",
+    bg: "bg-amber-500/10",
+    border: "border-amber-400/30",
+    text: "text-amber-200",
   },
   Solahart: {
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    text: "text-emerald-900",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-400/30",
+    text: "text-emerald-200",
   },
   Envirosun: {
-    bg: "bg-orange-50",
-    border: "border-orange-200",
-    text: "text-orange-900",
+    bg: "bg-orange-500/10",
+    border: "border-orange-400/30",
+    text: "text-orange-200",
   },
   Rinnai: {
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    text: "text-purple-900",
+    bg: "bg-purple-500/10",
+    border: "border-purple-400/30",
+    text: "text-purple-200",
   },
 };
 
@@ -602,7 +602,7 @@ export default function SystemList({
   }, [region, systemType]);
 
   if (!systems.length) {
-    return <p>No systems found.</p>;
+    return <p className="text-slate-400">No systems found.</p>;
   }
 
   // 🌞 Solar split (model-based)
@@ -629,29 +629,29 @@ export default function SystemList({
       <div
         key={s.systemId}
         onClick={() => onSelect(s.systemId)}
-        className={`relative p-4 rounded-lg cursor-pointer transition border
+        className={`relative p-4 rounded-xl cursor-pointer transition border
           ${
             isSelected
-              ? "border-2 border-[#db231f] bg-red-50"
-              : "border-gray-300 bg-white hover:border-gray-400"
+              ? "border-2 border-[#db231f] bg-[#db231f]/10 shadow-[0_0_20px_rgba(219,35,31,0.25)]"
+              : "border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/[0.07]"
           }
         `}
       >
         {isSelected && (
-          <div className="absolute top-3 right-3 flex items-center gap-2 text-sm font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
-            <span className="h-2 w-2 bg-green-600 rounded-full"></span>
+          <div className="absolute top-3 right-3 flex items-center gap-2 text-sm font-medium text-emerald-300 bg-emerald-500/15 px-2 py-1 rounded-full">
+            <span className="h-2 w-2 bg-emerald-400 rounded-full"></span>
             Selected
           </div>
         )}
 
-        <div className="font-semibold text-lg">{s.brand}</div>
-        <div className="mt-1 text-gray-700">{s.model}</div>
+        <div className="font-semibold text-lg text-white">{s.brand}</div>
+        <div className="mt-1 text-slate-300">{s.model}</div>
 
-        <div className="text-sm text-gray-600 mt-1">
+        <div className="text-sm text-slate-400 mt-1">
           {s.capacityLitres}L • {s.tankMaterial.replace("_", " ")}
         </div>
 
-        <div className="mt-2 font-semibold text-gray-900">
+        <div className="mt-2 font-semibold text-white">
           ${s.priceExGst.toLocaleString()} ex-GST
         </div>
       </div>
@@ -663,9 +663,9 @@ export default function SystemList({
 
     return Object.entries(grouped).map(([brand, brandSystems]) => {
       const style = BRAND_STYLES[brand] ?? {
-        bg: "bg-gray-50",
-        border: "border-gray-200",
-        text: "text-gray-900",
+        bg: "bg-white/5",
+        border: "border-white/10",
+        text: "text-white",
       };
 
       return (
@@ -695,11 +695,11 @@ export default function SystemList({
 
         {thermosiphonSystems.length > 0 && (
           <section className="mb-14">
-            <div className="mb-5 rounded-xl bg-amber-50 border border-amber-200 px-5 py-4">
-              <h3 className="text-lg font-bold text-amber-900">
+            <div className="mb-5 rounded-xl bg-amber-500/10 border border-amber-400/30 px-5 py-4">
+              <h3 className="text-lg font-bold text-amber-200">
                 ☀️ Thermosiphon Solar Systems
               </h3>
-              <p className="text-sm text-amber-800 mt-1">
+              <p className="text-sm text-amber-300/80 mt-1">
                 Roof-mounted tank with natural heat circulation.
               </p>
             </div>
@@ -710,11 +710,11 @@ export default function SystemList({
 
         {splitSolarSystems.length > 0 && (
           <section>
-            <div className="mb-5 rounded-xl bg-sky-50 border border-sky-200 px-5 py-4">
-              <h3 className="text-lg font-bold text-sky-900">
+            <div className="mb-5 rounded-xl bg-sky-500/10 border border-sky-400/30 px-5 py-4">
+              <h3 className="text-lg font-bold text-sky-200">
                 🔄 Split Solar Systems
               </h3>
-              <p className="text-sm text-sky-800 mt-1">
+              <p className="text-sm text-sky-300/80 mt-1">
                 Ground-mounted tank with roof collectors.
               </p>
             </div>

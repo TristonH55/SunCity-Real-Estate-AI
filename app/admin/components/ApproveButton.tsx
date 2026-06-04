@@ -32,8 +32,8 @@ export default function ApproveButton({
     <button
       onClick={toggle}
       disabled={loading}
-      className={`px-3 py-1 rounded text-white text-xs ${
-        approved ? "bg-red-600" : "bg-green-600"
+      className={`px-3 py-1 rounded-md text-white text-xs font-medium transition hover:brightness-110 disabled:opacity-50 ${
+        approved ? "bg-[#db231f]" : "bg-emerald-500"
       }`}
     >
       {approved ? "Reject" : "Approve"}

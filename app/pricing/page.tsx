@@ -191,7 +191,7 @@
 
 //           <div className="border rounded-lg p-6">
 
-//             <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//             <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //               Step 2 — Select System
 //             </h2>
 
@@ -220,7 +220,7 @@
 
 //           <div className="border rounded-lg p-6">
 
-//             <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//             <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //               Step 3 — Extras
 //             </h2>
 
@@ -240,7 +240,7 @@
 
 //           <div className="border rounded-lg p-6">
 
-//             <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//             <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //               Step 4 — Customer Details
 //             </h2>
 
@@ -311,7 +311,7 @@
 
 //       {/* STEP 1 */}
 
-//       <div className="border rounded-lg p-6 mb-6 bg-white max-w-sm">
+//       <div className="glass-card p-6 mb-6 max-w-sm">
 
 //         <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
 //           Step 1 — Select Region & System Type
@@ -352,8 +352,8 @@
 //         <div>
 
 //           {/* <div className="border rounded-lg p-6"> */}
-//           <div ref={systemsRef} className="border rounded-lg p-6">
-//             <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//           <div ref={systemsRef} className="glass-card p-6">
+//             <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //               Step 2 — Select System
 //             </h2>
 
@@ -392,9 +392,9 @@
 
 //           {/* STEP 3 */}
 
-//           <div ref={extrasRef} className="border rounded-lg p-6">
+//           <div ref={extrasRef} className="glass-card p-6">
 
-//             <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//             <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //               Step 3 — Extras
 //             </h2>
 
@@ -414,7 +414,7 @@
 
 //           <div className="border rounded-lg p-6">
 
-//             <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//             <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //               Step 4 — Customer Details
 //             </h2>
 
@@ -491,13 +491,13 @@ export default function PricingPage() {
     console.log("⏳ Waiting for session...");
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+        <p className="text-slate-400">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 px-8 py-10 max-w-7xl mx-auto">
+    <div className="min-h-screen text-white px-6 md:px-8 py-10 max-w-7xl mx-auto">
 
       <div className="mb-8 flex justify-center">
         <Image
@@ -509,8 +509,8 @@ export default function PricingPage() {
         />
       </div>
 
-      <div className="border rounded-lg p-6 mb-6 bg-white max-w-sm">
-        <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+      <div className="glass-card p-6 mb-6 max-w-sm">
+        <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
           Step 1 — Select Region & System Type
         </h2>
 
@@ -541,7 +541,7 @@ export default function PricingPage() {
 
         <div>
           <div ref={systemsRef} className="border rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+            <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
               Step 2 — Select System
             </h2>
 
@@ -572,7 +572,7 @@ export default function PricingPage() {
         <div className="space-y-8">
 
           <div ref={extrasRef} className="border rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+            <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
               Step 3 — Extras
             </h2>
 
@@ -587,8 +587,8 @@ export default function PricingPage() {
             )}
           </div>
 
-          <div className="border rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+          <div className="glass-card p-6">
+            <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
               Step 4 — Customer Details
             </h2>
 
@@ -609,7 +609,7 @@ export default function PricingPage() {
                 block: "start",
               });
             }}
-            className="lg:hidden fixed bottom-26 right-6 bg-[#000000] text-white px-4 py-3 rounded-full shadow-lg text-sm font-semibold"
+            className="lg:hidden fixed bottom-26 right-6 nav-glass text-white px-4 py-3 rounded-full text-sm font-semibold"
           >
             Top
           </button>

@@ -270,6 +270,8 @@
 // }
 
 // v2.2
+export const dynamic = "force-dynamic";
+
 import { prisma } from "../../lib/prisma";
 
 export default async function Dashboard() {
@@ -285,16 +287,16 @@ export default async function Dashboard() {
   });
 
   return (
-    <div className="flex justify-center py-10 bg-gray-100 min-h-screen">
-      <div className="w-full max-w-[1000px] bg-white shadow rounded-lg p-6">
+    <div className="flex justify-center py-10 min-h-screen px-4">
+      <div className="w-full max-w-[1000px] glass-card p-6">
 
-        <h1 className="text-2xl font-bold mb-6 text-red-600">
+        <h1 className="text-2xl heading text-gradient mb-6">
           Your Confirmations
         </h1>
 
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-black">
+            <tr className="border-b border-white/10 text-slate-300">
               <th className="text-left py-2">Confirmation</th>
               <th className="text-left py-2">Total</th>
               <th className="text-left py-2">Date</th>
@@ -317,7 +319,7 @@ export default async function Dashboard() {
                     new Date(lastViewed));
 
               return (
-                <tr key={c.id} className="border-b text-black">
+                <tr key={c.id} className="border-b border-white/10 text-slate-200">
                   <td className="py-2">{c.id}</td>
 
                   <td>
@@ -332,7 +334,7 @@ export default async function Dashboard() {
                     <a
                       href={`/pricing/confirmation/${c.id}`}
                       target="_blank"
-                      className="text-blue-600 underline"
+                      className="text-sky-300 hover:text-sky-200 underline"
                     >
                       View PDF
                     </a>
@@ -341,7 +343,7 @@ export default async function Dashboard() {
                   <td className="relative">
                     <a
                       href={`/dashboard/jobs/${c.id}`}
-                      className="text-blue-600 underline"
+                      className="text-sky-300 hover:text-sky-200 underline"
                     >
                       Open Job
                     </a>

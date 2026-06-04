@@ -87,7 +87,7 @@ export default function SystemTypeSelect({
 
   return (
     <div className="mb-6 max-w-xs"> {/* 👈 SAME WIDTH AS REGION */}
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
+      <label className="block text-sm font-semibold text-slate-300 mb-2">
         System Type
       </label>
 
@@ -95,7 +95,7 @@ export default function SystemTypeSelect({
         <select
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 pr-10 text-gray-900 shadow-sm focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/20 transition"
+          className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-10 text-white shadow-sm focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
         >
           <option value="" disabled>
             Select system type
@@ -109,7 +109,7 @@ export default function SystemTypeSelect({
         </select>
 
         {/* ▼ Arrow */}
-        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-500">
+        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
           ▼
         </div>
       </div>

@@ -1,0 +1,228 @@
+@use "sass:math";
+
+$grey: #666;
+$highlight: #052c65;
+$error: red;
+$pending: orange;
+
+$size: 46px;
+$padding: 8px;
+$gap: 15px;
+$radius: 3px;
+
+.ui-form {
+	margin: 0 auto;
+	display: flex;
+	gap: $gap;
+	flex-direction: column;
+
+	button[type="submit"] {
+		background-color: $grey;
+		border: none;
+		color: #fff;
+		height: $size;
+		border-radius: $radius;
+	}
+
+	a {
+		color: inherit;
+	}
+
+	.ui-input-two {
+		display: flex;
+		gap: $gap;
+
+		.ui-input {
+			width: 50%;
+		}
+	}
+
+	.ui-input {
+		$label_height: abs(($size - abs($padding * 2.3)) * 0.4);
+		$input_height: abs($size - ($padding * 2) - $label_height - math.div($padding, 2));
+
+		border: 1px solid $grey;
+		border-radius: $radius;
+		background: #fff;
+		outline: blue;
+		display: block;
+		position: relative;
+
+		.instructions {
+			display: none;
+			padding: abs($padding * 0.5) $padding;
+			font-size: 80%;
+		}
+
+		&.focus .instructions {
+			display: block;
+			background-color: lighten($highlight, 50%);
+			color: darken($highlight, 10%);
+		}
+
+		&.error .instructions {
+			display: block;
+			background-color: lighten($error, 30%);
+			color: darken($error, 30%);
+		}
+
+		&.focus {
+			border-color: $highlight;
+		}
+
+		&.error {
+			border-color: $error;
+		}
+
+		.ui-input-label {
+			$text_height: calc(#{$size} - (#{$padding} * 2));
+
+			position: absolute;
+			top: 0;
+			padding: $padding;
+			font-size: $input_height;
+			line-height: $text_height;
+			height: $text_height;
+			color: darken($grey, 50%);
+			box-sizing: content-box;
+		}
+
+		&.active .ui-input-label {
+			padding: $padding;
+			font-size: $label_height;
+			line-height: $label_height;
+			height: $label_height;
+			color: darken($grey, 50%);
+			font-weight: bold;
+		}
+
+		&.focus .ui-input-label {
+			color: $highlight;
+		}
+
+		&.error .ui-input-label {
+			color: $error;
+		}
+
+		input.ui-input-input,
+		select.ui-input-input,
+		textarea.ui-input-input {
+			opacity: 0;
+
+			$top_padding: abs($size - $input_height - $padding);
+
+			font-family: inherit;
+			border: none;
+			background: transparent;
+			padding: $top_padding $padding $padding $padding !important;
+			font-size: $input_height;
+			line-height: $input_height;
+			height: $input_height;
+			min-height: unset;
+			outline: none;
+			appearance: none;
+			margin: 0;
+			display: block;
+			border-radius: 0;
+			box-sizing: content-box;
+			width: calc(100% - ($padding * 2));
+		}
+
+		select.ui-input-input {
+			font-size: $input_height;
+			background-color: transparent;
+		}
+
+		&.select {
+			background-image: url('../images/arrow.svg');
+			background-position: calc(100% - 20px) center;
+			background-repeat: no-repeat;
+		}
+
+		textarea.ui-input-input {
+			height: 150px;
+		}
+
+		&.active .ui-input-input {
+			opacity: 1;
+		}
+	}
+
+	.ui-message {
+		font-size: 12px;
+		line-height: 14px;
+	}
+
+	.ui-loading-message {
+		display: none;
+		position: absolute;
+		top: -10px;
+		left: -10px;
+		right: -10px;
+		bottom: -10px;
+		background-color: rgba(255, 255, 255, 0.5);
+		backdrop-filter: blur(1px);
+		border-radius: 5px;
+
+		align-items: center;
+		justify-content: center;
+
+		.ui-loading-message-content {
+			width: 90%;
+			background-color: #fff;
+			border-radius: 5px;
+			padding: 20px;
+			text-align: center;
+			box-shadow: 0 0 3px #333;
+			font-size: 20px;
+		}
+	}
+
+	&.loading {
+		.ui-loading-message {
+			display: flex;
+		}
+	}
+
+	.verification {
+		border: 1px solid $grey;
+		border-radius: $radius;
+		padding: 10px;
+	}
+}
+
+
+
+.address-list {
+	position: absolute;
+	top: 100%;
+	left: -1px;
+	right: -1px;
+	max-height: 60vh;
+	border: 1px solid $highlight;
+	overflow-y: auto;
+	background-color: #fff;
+	box-shadow: 10px 0 10px #eee;
+	z-index: 999999999;
+	border-radius: 0 0 $radius $radius;
+}
+
+.address-list-item {
+	padding: 10px;
+	border-bottom: 1px solid #ccc;
+	cursor: pointer;
+	color: #333;
+}
+
+.address-list-item.selected {
+	background-color: lighten($highlight, 30%);
+	color: #fff;
+}
+
+.address-list-item:not(:last-child).selected{
+	border-bottom: 1px solid $highlight;
+}
+
+.address-list-item:last-child {
+	border-bottom: none;
+}

@@ -83,21 +83,25 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md space-y-4"
+        className="glass-card-strong p-8 w-full max-w-md space-y-5"
       >
-        <h1 className="text-2xl font-bold text-gray-900">Sign in</h1>
+        <h1 className="text-2xl heading">Sign in</h1>
 
-        {error && <p className="text-red-600">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
 
         <input
           name="email"
           type="email"
           placeholder="Email"
           required
-          className="w-full border border-gray-300 p-3 rounded text-gray-900 placeholder-gray-500"
+          className="glass-input"
         />
 
         <input
@@ -105,21 +109,21 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
           type="password"
           placeholder="Password"
           required
-          className="w-full border border-gray-300 p-3 rounded text-gray-900 placeholder-gray-500"
+          className="glass-input"
         />
 
         <button
           disabled={loading}
-          className="w-full bg-black text-white py-3 rounded font-semibold hover:bg-gray-800 transition"
+          className="btn-primary w-full"
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
 
-        <p className="text-sm text-gray-700 text-center pt-2">
+        <p className="text-sm text-slate-400 text-center pt-2">
           Don’t have an account?{" "}
           <Link
             href="/register"
-            className="text-blue-600 font-medium hover:underline"
+            className="text-[#ff5a2c] font-medium hover:underline"
           >
             Register here
           </Link>

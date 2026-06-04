@@ -1,0 +1,56 @@
+<?php return array(
+    'root' => array(
+        'name' => 'f8-media/suncity-leads',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '5fc6031bb64da528d6fc7c1925acece428aaa383',
+        'type' => 'project',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
+    ),
+    'versions' => array(
+        'f8-media/suncity-leads' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '5fc6031bb64da528d6fc7c1925acece428aaa383',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'giggsey/libphonenumber-for-php' => array(
+            'pretty_version' => '8.13.39',
+            'version' => '8.13.39.0',
+            'reference' => '5a36692616dba1ec4a24217f248021b1ec9cdade',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giggsey/libphonenumber-for-php',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'giggsey/libphonenumber-for-php-lite' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => '8.13.39',
+            ),
+        ),
+        'giggsey/locale' => array(
+            'pretty_version' => '2.6',
+            'version' => '2.6.0.0',
+            'reference' => '37874fa473131247c348059fb7b8985efc18b5ea',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giggsey/locale',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/polyfill-mbstring' => array(
+            'pretty_version' => 'v1.29.0',
+            'version' => '1.29.0.0',
+            'reference' => '9773676c8a1bb1f8d4340a62efe641cf76eda7ec',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/polyfill-mbstring',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

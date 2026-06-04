@@ -3,11 +3,11 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900 pb-24">
+    <div className="min-h-screen text-white pb-24">
 
       {/* HERO */}
-      
-      <section className="text-center py-16 px-6 bg-gray-50">
+
+      <section className="text-center py-20 px-6">
         {/* LOGO */}
 
       <div className="mb-8 flex justify-center">
@@ -20,11 +20,11 @@ export default function HomePage() {
         />
       </div>
 
-        <h1 className="text-4xl font-bold mb-4 text-red-600">
-          Hot Water Insurance Portal
+        <h1 className="text-4xl md:text-5xl heading mb-4">
+          <span className="text-gradient">Hot Water Insurance Portal</span>
         </h1>
 
-        <p className="max-w-xl mx-auto text-gray-600 mb-8">
+        <p className="max-w-xl mx-auto text-slate-400 mb-8 text-lg">
           Fast and accurate hot water replacement pricing for insurance
           companies. Generate approved system quotes instantly and lock the
           final price for claim processing.
@@ -32,7 +32,7 @@ export default function HomePage() {
 
         <Link
           href="/register"
-          className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold"
+          className="btn-primary px-8 py-4"
         >
           Register Now
         </Link>
@@ -88,65 +88,65 @@ export default function HomePage() {
     {/* FEATURES / HOW IT WORKS */}
         <section className="max-w-6xl mx-auto py-16 px-6">
 
-        <h2 className="text-2xl font-bold text-center mb-12 text-red-600">
+        <h2 className="text-2xl md:text-3xl heading text-center mb-12">
         How the SunCity Pricing Tool Works
         </h2>
 
-    <div className="grid md:grid-cols-3 gap-12">
+    <div className="grid md:grid-cols-3 gap-8">
 
     {/* STEP 1 */}
-    <div className="text-center">
+    <div className="glass-card p-6 text-center transition-all duration-200 hover:-translate-y-1">
       <Image
         src="/images/step-11.jpg"
         alt="Select System"
         width={350}
         height={240}
-        className="mx-auto rounded-lg shadow mb-6 object-cover"
+        className="mx-auto rounded-xl mb-6 object-cover"
       />
 
-      <h3 className="font-bold text-lg text-green-600 mb-2">
+      <h3 className="font-semibold text-lg text-[#ff5a2c] mb-2">
         STEP 1 — Select System
       </h3>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-400">
         Choose the correct hot water system based on region and system type.
       </p>
     </div>
 
     {/* STEP 2 */}
-    <div className="text-center">
+    <div className="glass-card p-6 text-center transition-all duration-200 hover:-translate-y-1">
       <Image
         src="/images/step-2.jpg"
         alt="Extras and Pricing"
         width={350}
         height={240}
-        className="mx-auto rounded-lg shadow mb-6"
+        className="mx-auto rounded-xl mb-6"
       />
 
-      <h3 className="font-bold text-lg text-green-600 mb-2">
+      <h3 className="font-semibold text-lg text-[#ff5a2c] mb-2">
         STEP 2 — Select Installation Extras
       </h3>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-400">
         Answer installation questions and add any required extras to the job.
       </p>
     </div>
 
     {/* STEP 3 */}
-    <div className="text-center">
+    <div className="glass-card p-6 text-center transition-all duration-200 hover:-translate-y-1">
       <Image
         src="/images/step-3.jpg"
         alt="Confirm Quote"
         width={350}
         height={240}
-        className="mx-auto rounded-lg shadow mb-6"
+        className="mx-auto rounded-xl mb-6"
       />
 
-      <h3 className="font-bold text-lg text-green-600 mb-2">
+      <h3 className="font-semibold text-lg text-[#ff5a2c] mb-2">
         STEP 3 — Confirm Price
       </h3>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-400">
         Lock the final price and generate the official confirmation PDF.
       </p>
     </div>
@@ -156,17 +156,19 @@ export default function HomePage() {
 
 
       {/* CALL TO ACTION */}
-      <section className="text-center py-16 bg-gray-100">
-        <h2 className="text-2xl font-bold mb-4">
-          Join SunCity Pricing Portal 
-        </h2>
+      <section className="text-center py-16 px-6">
+        <div className="glass-card-strong max-w-3xl mx-auto py-12 px-6">
+          <h2 className="text-2xl md:text-3xl heading mb-4">
+            Join SunCity Pricing Portal
+          </h2>
 
-        <Link
-          href="/register"
-          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold"
-        >
-          Get Approved
-        </Link>
+          <Link
+            href="/register"
+            className="btn-primary px-8 py-4"
+          >
+            Get Approved
+          </Link>
+        </div>
       </section>
 
     </div>

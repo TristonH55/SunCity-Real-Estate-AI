@@ -220,12 +220,12 @@ export default function Navbar() {
     return null;
   }
 
-  const active = "text-green-600";
-  const inactive = "text-gray-700 hover:text-black";
+  const active = "text-[#ff5a2c] text-glow";
+  const inactive = "text-slate-400 hover:text-white";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md z-50">
-      <div className="max-w-5xl mx-auto flex justify-around py-3">
+    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(92%,28rem)] nav-glass rounded-2xl">
+      <div className="flex justify-around py-3 transition-colors">
 
         <Link href="/" className={`flex flex-col items-center ${pathname === "/" ? active : inactive}`}>
           <Home size={22} />
@@ -263,7 +263,7 @@ export default function Navbar() {
         ) : (
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex flex-col items-center text-gray-700 hover:text-black"
+            className="flex flex-col items-center text-slate-400 hover:text-white"
           >
             <LogOut size={22} />
             <span className="text-xs">Logout</span>

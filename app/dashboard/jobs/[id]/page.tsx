@@ -143,7 +143,7 @@
 //       <div className="max-w-6xl mx-auto space-y-6">
 
 //         {/* HEADER */}
-//         <div className="bg-white p-6 rounded-xl shadow">
+//         <div className="glass-card p-6">
 //           <h1 className="text-2xl font-bold text-[#db231f]">
 //             Job #{job.id}
 //           </h1>
@@ -153,12 +153,12 @@
 //         </div>
 
 //         {/* CUSTOMER */}
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Customer Details
 //           </h2>
 
-//           <div className="grid grid-cols-2 gap-4 text-sm text-black">
+//           <div className="grid grid-cols-2 gap-4 text-sm text-slate-200">
 //             <div><strong>Name:</strong> {job.customer?.firstName} {job.customer?.lastName}</div>
 //             <div><strong>Email:</strong> {job.customer?.email}</div>
 //             <div><strong>Phone:</strong> {job.customer?.phone}</div>
@@ -167,7 +167,7 @@
 //         </div>
 
 //         {/* INSURER */}
-// <div className="bg-white p-6 rounded-xl shadow">
+// <div className="glass-card p-6">
 //   <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
 //     Insurer Details
 //   </h2>
@@ -188,8 +188,8 @@
 
 
 //         {/* SYSTEM */}
-//         <div className="bg-white p-6 rounded-xl shadow text-black">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6 text-slate-200">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             System Details
 //           </h2>
 
@@ -205,8 +205,8 @@
 //         </div>
 
 //         {/* IMAGES */}
-//         <div className="bg-white p-6 rounded-xl shadow text-black">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6 text-slate-200">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Job Images
 //           </h2>
 
@@ -233,8 +233,8 @@
 //         </div>
 
 //         {/* NOTES */}
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Internal Notes
 //           </h2>
 
@@ -345,7 +345,7 @@
 //       <div className="max-w-6xl mx-auto space-y-6">
 
 //         {/* HEADER */}
-//         <div className="bg-white p-6 rounded-xl shadow">
+//         <div className="glass-card p-6">
 //           <h1 className="text-2xl font-bold text-[#db231f]">
 //             Job #{job.id}
 //           </h1>
@@ -355,12 +355,12 @@
 //         </div>
 
 //         {/* CUSTOMER */}
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Customer Details
 //           </h2>
 
-//           <div className="grid grid-cols-2 gap-4 text-sm text-black">
+//           <div className="grid grid-cols-2 gap-4 text-sm text-slate-200">
 //             <div><strong>Name:</strong> {job.customer?.firstName} {job.customer?.lastName}</div>
 //             <div><strong>Email:</strong> {job.customer?.email}</div>
 //             <div><strong>Phone:</strong> {job.customer?.phone}</div>
@@ -369,24 +369,24 @@
 //         </div>
 
 //         {/* INSURER */}
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Insurer Details
 //           </h2>
 
 //           {job.insurer ? (
-//             <div className="grid grid-cols-2 gap-4 text-sm text-black">
+//             <div className="grid grid-cols-2 gap-4 text-sm text-slate-200">
 //               <div><strong>Company:</strong> {job.insurer.companyName}</div>
 //               <div><strong>Email:</strong> {job.insurer.email}</div>
 //             </div>
 //           ) : (
-//             <p className="text-gray-500">No insurer linked</p>
+//             <p className="text-slate-400">No insurer linked</p>
 //           )}
 //         </div>
 
 //         {/* SYSTEM */}
-//         <div className="bg-white p-6 rounded-xl shadow text-black">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6 text-slate-200">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             System Details
 //           </h2>
 
@@ -406,8 +406,8 @@
 //         </div>
 
 //         {/* IMAGES */}
-//         <div className="bg-white p-6 rounded-xl shadow text-black">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6 text-slate-200">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Job Images
 //           </h2>
 
@@ -438,8 +438,8 @@
 //         </div>
 
 //         {/* NOTES */}
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+//         <div className="glass-card p-6">
+//           <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
 //             Internal Notes
 //           </h2>
 
@@ -566,30 +566,30 @@ export default function JobPage({
   };
 
   if (!job) {
-    return <div className="p-10 text-center">Loading job...</div>;
+    return <div className="p-10 text-center text-slate-400">Loading job...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* HEADER */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h1 className="text-2xl font-bold text-[#db231f]">
+        <div className="glass-card p-6">
+          <h1 className="text-2xl heading text-gradient">
             Job #{job.id}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-slate-400 mt-1">
             {new Date(job.createdAt).toLocaleDateString("en-AU")}
           </p>
         </div>
 
         {/* CUSTOMER */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+        <div className="glass-card p-6">
+          <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
             Customer Details
           </h2>
 
-          <div className="grid grid-cols-2 gap-4 text-sm text-black">
+          <div className="grid grid-cols-2 gap-4 text-sm text-slate-200">
             <div><strong>Name:</strong> {job.customer?.firstName} {job.customer?.lastName}</div>
             <div><strong>Email:</strong> {job.customer?.email}</div>
             <div><strong>Phone:</strong> {job.customer?.phone}</div>
@@ -599,24 +599,24 @@ export default function JobPage({
         </div>
 
         {/* INSURER */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+        <div className="glass-card p-6">
+          <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
             Insurer Details
           </h2>
 
           {job.insurer ? (
-            <div className="grid grid-cols-2 gap-4 text-sm text-black">
+            <div className="grid grid-cols-2 gap-4 text-sm text-slate-200">
               <div><strong>Company:</strong> {job.insurer.companyName}</div>
               <div><strong>Email:</strong> {job.insurer.email}</div>
             </div>
           ) : (
-            <p className="text-gray-500">No insurer linked</p>
+            <p className="text-slate-400">No insurer linked</p>
           )}
         </div>
 
         {/* SYSTEM */}
-        <div className="bg-white p-6 rounded-xl shadow text-black">
-          <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+        <div className="glass-card p-6 text-slate-200">
+          <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
             System Details
           </h2>
 
@@ -637,15 +637,15 @@ export default function JobPage({
           <a
             href={`/pricing/confirmation/${job.id}`}
             target="_blank"
-            className="text-blue-600 underline mt-2 inline-block"
+            className="text-sky-300 hover:text-sky-200 underline mt-2 inline-block"
             >
             View Confirmation
         </a>
         </div>
 
         {/* IMAGES */}
-        <div className="bg-white p-6 rounded-xl shadow text-black">
-          <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+        <div className="glass-card p-6 text-slate-200">
+          <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
             Job Images
           </h2>
 
@@ -659,22 +659,22 @@ export default function JobPage({
                   />
                   <button
                     onClick={() => handleDeleteImage(img)}
-                    className="absolute top-1 right-1 bg-black text-white text-xs px-2 py-1 rounded"
+                    className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded"
                   >
                     ✕
                   </button>
                 </div>
               ))
             ) : (
-              <p className="text-gray-400 text-sm">No images yet</p>
+              <p className="text-slate-500 text-sm">No images yet</p>
             )}
           </div>
 
           {/* UPLOAD BUTTON */}
           <label className={`inline-flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-lg text-sm font-semibold transition-all
             ${uploading
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-black text-white hover:bg-gray-800"
+              ? "bg-white/5 text-slate-500 cursor-not-allowed"
+              : "bg-[#db231f] text-white hover:brightness-110 shadow-[0_0_18px_rgba(219,35,31,0.35)]"
             }`}>
             {uploading ? (
               <>
@@ -706,8 +706,8 @@ export default function JobPage({
         </div>
 
         {/* JOB CHAT */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4 text-[#db231f]">
+        <div className="glass-card p-6">
+          <h2 className="text-lg font-semibold mb-4 text-[#ff5a2c]">
             Job Notes / Messages
           </h2>
 
@@ -715,30 +715,30 @@ export default function JobPage({
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto pr-1">
             {job.notesLog?.length > 0 ? (
               job.notesLog.map((n: any) => (
-                <div key={n.id} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm text-sm text-black">
+                <div key={n.id} className="border border-white/10 rounded-xl p-4 bg-white/5 text-sm text-slate-200">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#db231f] flex items-center justify-center text-white text-xs font-bold">
+                      <div className="w-8 h-8 rounded-full bg-[#db231f] flex items-center justify-center text-white text-xs font-bold shadow-[0_0_14px_rgba(219,35,31,0.4)]">
                         {(n.user?.companyName || n.user?.email || "?")[0].toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-black text-xs">
+                        <div className="font-semibold text-white text-xs">
                           {n.user?.companyName || n.user?.email}
                         </div>
-                        <div className="text-[10px] text-gray-400 capitalize">
+                        <div className="text-[10px] text-slate-400 capitalize">
                           {n.user?.role}
                         </div>
                       </div>
                     </div>
-                    <div className="text-[10px] text-gray-400">
+                    <div className="text-[10px] text-slate-500">
                       {new Date(n.createdAt).toLocaleString("en-AU")}
                     </div>
                   </div>
-                  <p className="text-gray-700 leading-relaxed pl-10">{n.message}</p>
+                  <p className="text-slate-300 leading-relaxed pl-10">{n.message}</p>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No messages yet</p>
+              <p className="text-slate-400">No messages yet</p>
             )}
           </div>
 
@@ -748,11 +748,11 @@ export default function JobPage({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type message..."
-              className="flex-1 border p-3 rounded text-black"
+              className="glass-input flex-1"
             />
             <button
               onClick={sendMessage}
-              className="bg-black text-white px-4 rounded"
+              className="btn-primary px-5"
             >
               Send
             </button>

@@ -1,26 +1,172 @@
 @import "tailwindcss";
 
+/* ============================================================
+   SunCity — Dark "glass + red glow" design system
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #242323;
+  /* base surfaces */
+  --background: #0a0e16;          /* deep navy/slate */
+  --background-2: #0d1220;        /* slightly lifted panel */
+  --foreground: #ededed;          /* primary text */
+  --muted: #94a3b8;              /* slate-400 muted text */
+
+  /* glass */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.10);
+
+  /* brand red (hero) + ember for gradients/glow */
+  --brand: #db231f;
+  --brand-2: #ff5a2c;            /* ember */
+  --brand-glow: rgba(219, 35, 31, 0.45);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ------------------------------------------------------------
+   Base
+   ------------------------------------------------------------ */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App background: dark gradient + soft red radial glow + faint grid */
+.app-bg {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 520px at 50% -10%, rgba(219, 35, 31, 0.18), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(255, 90, 44, 0.08), transparent 55%),
+    linear-gradient(180deg, var(--background) 0%, var(--background-2) 100%);
+}
+
+/* faint grid overlay */
+.app-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 50% 0%, black, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at 50% 0%, black, transparent 75%);
+  z-index: 0;
+}
+
+/* ------------------------------------------------------------
+   Reusable component classes
+   ------------------------------------------------------------ */
+@layer components {
+  /* Frosted glass surface */
+  .glass-card {
+    @apply relative rounded-2xl border backdrop-blur-xl;
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+      0 20px 50px -20px rgba(0, 0, 0, 0.7);
+  }
+
+  .glass-card-strong {
+    @apply relative rounded-2xl border backdrop-blur-xl;
+    background: var(--glass-bg-strong);
+    border-color: var(--glass-border);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+      0 24px 60px -24px rgba(0, 0, 0, 0.75);
+  }
+
+  /* Glass form input */
+  .glass-input {
+    @apply w-full rounded-xl border px-4 py-3 text-[15px] text-white outline-none transition;
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--glass-border);
+  }
+  .glass-input::placeholder {
+    color: var(--muted);
+  }
+  .glass-input:focus {
+    border-color: rgba(219, 35, 31, 0.6);
+    box-shadow: 0 0 0 3px rgba(219, 35, 31, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Primary button — red→ember gradient + glow + hover lift */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-all duration-200;
+    background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+    box-shadow: 0 8px 24px -6px var(--brand-glow), 0 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 32px -6px var(--brand-glow), 0 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+    filter: brightness(1.05);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Secondary / ghost glass button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border px-6 py-3 font-semibold transition-all duration-200;
+    color: var(--foreground);
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+  }
+  .btn-ghost:hover {
+    background: var(--glass-bg-strong);
+    transform: translateY(-1px);
+  }
+
+  /* Heading with subtle red glow */
+  .heading {
+    @apply font-bold tracking-tight text-white;
+  }
+  .text-glow {
+    text-shadow: 0 0 24px rgba(219, 35, 31, 0.55);
+  }
+
+  /* Gradient red text (for accents/headlines) */
+  .text-gradient {
+    background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Floating frosted nav bar */
+  .nav-glass {
+    background: rgba(13, 18, 32, 0.6);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Small status badge */
+  .badge {
+    @apply inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-medium;
+    border-color: var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--foreground);
+  }
 }

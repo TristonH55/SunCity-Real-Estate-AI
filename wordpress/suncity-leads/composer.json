@@ -1,0 +1,19 @@
+{
+    "name": "f8-media/suncity-leads",
+    "description": "Add lead form connected to the SunCity Hot Water jobs site.",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "F8Media\\SuncityLeads\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "F8 Media",
+            "email": "team@f8media.com.au"
+        }
+    ],
+    "require": {
+        "giggsey/libphonenumber-for-php": "^8.13"
+    }
+}

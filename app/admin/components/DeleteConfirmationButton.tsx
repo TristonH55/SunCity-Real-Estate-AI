@@ -23,7 +23,7 @@ export default function DeleteConfirmationButton({ id }: { id: string }) {
   return (
     <button
       onClick={handleDelete}
-      className="text-red-600 hover:underline"
+      className="text-red-400 hover:text-red-300 hover:underline"
     >
       Delete
     </button>

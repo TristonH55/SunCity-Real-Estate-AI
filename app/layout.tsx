@@ -66,8 +66,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased pb-24`}
       >
         <Providers>
-          {children}
-          <Navbar />
+          <div className="app-bg">
+            <div className="relative z-10">{children}</div>
+            <Navbar />
+          </div>
         </Providers>
       </body>
     </html>

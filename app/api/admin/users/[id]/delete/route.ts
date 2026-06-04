@@ -18,11 +18,15 @@
 /////V2
 import { prisma } from "../../../../../../lib/prisma";
 import { NextResponse } from "next/server";
+import { requireApiRole } from "@/lib/require-api-role";
 
 export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  // 🔒 Admin only
+  const { error } = await requireApiRole("admin");
+  if (error) return error;
 
   const { id } = await context.params;
 
