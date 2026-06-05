@@ -738,7 +738,7 @@ export default async function AdminPage() {
         </h1>
 
         {/* STATS */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="glass-card p-6">
             <h2 className="text-sm text-slate-400">Total Users</h2>
             <p className="text-3xl font-bold text-white">{totalUsers}</p>
@@ -761,7 +761,8 @@ export default async function AdminPage() {
             Registered Insurers
           </h2>
 
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-white/10 text-slate-200">
                 <th className="text-left py-2">Email</th>
@@ -787,6 +788,7 @@ export default async function AdminPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* CONFIRMATIONS */}
@@ -795,7 +797,8 @@ export default async function AdminPage() {
             Recent Price Confirmations
           </h2>
 
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="border-b border-white/10 text-slate-200">
                 <th className="text-left py-2">Confirmation</th>
@@ -902,6 +905,7 @@ export default async function AdminPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
       </div>

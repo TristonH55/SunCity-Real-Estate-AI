@@ -294,7 +294,8 @@ export default async function Dashboard() {
           Your Confirmations
         </h1>
 
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr className="border-b border-white/10 text-slate-300">
               <th className="text-left py-2">Confirmation</th>
@@ -359,6 +360,7 @@ export default async function Dashboard() {
             })}
           </tbody>
         </table>
+        </div>
 
       </div>
     </div>
