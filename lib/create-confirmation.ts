@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendLeadToCMS } from "@/lib/unity-crm";
 import { resend } from "@/lib/resend";
+import { escapeHtml } from "@/lib/escape-html";
 import {
   CMS_ENQUIRY_TYPES,
   CMS_PROPERTY_TYPES,
@@ -149,26 +150,26 @@ export async function sendOrderNotificationEmail(
     await resend.emails.send({
       from: process.env.EMAIL_FROM || "SunCity <no-reply@suncityhotwater.com.au>",
       to: process.env.ORDER_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL!,
-      subject: `New Order / Lead – ${customer.firstName} ${customer.lastName} (${fmt(
-        Number(confirmation.totalIncGst)
-      )})`,
+      subject: `New Order / Lead – ${escapeHtml(customer.firstName)} ${escapeHtml(
+        customer.lastName
+      )} (${fmt(Number(confirmation.totalIncGst))})`.replace(/[\r\n]+/g, " "),
       html: `
         <h2>New Order / Lead Confirmed (locked quote)</h2>
         <h3>Customer</h3>
         <p>
-          <strong>Name:</strong> ${customer.firstName} ${customer.lastName}<br/>
-          <strong>Email:</strong> ${customer.email}<br/>
-          <strong>Phone:</strong> ${customer.phone}<br/>
-          <strong>Address:</strong> ${customer.address || ""}<br/>
-          <strong>Postcode:</strong> ${customer.postcode || ""}<br/>
-          <strong>Property type:</strong> ${customer.propertyType || ""}<br/>
-          <strong>Existing system:</strong> ${customer.existingSystemType || ""}<br/>
-          <strong>System location:</strong> ${customer.systemLocation || ""}
+          <strong>Name:</strong> ${escapeHtml(customer.firstName)} ${escapeHtml(customer.lastName)}<br/>
+          <strong>Email:</strong> ${escapeHtml(customer.email)}<br/>
+          <strong>Phone:</strong> ${escapeHtml(customer.phone)}<br/>
+          <strong>Address:</strong> ${escapeHtml(customer.address || "")}<br/>
+          <strong>Postcode:</strong> ${escapeHtml(customer.postcode || "")}<br/>
+          <strong>Property type:</strong> ${escapeHtml(customer.propertyType || "")}<br/>
+          <strong>Existing system:</strong> ${escapeHtml(customer.existingSystemType || "")}<br/>
+          <strong>System location:</strong> ${escapeHtml(customer.systemLocation || "")}
         </p>
         <h3>System</h3>
         <p>
-          <strong>Region:</strong> ${region?.name ?? confirmation.regionCode}<br/>
-          <strong>System:</strong> ${system?.brand ?? ""} ${system?.model ?? ""} – ${system?.capacityLitres ?? ""}L
+          <strong>Region:</strong> ${escapeHtml(region?.name ?? confirmation.regionCode)}<br/>
+          <strong>System:</strong> ${escapeHtml(system?.brand ?? "")} ${escapeHtml(system?.model ?? "")} – ${escapeHtml(String(system?.capacityLitres ?? ""))}L
         </p>
         <h3>Price</h3>
         <p>

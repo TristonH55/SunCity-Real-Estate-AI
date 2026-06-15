@@ -1,5 +1,6 @@
 import { resend } from "@/lib/resend";
 import { createApprovalToken } from "@/lib/approval-token";
+import { escapeHtml } from "@/lib/escape-html";
 
 /**
  * Sends the admin the approve/reject email for a newly-registered agent.
@@ -27,8 +28,8 @@ export async function sendAdminApprovalEmail(opts: {
     subject: "New Agent Registration – Approval Required",
     html: `
       <h2>New Agent Registration</h2>
-      <p><strong>Company:</strong> ${opts.companyName}</p>
-      <p><strong>Email:</strong> ${opts.email}</p>
+      <p><strong>Company:</strong> ${escapeHtml(opts.companyName)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(opts.email)}</p>
       <p>
         <a href="${approveUrl}">✅ Approve agent</a>
         &nbsp;|&nbsp;

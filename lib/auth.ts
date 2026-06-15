@@ -213,6 +213,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import type { AuthOptions } from "next-auth";
+import { allow, limiters } from "@/lib/ratelimit";
 
 export const authOptions: AuthOptions = {
   session: {
@@ -245,13 +246,22 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials.password) {
           return null;
         }
 
         const email = credentials.email.trim().toLowerCase();
         const password = credentials.password.trim();
+
+        // Brute-force throttle / lockout backoff: limit attempts per IP+email.
+        const ip =
+          ((req?.headers?.["x-forwarded-for"] as string) || "")
+            .split(",")[0]
+            .trim() || "unknown";
+        if (!(await allow(limiters.login, `${ip}:${email}`))) {
+          return null;
+        }
 
         const user = await prisma.user.findUnique({
           where: { email },

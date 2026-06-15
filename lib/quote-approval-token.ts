@@ -35,7 +35,9 @@ export function verifyQuoteApprovalToken(
       .update(`${purpose}:${quoteId}:${timestamp}`)
       .digest("hex");
 
-    if (expected !== signature) return null;
+    const a = Buffer.from(expected);
+    const b = Buffer.from(signature);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
     if (Date.now() - Number(timestamp) > maxAgeMs) return null;
 
     return quoteId;

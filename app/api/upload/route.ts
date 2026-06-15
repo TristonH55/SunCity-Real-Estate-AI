@@ -33,13 +33,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: "File too large (max 10 MB)" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitise the client-supplied filename (strip path/odd chars).
+    const safeName = (file.name || "upload")
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .slice(-100);
+
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const url = await uploadToR2(
-      buffer,
-      file.name,
-      file.type
-    );
+    const url = await uploadToR2(buffer, safeName, file.type);
 
     return NextResponse.json({ url });
   } catch (err) {

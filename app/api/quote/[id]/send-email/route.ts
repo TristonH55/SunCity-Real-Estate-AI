@@ -7,20 +7,30 @@ import { requireApiRole } from "@/lib/require-api-role";
 import { resend } from "@/lib/resend";
 import { renderQuotePdf } from "@/lib/quote-pdf";
 import { createQuoteApprovalToken } from "@/lib/quote-approval-token";
+import { allow, limiters } from "@/lib/ratelimit";
+import { checkOrigin } from "@/lib/origin-check";
+import { clientIp } from "@/lib/client-ip";
 
 // Emails the homeowner the 3-option quote PDF (attached). Recipient is the
 // homeowner email currently on the quote (editable via the pencil). Homeowner only.
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Agents only (admins pass). Route is outside the middleware matcher.
   const { session, error } = await requireApiRole("agent");
   if (error) return error;
 
+  const originError = checkOrigin(req);
+  if (originError) return originError;
+
   const { id } = await params;
 
   try {
+    if (!(await allow(limiters.sendEmail, `${id}:${clientIp(req)}`))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const quote = await prisma.quote.findUnique({
       where: { id },
       select: { agentId: true, customerSnapshot: true },

@@ -181,9 +181,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendAdminApprovalEmail } from "@/lib/admin-approval-email";
+import { allow, limiters } from "@/lib/ratelimit";
+import { clientIp } from "@/lib/client-ip";
 
 export async function POST(req: Request) {
   try {
+    if (!(await allow(limiters.register, clientIp(req)))) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { email, password, companyName } = body;
 

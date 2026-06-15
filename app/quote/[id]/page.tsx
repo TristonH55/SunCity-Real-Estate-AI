@@ -133,7 +133,7 @@ export default async function QuoteViewPage({
       {/* Homeowner verification: install/property answers + selected extras */}
       <div className="glass-card p-5 mt-5">
         <h2 className="text-lg font-semibold text-[#ff5a2c] mb-4">
-          Installation &amp; Extras — please confirm with the homeowner
+          Installation &amp; Extras
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">

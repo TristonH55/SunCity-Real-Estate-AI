@@ -21,13 +21,13 @@ export default function HomePage() {
       </div>
 
         <h1 className="text-4xl md:text-5xl heading mb-4">
-          <span className="text-gradient">Hot Water Quoting Portal</span>
+          <span className="text-gradient">Real Estate Quoting Portal</span>
         </h1>
 
         <p className="max-w-xl mx-auto text-slate-400 mb-8 text-lg">
-          Fast and accurate hot water replacement pricing for real-estate
-          agents. Generate a 3-option quote instantly, send the homeowner one
-          branded PDF, then lock their chosen system.
+          Fast and accurate hot water replacement pricing for real estate
+          agents. Generate a 3-option quote in seconds and send it to the
+          homeowner to review and approve.
         </p>
 
         <Link

@@ -181,7 +181,7 @@ export default function LockQuote({
         disabled={locking || !choice}
         className="btn-primary w-full"
       >
-        {locking ? "Locking…" : "Confirm & lock"}
+        {locking ? "Locking…" : "Manual Confirm & lock"}
       </button>
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm font-semibold text-red-300">

@@ -7,7 +7,7 @@ export default function HomeownerCard({
   quoteId,
   name,
   address,
-  phone,
+  phone: initialPhone,
   email: initialEmail,
 }: {
   quoteId: string;
@@ -22,6 +22,12 @@ export default function HomeownerCard({
   const [draft, setDraft] = useState(initialEmail || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [phone, setPhone] = useState(initialPhone || "");
+  const [phoneEditing, setPhoneEditing] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState(initialPhone || "");
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const [sending, setSending] = useState(false);
   const [sendOk, setSendOk] = useState(false);
@@ -48,6 +54,30 @@ export default function HomeownerCard({
       setError("Failed to save email.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const savePhone = async () => {
+    setPhoneError(null);
+    setPhoneSaving(true);
+    try {
+      const res = await fetch(`/api/quote/${quoteId}/update-contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phoneDraft }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPhone(data.phone ?? phoneDraft);
+        setPhoneEditing(false);
+        router.refresh();
+      } else {
+        setPhoneError(data.error || "Failed to save phone.");
+      }
+    } catch {
+      setPhoneError("Failed to save phone.");
+    } finally {
+      setPhoneSaving(false);
     }
   };
 
@@ -84,7 +114,66 @@ export default function HomeownerCard({
         </div>
         <div>
           <p className="text-slate-400">Phone</p>
-          <p className="text-white">{phone || "—"}</p>
+          {!phoneEditing ? (
+            <div className="flex items-center gap-2">
+              <p className="text-white break-all">{phone || "—"}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPhoneDraft(phone);
+                  setPhoneError(null);
+                  setPhoneEditing(true);
+                }}
+                aria-label="Edit phone"
+                title="Edit phone"
+                className="text-slate-400 hover:text-white transition shrink-0"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="tel"
+                value={phoneDraft}
+                onChange={(e) => setPhoneDraft(e.target.value)}
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition"
+                placeholder="0400 000 000"
+              />
+              <button
+                type="button"
+                onClick={savePhone}
+                disabled={phoneSaving}
+                className="btn-primary px-3 py-1.5 text-xs"
+              >
+                {phoneSaving ? "Saving…" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPhoneEditing(false);
+                  setPhoneError(null);
+                }}
+                className="text-slate-400 hover:text-white text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+          {phoneError && <p className="text-red-300 text-xs mt-1">{phoneError}</p>}
         </div>
         <div className="sm:col-span-2">
           <p className="text-slate-400">Address</p>

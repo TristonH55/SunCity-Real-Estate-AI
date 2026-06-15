@@ -16,16 +16,23 @@ export function verifyApprovalToken(
   token: string,
   maxAgeMs = 1000 * 60 * 60 * 24
 ) {
-  const decoded = Buffer.from(token, "base64url").toString();
-  const [userId, timestamp, signature] = decoded.split(":");
+  try {
+    const decoded = Buffer.from(token, "base64url").toString();
+    const [userId, timestamp, signature] = decoded.split(":");
+    if (!userId || !timestamp || !signature) return null;
 
-  const expected = crypto
-    .createHmac("sha256", SECRET)
-    .update(`${userId}:${timestamp}`)
-    .digest("hex");
+    const expected = crypto
+      .createHmac("sha256", SECRET)
+      .update(`${userId}:${timestamp}`)
+      .digest("hex");
 
-  if (expected !== signature) return null;
-  if (Date.now() - Number(timestamp) > maxAgeMs) return null;
+    const a = Buffer.from(expected);
+    const b = Buffer.from(signature);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+    if (Date.now() - Number(timestamp) > maxAgeMs) return null;
 
-  return userId;
+    return userId;
+  } catch {
+    return null;
+  }
 }

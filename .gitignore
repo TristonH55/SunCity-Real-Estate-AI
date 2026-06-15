@@ -41,7 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
-
+info.txt
 DB-HELP-info
 DB-HELP-info.txt
 Help-file.txt

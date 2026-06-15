@@ -9,6 +9,9 @@ import {
   pushConfirmationToCMS,
   sendOrderNotificationEmail,
 } from "@/lib/create-confirmation";
+import { allow, limiters } from "@/lib/ratelimit";
+import { checkOrigin } from "@/lib/origin-check";
+import { clientIp } from "@/lib/client-ip";
 
 export async function POST(
   req: NextRequest,
@@ -18,9 +21,16 @@ export async function POST(
   const { session, error } = await requireApiRole("agent");
   if (error) return error;
 
+  const originError = checkOrigin(req);
+  if (originError) return originError;
+
   const { id } = await params;
 
   try {
+    if (!(await allow(limiters.lock, clientIp(req)))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const selectedOptionId = body?.selectedOptionId;
     if (!selectedOptionId) {
@@ -113,7 +123,7 @@ export async function POST(
 
     // Post-commit (outside the transaction): push CRM + staff email.
     // A CRM failure leaves crmLeadSentAt null for retry; the order is NOT rolled back.
-    const userIp = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
+    const userIp = clientIp(req);
     const crm = await pushConfirmationToCMS(txResult.confirmationId, { userIp });
     await sendOrderNotificationEmail(txResult.confirmationId);
 

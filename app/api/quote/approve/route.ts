@@ -4,12 +4,21 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyQuoteApprovalToken } from "@/lib/quote-approval-token";
+import { allow, limiters } from "@/lib/ratelimit";
+import { checkOrigin } from "@/lib/origin-check";
+import { clientIp } from "@/lib/client-ip";
 
 // PUBLIC, token-authenticated (NO session). The homeowner records their choice
 // + typed-name e-signature. Record-only: does NOT lock or push to CRM — the
 // agent finalises via the lock route.
 export async function POST(req: NextRequest) {
   try {
+    const originError = checkOrigin(req);
+    if (originError) return originError;
+    if (!(await allow(limiters.approve, clientIp(req)))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const { token, selectedOptionId, name } = body ?? {};
 
@@ -58,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for") ?? "";
+    const ip = clientIp(req);
 
     await prisma.quote.update({
       where: { id: quoteId },
