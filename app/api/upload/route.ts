@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadToR2 } from "@/lib/r2";
 import { requireApiRole } from "@/lib/require-api-role";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const ALLOWED_TYPES = [
