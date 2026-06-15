@@ -127,6 +127,36 @@ export default function LockQuote({
       <h2 className="text-lg font-semibold text-white">
         Confirm the homeowner&apos;s choice
       </h2>
+
+      <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-4 text-sm space-y-2">
+        <p className="font-semibold text-sky-200">
+          Recommended: let the homeowner approve it themselves
+        </p>
+        <ol className="list-decimal list-inside space-y-1 text-slate-300">
+          <li>
+            Use <strong>Email quote to homeowner</strong> (in the Homeowner card
+            above) — they receive the quote PDF and a secure approval link.
+          </li>
+          <li>
+            They open <strong>&quot;Approve your hot water quote&quot;</strong> from
+            that email, choose their system, type their name to e-sign, and submit.
+          </li>
+          <li>
+            Their choice is then recorded and <strong>this card turns green</strong>
+            {" "}(&quot;Homeowner Has Selected&quot;) — you just press Confirm to
+            finalise the order.
+          </li>
+        </ol>
+        <p className="text-slate-400">
+          Nothing is sent to the CRM until you confirm. If the homeowner has told
+          you their choice directly, you can also select it and lock it manually
+          below.
+        </p>
+      </div>
+
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 pt-1">
+        Manual confirm (fallback)
+      </p>
       <div className="space-y-2">
         {options.map((o) => (
           <label
