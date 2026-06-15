@@ -3,24 +3,21 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getOwnedConfirmation } from "@/lib/confirmation-access";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { jobId, message } = await req.json();
+
+    // Auth + per-agent ownership (route is outside the middleware matcher).
+    const { session, error } = await getOwnedConfirmation(jobId);
+    if (error) return error;
 
     const note = await prisma.jobNote.create({
       data: {
         jobId,
         message,
-        userId: session.user.id,
+        userId: session!.user.id,
       },
     });
 

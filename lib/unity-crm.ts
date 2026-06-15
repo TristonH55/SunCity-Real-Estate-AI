@@ -122,7 +122,23 @@ export async function sendLeadToCMS(payload: CMSPayload) {
       body: JSON.stringify(payload),
     });
 
-    // ... rest of your code
+    // UnityCRM often returns an empty body on success.
+    const text = await res.text();
+
+    if (!res.ok) {
+      throw new Error(`CMS error ${res.status}: ${text || "(empty body)"}`);
+    }
+
+    if (!text) {
+      return { ok: true } as const;
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Non-JSON success body — return it raw rather than throwing.
+      return { ok: true, raw: text } as const;
+    }
   } catch (err) {
     console.error("[CMS] Send failed:", err);
     throw err;

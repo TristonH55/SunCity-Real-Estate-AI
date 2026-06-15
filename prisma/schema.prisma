@@ -18,6 +18,7 @@ model User {
   updatedAt     DateTime @updatedAt
 
   jobNotes      JobNote[] // ✅ NEW
+  quotes        Quote[]
 }
 
 model Region {
@@ -44,6 +45,7 @@ model System {
   updatedAt              DateTime @updatedAt
 
   systemPrices           SystemPrice[]
+  quoteOptions           QuoteOption[]
 }
 
 model SystemPrice {
@@ -99,8 +101,53 @@ model PricingConfirmation {
   lastViewedByInsurer DateTime?
   lastViewedByAdmin   DateTime?
 
+  crmLeadSentAt      DateTime? // null = CRM lead not yet sent / needs retry
+
   @@index([regionCode])
   @@index([systemId])
+}
+
+// New 3-option proposal/selection layer (real-estate agents).
+// Quote (presented) holds up to 3 brand options; locking creates a PricingConfirmation.
+model Quote {
+  id               String        @id @default(uuid())
+  agent            User          @relation(fields: [agentId], references: [id])
+  agentId          String
+  regionCode       String
+  systemType       SystemType
+  capacityLitres   Int
+  extraIds         String[]      @default([])
+  customerSnapshot Json
+  status           QuoteStatus   @default(presented)
+  selectedOptionId String?
+  confirmationId   String?       // set on lock → the created PricingConfirmation
+  createdAt        DateTime      @default(now())
+  lockedAt         DateTime?
+
+  // Homeowner self-approval (record-only e-signature; agent still finalises)
+  approvedByName   String?
+  approvedAt       DateTime?
+  approvalIp       String?
+
+  options          QuoteOption[]
+
+  @@index([agentId])
+  @@index([status])
+}
+
+model QuoteOption {
+  id               String  @id @default(uuid())
+  quote            Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId          String
+  system           System  @relation(fields: [systemId], references: [id])
+  systemId         String
+  basePriceExGst   Decimal
+  extrasTotalExGst Decimal
+  subtotalExGst    Decimal
+  gst              Decimal
+  totalIncGst      Decimal
+
+  @@index([quoteId])
 }
 
 model JobNote {
@@ -116,7 +163,13 @@ model JobNote {
 
 enum UserRole {
   admin
-  insurer
+  agent
+}
+
+enum QuoteStatus {
+  presented
+  approved
+  locked
 }
 enum SystemType {
   electric

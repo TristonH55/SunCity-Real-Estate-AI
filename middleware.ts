@@ -29,7 +29,7 @@
 //   }
 
 //   // ⛔ Logged in but not approved
-//   if (token.role === "insurer" && token.approved !== true) {
+//   if (token.role === "agent" && token.approved !== true) {
 //     return NextResponse.redirect(
 //       new URL("/awaiting-approval", req.url)
 //     );
@@ -75,7 +75,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // ⛔ Logged in but not approved
-  if (token.role === "insurer" && token.approved !== true) {
+  if (token.role === "agent" && token.approved !== true) {
     return NextResponse.redirect(
       new URL("/awaiting-approval", req.url)
     );

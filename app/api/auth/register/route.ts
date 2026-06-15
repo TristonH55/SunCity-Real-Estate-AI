@@ -180,6 +180,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { sendAdminApprovalEmail } from "@/lib/admin-approval-email";
 
 export async function POST(req: Request) {
   try {
@@ -193,8 +194,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // Password policy: minimum length.
+    if (String(password).length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
+    const normEmail = String(email).trim().toLowerCase();
+
     const existing = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normEmail },
     });
 
     if (existing) {
@@ -208,10 +219,10 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normEmail,
         passwordHash,
         companyName,
-        role: "insurer",
+        role: "agent",
         approved: false,
       },
     });
@@ -229,21 +240,17 @@ export async function POST(req: Request) {
     //     }),
     //   }
     // );
-    const baseUrl =
-    process.env.NEXTAUTH_URL || "http://localhost:3000";
-  
-  await fetch(`${baseUrl}/api/auth/send-admin-approval`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: user.id,
-      email: user.email,
-      companyName: user.companyName,
-    }),
-  });
-
-
-
+    // Send the HMAC-token approval email directly (no public HTTP hop).
+    // Non-blocking: registration succeeds even if the email fails.
+    try {
+      await sendAdminApprovalEmail({
+        userId: user.id,
+        email: user.email,
+        companyName: user.companyName,
+      });
+    } catch (e) {
+      console.error("Approval email failed (non-blocking):", e);
+    }
 
 
 

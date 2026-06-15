@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyApprovalToken } from "@/lib/approval-token";
-import { sendMail } from "@/lib/mailer";
+import { resend } from "@/lib/resend";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -24,14 +24,22 @@ export async function GET(req: Request) {
     data: { approved: true },
   });
 
-  await sendMail({
-    to: user.email,
-    subject: "Your SunCity account has been approved",
-    html: `
-      <p>Your insurer account has been approved.</p>
-      <p>You can now log in and access pricing.</p>
-    `,
-  });
+  // Non-blocking: approval already persisted; don't fail if the email errors.
+  // Uses Resend (same as the admin approval email) — no SMTP needed.
+  try {
+    await resend.emails.send({
+      from:
+        process.env.EMAIL_FROM || "SunCity <no-reply@suncityhotwater.com.au>",
+      to: user.email,
+      subject: "Your SunCity account has been approved",
+      html: `
+        <p>Your agent account has been approved.</p>
+        <p>You can now log in and start generating quotes.</p>
+      `,
+    });
+  } catch (e) {
+    console.error("Approval notification email failed (non-blocking):", e);
+  }
 
   return NextResponse.json({ success: true });
 }

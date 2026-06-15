@@ -2,7 +2,7 @@
 // import { authOptions } from "@/lib/auth";
 // import { redirect } from "next/navigation";
 
-// export async function requireRole(role: "admin" | "insurer") {
+// export async function requireRole(role: "admin" | "agent") {
 //   const session = await getServerSession(authOptions);
 
 //   // Not logged in
@@ -23,7 +23,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";
 
-export async function requireRole(role: "admin" | "insurer") {
+export async function requireRole(role: "admin" | "agent") {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {

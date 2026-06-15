@@ -714,7 +714,17 @@ export default async function AdminPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // ✅ INCLUDE LATEST MESSAGE
+  // Proposal side: all agents' quotes.
+  const quotes = await prisma.quote.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    include: {
+      options: { select: { totalIncGst: true } },
+      agent: { select: { email: true, companyName: true } },
+    },
+  });
+
+  // Order side: locked-order confirmations (+ latest message).
   const confirmations = await prisma.pricingConfirmation.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
@@ -727,7 +737,8 @@ export default async function AdminPage() {
   });
 
   const totalUsers = await prisma.user.count();
-  const totalQuotes = await prisma.pricingConfirmation.count();
+  const totalQuotes = await prisma.quote.count();
+  const totalOrders = await prisma.pricingConfirmation.count();
 
   return (
     <div className="flex justify-center py-10 min-h-screen px-4">
@@ -750,15 +761,15 @@ export default async function AdminPage() {
           </div>
 
           <div className="glass-card p-6">
-            <h2 className="text-sm text-slate-400">Recent Confirmations</h2>
-            <p className="text-3xl font-bold text-white">{confirmations.length}</p>
+            <h2 className="text-sm text-slate-400">Locked Orders</h2>
+            <p className="text-3xl font-bold text-white">{totalOrders}</p>
           </div>
         </div>
 
         {/* USERS */}
         <div className="glass-card p-6">
           <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
-            Registered Insurers
+            Registered Agents
           </h2>
 
           <div className="overflow-x-auto">
@@ -791,10 +802,78 @@ export default async function AdminPage() {
           </div>
         </div>
 
+        {/* QUOTES (proposal side) */}
+        <div className="glass-card p-6">
+          <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
+            All Quotes
+          </h2>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[720px]">
+              <thead>
+                <tr className="border-b border-white/10 text-slate-200">
+                  <th className="text-left py-2">Agent</th>
+                  <th className="text-left py-2">Customer</th>
+                  <th className="text-left py-2">System</th>
+                  <th className="text-left py-2">Options</th>
+                  <th className="text-left py-2">Status</th>
+                  <th className="text-left py-2">View</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes.map((q) => {
+                  const cust = (q.customerSnapshot ?? {}) as Record<
+                    string,
+                    string
+                  >;
+                  return (
+                    <tr
+                      key={q.id}
+                      className="border-b border-white/10 text-slate-200"
+                    >
+                      <td className="py-2">
+                        {q.agent?.companyName || q.agent?.email || "—"}
+                      </td>
+                      <td>
+                        {cust.firstName} {cust.lastName}
+                      </td>
+                      <td>
+                        {q.capacityLitres} L · {q.systemType.replace(/_/g, " ")}
+                      </td>
+                      <td>{q.options.length}</td>
+                      <td>
+                        <span
+                          className={
+                            q.status === "locked"
+                              ? "text-green-300"
+                              : q.status === "approved"
+                              ? "text-sky-300"
+                              : "text-amber-300"
+                          }
+                        >
+                          {q.status}
+                        </span>
+                      </td>
+                      <td>
+                        <a
+                          href={`/quote/${q.id}`}
+                          className="text-sky-300 hover:text-sky-200 underline"
+                        >
+                          View
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* CONFIRMATIONS */}
         <div className="glass-card p-6">
           <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
-            Recent Price Confirmations
+            Locked Orders
           </h2>
 
           <div className="overflow-x-auto">

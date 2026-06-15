@@ -63,32 +63,25 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getOwnedConfirmation } from "@/lib/confirmation-access";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { id, imageUrl, notes } = body;
 
-    if (!id) {
-      return NextResponse.json({ error: "Missing job id" }, { status: 400 });
-    }
-
-    const job = await prisma.pricingConfirmation.findUnique({
-      where: { id },
-    });
-
-    if (!job) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    }
+    // Auth + per-agent ownership (route is outside the middleware matcher).
+    const { confirmation: job, error } = await getOwnedConfirmation(id);
+    if (error) return error;
 
     const updatedImages = imageUrl
-      ? [...(job.images || []), imageUrl]
-      : job.images;
+      ? [...(job!.images || []), imageUrl]
+      : job!.images;
 
     const updated = await prisma.pricingConfirmation.update({
       where: { id },
       data: {
-        notes: notes ?? job.notes,
+        notes: notes ?? job!.notes,
         images: updatedImages,
       },
     });

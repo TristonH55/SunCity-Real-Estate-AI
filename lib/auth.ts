@@ -287,20 +287,16 @@ export const authOptions: AuthOptions = {
         token.companyName = user.companyName;
       }
 
-      console.log("🔥 JWT TOKEN:", token);
-
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as "admin" | "insurer";
+        session.user.role = token.role as "admin" | "agent";
         session.user.approved = token.approved as boolean;
         session.user.companyName = token.companyName as string;
       }
-
-      console.log("🔥 SERVER SESSION:", session);
 
       return session;
     },

@@ -285,7 +285,7 @@ const extras = await prisma.extra.findMany({
         </View>
 
         <Text style={{ marginTop: 20, fontSize: 10, color: "#666" }}>
-          This pricing snapshot is locked and valid for insurance processing.
+          This pricing snapshot is locked for the selected hot water system.
           SunCity Hot Water — Contact us for installation or questions.
         </Text>
       </Page>

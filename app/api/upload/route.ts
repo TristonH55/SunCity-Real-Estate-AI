@@ -13,8 +13,8 @@ const ALLOWED_TYPES = [
 ];
 
 export async function POST(req: NextRequest) {
-  // 🔒 Require a logged-in user (insurer or admin)
-  const { error } = await requireApiRole("insurer");
+  // 🔒 Require a logged-in user (agent or admin)
+  const { error } = await requireApiRole("agent");
   if (error) return error;
 
   try {

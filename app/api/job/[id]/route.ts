@@ -271,6 +271,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getOwnedConfirmation } from "@/lib/confirmation-access";
 
 export async function GET(
   _req: NextRequest,
@@ -279,17 +280,10 @@ export async function GET(
   try {
     const { id } = await params;
 
-    if (!id) {
-      return NextResponse.json({ error: "Missing ID" }, { status: 400 });
-    }
-
-    const confirmation = await prisma.pricingConfirmation.findUnique({
-      where: { id },
-    });
-
-    if (!confirmation) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
+    // Auth + per-agent ownership (route is outside the middleware matcher).
+    const access = await getOwnedConfirmation(id);
+    if (access.error) return access.error;
+    const confirmation = access.confirmation!;
 
     // ✅ SAFE UPDATE (won’t break if field missing)
     try {

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
@@ -169,4 +170,27 @@ body {
     background: var(--glass-bg);
     color: var(--foreground);
   }
+}
+
+/* Gold "STEP" wordmark — matches the hero image's gold STEP text */
+.step-gold {
+  font-family: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  /* richer metallic gold: bright highlight → deep amber → bronze */
+  background-image: linear-gradient(
+    180deg,
+    #fff3c4 0%,
+    #ffd54a 30%,
+    #e6a417 60%,
+    #9c6a12 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* stronger depth: dark drop shadow + soft warm gold glow */
+  filter:
+    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 8px rgba(230, 164, 23, 0.35));
 }
