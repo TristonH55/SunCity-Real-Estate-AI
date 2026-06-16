@@ -52,7 +52,7 @@ export default function PricingPage() {
       {/* Hero banner */}
       <div className="mb-8">
         <Image
-          src="/images/Suncity-hot-water-realestate-agents-app.png"
+          src="/images/SunCity-Real-Estate-App.png"
           alt="SunCity Hot Water — real estate agents app"
           width={1376}
           height={768}
