@@ -96,51 +96,83 @@
 // lib/unity-crm.ts
 // Safe wrapper that matches your Postman success case
 
+const CRM_HOST = "jobs.suncityhotwater.com.au";
+
 type CMSPayload = {
   lead_data: Record<string, any>;
   contact_data: Record<string, any>;
 };
 
+type LeadAttachment = { name: string; type: string; contents: string /* base64 */ };
+
+function authHeader() {
+  const key = process.env.CMS_API_KEY;
+  const secret = process.env.CMS_API_SECRET;
+  if (!key || !secret) {
+    throw new Error("Missing CMS_API_KEY or CMS_API_SECRET in env");
+  }
+  return "Basic " + Buffer.from(`${key}:${secret}`).toString("base64");
+}
+
+// UnityCRM returns HTTP 200 even on failure with { status:false, message } —
+// treat that as an error. Returns parsed JSON (or raw text / null) on success.
+async function parseResponse(res: Response) {
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`CMS error ${res.status}: ${text || "(empty body)"}`);
+  }
+  if (!text) return null;
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return text;
+  }
+  if (parsed && parsed.status === false) {
+    throw new Error(`CMS error: ${parsed.message ?? "unknown"}`);
+  }
+  return parsed;
+}
+
+// Creates a lead. Returns the parsed response (lead slug at data.object_slug).
 export async function sendLeadToCMS(payload: CMSPayload) {
   try {
-    const key = process.env.CMS_API_KEY;
-    const secret = process.env.CMS_API_SECRET;
-
-
-    if (!key || !secret) {
-      throw new Error("Missing CMS_API_KEY or CMS_API_SECRET in env");
-    }
-
-    const auth = Buffer.from(`${key}:${secret}`).toString("base64");
-
-    const res = await fetch("https://jobs.suncityhotwater.com.au/api/leads/add", {
+    const res = await fetch(`https://${CRM_HOST}/api/leads/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Basic ${auth}`,
+        Accept: "application/json",
+        Authorization: authHeader(),
       },
       body: JSON.stringify(payload),
     });
-
-    // UnityCRM often returns an empty body on success.
-    const text = await res.text();
-
-    if (!res.ok) {
-      throw new Error(`CMS error ${res.status}: ${text || "(empty body)"}`);
-    }
-
-    if (!text) {
-      return { ok: true } as const;
-    }
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      // Non-JSON success body — return it raw rather than throwing.
-      return { ok: true, raw: text } as const;
-    }
+    return parseResponse(res);
   } catch (err) {
     console.error("[CMS] Send failed:", err);
     throw err;
   }
+}
+
+// Adds a Note (with optional file attachments) to an existing lead by slug.
+export async function addLeadNoteWithPdf(params: {
+  objectSlug: string;
+  subject: string;
+  body: string;
+  attachments?: LeadAttachment[];
+}) {
+  const res = await fetch(`https://${CRM_HOST}/api/comms/add/note`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: authHeader(),
+    },
+    body: JSON.stringify({
+      object_slug: params.objectSlug,
+      subject: params.subject,
+      body: params.body,
+      attachments: params.attachments ?? [],
+    }),
+  });
+  return parseResponse(res);
 }

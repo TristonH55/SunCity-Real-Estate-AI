@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { sendLeadToCMS } from "@/lib/unity-crm";
+import { sendLeadToCMS, addLeadNoteWithPdf } from "@/lib/unity-crm";
+import { buildConfirmationPdf } from "@/lib/confirmation-pdf";
 import { resend } from "@/lib/resend";
 import { escapeHtml } from "@/lib/escape-html";
 import {
@@ -72,7 +73,7 @@ export async function pushConfirmationToCMS(
     >;
     const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-    await sendLeadToCMS({
+    const cms = await sendLeadToCMS({
       lead_data: {
         status: "d651",
         source: "2d2e",
@@ -109,10 +110,76 @@ export async function pushConfirmationToCMS(
       },
     });
 
+    // Lead created. Capture the slug (nested at data.object_slug) for traceability.
+    const objectSlug: string | null =
+      cms?.data?.object_slug ?? cms?.object_slug ?? null;
+
     await prisma.pricingConfirmation.update({
       where: { id: confirmationId },
-      data: { crmLeadSentAt: new Date() },
+      data: {
+        crmLeadSentAt: new Date(),
+        ...(objectSlug ? { crmObjectSlug: objectSlug } : {}),
+      },
     });
+
+    // Attach a Note (full breakdown) + the order PDF to the same lead.
+    // Non-blocking: the lead is already created and the order locked — a
+    // failure here must never roll back or fail anything.
+    if (objectSlug) {
+      try {
+        const system = await prisma.system.findUnique({
+          where: { id: confirmation.systemId },
+          select: { brand: true, model: true, capacityLitres: true },
+        });
+        const extras = confirmation.extraIds.length
+          ? await prisma.extra.findMany({
+              where: { id: { in: confirmation.extraIds } },
+              select: { name: true },
+            })
+          : [];
+        const fmt = (n: number) =>
+          n.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
+
+        const noteBody = [
+          `System: ${system?.brand ?? ""} ${system?.model ?? ""} — ${system?.capacityLitres ?? ""}L`,
+          `Extras: ${extras.length ? extras.map((e) => e.name).join(", ") : "None"}`,
+          ``,
+          `Customer: ${customer.firstName ?? ""} ${customer.lastName ?? ""}`,
+          `Email: ${customer.email ?? ""}`,
+          `Phone: ${customer.phone ?? ""}`,
+          `Address: ${customer.address ?? ""} ${customer.postcode ?? ""}`.trim(),
+          `Property type: ${customer.propertyType ?? ""}`,
+          `Existing system: ${customer.existingSystemType ?? ""}`,
+          `System location: ${customer.systemLocation ?? ""}`,
+          ``,
+          `Base (ex GST): ${fmt(Number(confirmation.basePriceExGst))}`,
+          `Extras (ex GST): ${fmt(Number(confirmation.extrasTotalExGst))}`,
+          `Subtotal (ex GST): ${fmt(Number(confirmation.subtotalExGst))}`,
+          `GST: ${fmt(Number(confirmation.gst))}`,
+          `Total (inc GST): ${fmt(Number(confirmation.totalIncGst))}`,
+        ].join("\n");
+
+        const pdf = await buildConfirmationPdf(confirmation.id);
+
+        await addLeadNoteWithPdf({
+          objectSlug,
+          subject: `SunCity Order #${confirmation.id}`,
+          body: noteBody,
+          attachments: pdf
+            ? [
+                {
+                  name: `Order_${confirmation.id}.pdf`,
+                  type: "application/pdf",
+                  contents: pdf.toString("base64"),
+                },
+              ]
+            : [],
+        });
+      } catch (noteErr) {
+        console.error("[CRM] note/PDF attach failed (non-blocking):", noteErr);
+      }
+    }
+
     return { ok: true };
   } catch (err) {
     console.error("[CRM] push failed for confirmation", confirmationId, err);
