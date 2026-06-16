@@ -102,6 +102,7 @@ model PricingConfirmation {
   lastViewedByAdmin   DateTime?
 
   crmLeadSentAt      DateTime? // null = CRM lead not yet sent / needs retry
+  crmObjectSlug      String?   // UnityCRM lead slug (data.object_slug) for note/attachment traceability
 
   @@index([regionCode])
   @@index([systemId])
