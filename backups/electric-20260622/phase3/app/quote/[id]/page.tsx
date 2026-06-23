@@ -47,11 +47,6 @@ export default async function QuoteViewPage({
   if (!isOwner && !isAdmin) notFound();
 
   const customer = (quote.customerSnapshot ?? {}) as Record<string, string>;
-  const snapshot = (quote.customerSnapshot ?? {}) as Record<string, any>;
-  const lineItems = Array.isArray(snapshot.lineItems)
-    ? (snapshot.lineItems as { code: string; label: string; amount: number }[])
-    : [];
-  const requiresSiteVisit = !!snapshot.requiresSiteVisit;
   const options = [...quote.options].sort(
     (a, b) => Number(a.totalIncGst) - Number(b.totalIncGst)
   );
@@ -90,14 +85,6 @@ export default async function QuoteViewPage({
         phone={customer.phone ?? ""}
         email={customer.email ?? ""}
       />
-
-      {requiresSiteVisit && (
-        <div className="mb-5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-amber-200">
-          ⚠ <strong>Internal relocation</strong> — final price is subject to a site visit (running
-          pipes/electrical through walls is assessed on site, and may not be feasible). The options
-          below cover the system and standard items only; SunCity will arrange a site visit.
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {options.map((o) => (
@@ -176,20 +163,6 @@ export default async function QuoteViewPage({
             <p className="text-sm text-slate-400">None selected</p>
           )}
         </div>
-
-        {lineItems.length > 0 && (
-          <div className="border-t border-white/10 mt-4 pt-4">
-            <p className="text-slate-400 text-sm mb-2">Relocation</p>
-            <ul className="text-sm text-slate-200 space-y-1">
-              {lineItems.map((li, i) => (
-                <li key={i} className="flex justify-between">
-                  <span>{li.label}</span>
-                  <span>{li.amount > 0 ? money(li.amount) : "Site visit"}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       <LockQuote

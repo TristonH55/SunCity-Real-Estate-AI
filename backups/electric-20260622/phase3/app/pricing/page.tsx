@@ -12,7 +12,7 @@ import RegionSelect from "./components/RegionSelect";
 import SystemTypeSelect from "./components/SystemTypeSelect";
 import SizeSelect from "./components/SizeSelect";
 import ExtrasList from "./components/ExtrasList";
-import ElectricWizard, { type RelocationMeta } from "./components/ElectricWizard";
+import ElectricWizard from "./components/ElectricWizard";
 import GenerateQuote from "./components/GenerateQuote";
 
 export default function PricingPage() {
@@ -23,13 +23,11 @@ export default function PricingPage() {
   const [capacityLitres, setCapacityLitres] = useState<number | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [extrasComplete, setExtrasComplete] = useState(false);
-  const [relocation, setRelocation] = useState<RelocationMeta>(null);
 
   const resetBelowType = () => {
     setCapacityLitres(null);
     setSelectedExtras([]);
     setExtrasComplete(false);
-    setRelocation(null);
   };
 
   if (status === "loading") {
@@ -121,7 +119,6 @@ export default function PricingPage() {
               selectedExtras={selectedExtras}
               onChange={setSelectedExtras}
               onCompletionChange={setExtrasComplete}
-              onMetaChange={setRelocation}
             />
           ) : (
             <ExtrasList
@@ -147,7 +144,6 @@ export default function PricingPage() {
             capacityLitres={capacityLitres}
             extraIds={selectedExtras}
             extrasComplete={extrasComplete}
-            relocation={relocation}
           />
         </div>
       )}

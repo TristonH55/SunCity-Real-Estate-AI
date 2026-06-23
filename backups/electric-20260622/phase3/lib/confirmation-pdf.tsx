@@ -88,12 +88,6 @@ export async function buildConfirmationPdf(
       }
     | undefined;
 
-  const snapshot = (confirmation.customerSnapshot ?? {}) as Record<string, any>;
-  const lineItems = Array.isArray(snapshot.lineItems)
-    ? (snapshot.lineItems as { code: string; label: string; amount: number }[])
-    : [];
-  const requiresSiteVisit = !!snapshot.requiresSiteVisit;
-
   const doc = (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -207,25 +201,6 @@ export async function buildConfirmationPdf(
             <Text>${money(confirmation.totalIncGst.toNumber())}</Text>
           </View>
         </View>
-
-        {lineItems.length > 0 && (
-          <View style={styles.section}>
-            <Text style={{ fontWeight: "bold", marginBottom: 4 }}>Relocation</Text>
-            {lineItems.map((li, i) => (
-              <View key={i} style={styles.row}>
-                <Text>{li.label}</Text>
-                <Text>{li.amount > 0 ? `$${money(li.amount)}` : "Site visit"}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {requiresSiteVisit && (
-          <Text style={{ marginTop: 8, fontSize: 10, color: "#b45309" }}>
-            Internal relocation — final price subject to a site visit (running pipes/electrical
-            through walls is assessed on site, and may not be feasible).
-          </Text>
-        )}
 
         <Text style={{ marginTop: 20, fontSize: 10, color: "#666" }}>
           This pricing snapshot is locked for the selected hot water system.

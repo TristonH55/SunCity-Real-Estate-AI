@@ -340,14 +340,6 @@ async function seedExtras() {
     { code: "concrete_base", name: "Concrete base (if required)", systemType: ExtraSystemType.all, active: true },
 
     // =========================
-    // ELECTRIC — Darren's same-location replacement add-ons (electric-only)
-    // =========================
-    { code: "cupboard_install_electric", name: "Cupboard installation", systemType: ExtraSystemType.electric, active: true },
-    { code: "safe_catch_tray_electric", name: "Safe / Catch Tray", systemType: ExtraSystemType.electric, active: true },
-    { code: "mildred_valve_electric", name: "Mildred anti-flood valve", systemType: ExtraSystemType.electric, active: true },
-    { code: "support_base_electric", name: "Concrete / Poly support base", systemType: ExtraSystemType.electric, active: true },
-
-    // =========================
     // SOLAR — COMMON
     // =========================
     { code: "double_storey_highset", name: "Double storey / highset roof", systemType: ExtraSystemType.solar, active: true },
@@ -913,26 +905,6 @@ async function seedExtraPrices() {
   };
 
   for (const [code, price] of Object.entries(flatAllRegions)) {
-    for (const regionId of Object.values(regionMap)) {
-      data.push({
-        extraId: extraMap[code],
-        regionId,
-        price,
-      });
-    }
-  }
-
-  // =================================================
-  // ELECTRIC — Darren's same-location replacement add-ons (flat, all regions)
-  // =================================================
-  const flatElectric = {
-    cupboard_install_electric: 50,
-    safe_catch_tray_electric: 165,
-    mildred_valve_electric: 225,
-    support_base_electric: 65,
-  };
-
-  for (const [code, price] of Object.entries(flatElectric)) {
     for (const regionId of Object.values(regionMap)) {
       data.push({
         extraId: extraMap[code],

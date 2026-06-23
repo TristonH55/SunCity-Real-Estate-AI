@@ -143,19 +143,6 @@ export async function pushConfirmationToCMS(
         const noteBody = [
           `System: ${system?.brand ?? ""} ${system?.model ?? ""} — ${system?.capacityLitres ?? ""}L`,
           `Extras: ${extras.length ? extras.map((e) => e.name).join(", ") : "None"}`,
-          ...(Array.isArray(customer.lineItems) && customer.lineItems.length
-            ? [
-                `Relocation: ${customer.lineItems
-                  .map(
-                    (li: any) =>
-                      `${li.label}${li.amount > 0 ? ` (${fmt(Number(li.amount))})` : ""}`
-                  )
-                  .join("; ")}`,
-              ]
-            : []),
-          ...(customer.requiresSiteVisit
-            ? ["** Internal relocation — final price subject to site visit. **"]
-            : []),
           ``,
           `Customer: ${customer.firstName ?? ""} ${customer.lastName ?? ""}`,
           `Email: ${customer.email ?? ""}`,

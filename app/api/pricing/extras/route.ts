@@ -153,6 +153,7 @@ export async function GET(req: Request) {
     })
     .map((ep) => ({
       extraId: ep.extra.id,
+      code: ep.extra.code,
       name: ep.extra.name,
       priceExGst: ep.price.toNumber(),
       included: ep.price.toNumber() === 0,

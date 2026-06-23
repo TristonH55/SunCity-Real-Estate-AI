@@ -69,11 +69,6 @@ export async function renderQuotePdf(quoteId: string): Promise<
     : [];
 
   const customer = (quote.customerSnapshot ?? {}) as Record<string, string>;
-  const snapshot = (quote.customerSnapshot ?? {}) as Record<string, any>;
-  const lineItems = Array.isArray(snapshot.lineItems)
-    ? (snapshot.lineItems as { code: string; label: string; amount: number }[])
-    : [];
-  const requiresSiteVisit = !!snapshot.requiresSiteVisit;
   const options = [...quote.options].sort(
     (a, b) => Number(a.totalIncGst) - Number(b.totalIncGst)
   );
@@ -131,28 +126,12 @@ export async function renderQuotePdf(quoteId: string): Promise<
         </View>
 
         {/* Selected extras (shared across all options) */}
-        {(extras.length > 0 || lineItems.length > 0) && (
+        {extras.length > 0 && (
           <View style={styles.box}>
             <Text style={styles.boxTitle}>Selected extras</Text>
             {extras.map((e, i) => (
               <Text key={i}>• {e.name}</Text>
             ))}
-            {lineItems.map((li, i) => (
-              <Text key={`li-${i}`}>
-                • {li.label}
-                {li.amount > 0 ? ` — ${money(li.amount)}` : ""}
-              </Text>
-            ))}
-          </View>
-        )}
-
-        {requiresSiteVisit && (
-          <View style={styles.box}>
-            <Text>
-              Internal relocation — the final price is subject to a site visit (running new
-              pipes/electrical through walls is assessed on site, and may not be feasible). A SunCity
-              site visit will be arranged. The options below cover the system and standard items only.
-            </Text>
           </View>
         )}
 

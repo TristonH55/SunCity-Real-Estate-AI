@@ -9,10 +9,6 @@ import {
   CMS_EXISTING_SYSTEM_TYPES,
   CMS_SYSTEM_LOCATIONS,
 } from "@/lib/cms-mapping";
-import {
-  computeRelocationCost,
-  isValidRelocationMetres,
-} from "@/lib/relocation-pricing";
 
 const VALID_SYSTEM_TYPES = [
   "electric",
@@ -47,7 +43,6 @@ export async function POST(req: NextRequest) {
       capacityLitres,
       extraIds = [],
       customer,
-      relocation, // optional (electric "different position"): { newLocation, metres?, requiresSiteVisit? }
     } = body ?? {};
 
     // ---- Validate selection ----
@@ -174,40 +169,7 @@ export async function POST(req: NextRequest) {
           where: { regionId: region.id, extraId: { in: extraIds } },
         })
       : [];
-    let extrasTotal = extras.reduce((sum, e) => sum + Number(e.price), 0);
-
-    // ---- Relocation (electric "different position"): the one add-on that isn't
-    // an Extra row. Outside move = lineal-metre price (folded into extras total).
-    // Internal move = site visit (no menu price; flagged on the order). Carried
-    // as a customerSnapshot line item so it shows on the quote/PDF/CRM note. ----
-    const lineItems: { code: string; label: string; amount: number }[] = [];
-    let requiresSiteVisit = false;
-
-    if (relocation && typeof relocation === "object") {
-      if (relocation.newLocation === "inside" || relocation.requiresSiteVisit) {
-        requiresSiteVisit = true;
-        lineItems.push({
-          code: "relocation_internal",
-          label: "Internal relocation (final price subject to site visit)",
-          amount: 0,
-        });
-      } else if (relocation.newLocation === "outside") {
-        if (!isValidRelocationMetres(relocation.metres)) {
-          return NextResponse.json(
-            { error: "Invalid relocation distance (must be 2–30 lineal metres)" },
-            { status: 400 }
-          );
-        }
-        const metres = Number(relocation.metres);
-        const cost = computeRelocationCost(metres);
-        extrasTotal += cost;
-        lineItems.push({
-          code: "relocation_outside",
-          label: `System relocation — ${metres} lineal m`,
-          amount: cost,
-        });
-      }
-    }
+    const extrasTotal = extras.reduce((sum, e) => sum + Number(e.price), 0);
 
     // ---- Build the option rows (base + extras + 10% GST per system) ----
     const optionData = chosen.map((sp) => {
@@ -233,12 +195,7 @@ export async function POST(req: NextRequest) {
         systemType,
         capacityLitres: capacity,
         extraIds,
-        customerSnapshot: {
-          ...customer,
-          address: fullAddress,
-          ...(lineItems.length ? { lineItems } : {}),
-          ...(requiresSiteVisit ? { requiresSiteVisit: true } : {}),
-        },
+        customerSnapshot: { ...customer, address: fullAddress },
         status: "presented",
         options: { create: optionData },
       },

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { RelocationMeta } from "./ElectricWizard";
 
 type CustomerDetails = {
   firstName: string;
@@ -26,14 +25,12 @@ export default function GenerateQuote({
   capacityLitres,
   extraIds,
   extrasComplete,
-  relocation,
 }: {
   region: string;
   systemType: string;
   capacityLitres: number | null;
   extraIds: string[];
   extrasComplete: boolean;
-  relocation?: RelocationMeta;
 }) {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
@@ -82,7 +79,6 @@ export default function GenerateQuote({
           capacityLitres,
           extraIds,
           customer,
-          ...(relocation ? { relocation } : {}),
         }),
       });
       const data = await res.json();
