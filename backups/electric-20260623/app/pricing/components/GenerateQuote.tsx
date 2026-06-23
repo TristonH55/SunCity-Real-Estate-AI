@@ -13,6 +13,8 @@ type CustomerDetails = {
   suburb: string;
   postcode: string;
   propertyType: string;
+  existingSystemType: string;
+  systemLocation: string;
 };
 
 const inputClass =
@@ -25,7 +27,6 @@ export default function GenerateQuote({
   extraIds,
   extrasComplete,
   relocation,
-  systemLocation,
 }: {
   region: string;
   systemType: string;
@@ -33,7 +34,6 @@ export default function GenerateQuote({
   extraIds: string[];
   extrasComplete: boolean;
   relocation?: RelocationMeta;
-  systemLocation?: "inside" | "outside" | null;
 }) {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
@@ -50,6 +50,8 @@ export default function GenerateQuote({
     suburb: "",
     postcode: "",
     propertyType: "",
+    existingSystemType: "",
+    systemLocation: "",
   });
 
   const customerComplete = Object.values(customer).every((v) =>
@@ -80,7 +82,6 @@ export default function GenerateQuote({
           capacityLitres,
           extraIds,
           customer,
-          systemLocation,
           ...(relocation ? { relocation } : {}),
         }),
       });
@@ -224,9 +225,35 @@ export default function GenerateQuote({
           <option value="Commercial">Commercial</option>
         </select>
 
-        {/* Existing-system type and Inside/Outside are no longer asked here —
-            they're derived from Step 1 (system type) and Step 3 (Inside/Outside)
-            and sent to the CRM automatically. */}
+        <select
+          value={customer.existingSystemType}
+          onChange={(e) =>
+            setCustomer((s) => ({ ...s, existingSystemType: e.target.value }))
+          }
+          className={inputClass}
+        >
+          <option value="">Existing system…</option>
+          <option value="Electric">Electric</option>
+          <option value="Gas">Gas</option>
+          <option value="Solar">Solar</option>
+          <option value="Heat Pump">Heat Pump</option>
+          <option value="Not Sure">Not Sure</option>
+          <option value="No Existing System">No Existing System</option>
+        </select>
+
+        <select
+          value={customer.systemLocation}
+          onChange={(e) =>
+            setCustomer((s) => ({ ...s, systemLocation: e.target.value }))
+          }
+          className={inputClass}
+        >
+          <option value="">System location…</option>
+          <option value="Inside">Inside</option>
+          <option value="Outside">Outside</option>
+          <option value="Roof">Roof</option>
+          <option value="No Existing System">No Existing System</option>
+        </select>
       </div>
 
       <button

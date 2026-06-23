@@ -144,7 +144,6 @@ type Extra = {
     selectedExtras: string[];
     onChange: (extras: string[]) => void;
     onCompletionChange?: (complete:boolean)=>void;
-    onLocationChange?: (loc:"inside"|"outside"|null)=>void;
   };
 
 export default function ExtrasList({
@@ -152,8 +151,7 @@ export default function ExtrasList({
   systemType,
   selectedExtras,
   onChange,
-  onCompletionChange,
-  onLocationChange
+  onCompletionChange
 }: Props) {
 
   const [extras, setExtras] = useState<Extra[]>([]);
@@ -252,11 +250,6 @@ if (onCompletionChange) {
   onCompletionChange(allAnswered);
 }
 }, [allAnswered, onCompletionChange]);
-
-// Report the existing-system Inside/Outside up for the CRM system_location code.
-useEffect(() => {
-  onLocationChange?.(location);
-}, [location, onLocationChange]);
 
   return (
 

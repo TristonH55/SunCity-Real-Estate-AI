@@ -62,13 +62,3 @@ export const CMS_ENQUIRY_TYPES = {
     Roof:                 "e4d8",
     "No Existing System": "a1f1",
   } as const;
-
-  // Maps the Step-1 system type → the CMS "existing system type" label, so we no
-  // longer ask it again in Step 4 (like-for-like replacement). Values must be
-  // keys of CMS_EXISTING_SYSTEM_TYPES above.
-  export const SYSTEM_TYPE_TO_EXISTING = {
-    electric:           "Electric",
-    heat_pump:          "Heat Pump",
-    solar_thermosiphon: "Solar",
-    solar_split:        "Solar",
-  } as const;

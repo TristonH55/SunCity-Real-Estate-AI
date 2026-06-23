@@ -43,7 +43,6 @@ type Props = {
   onChange: (extras: string[]) => void;
   onCompletionChange?: (complete: boolean) => void;
   onMetaChange?: (relocation: RelocationMeta) => void;
-  onLocationChange?: (loc: "inside" | "outside" | null) => void;
 };
 
 // Extra codes this wizard maps answers onto (must match prisma seed / upsert).
@@ -108,7 +107,6 @@ export default function ElectricWizard({
   onChange,
   onCompletionChange,
   onMetaChange,
-  onLocationChange,
 }: Props) {
   const [byCode, setByCode] = useState<Record<string, Extra>>({});
   const [loading, setLoading] = useState(true);
@@ -264,11 +262,6 @@ export default function ElectricWizard({
     onMetaChange?.(relocationMeta);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metaKey]);
-  // Report the existing-system location (Inside/Outside) up for the CRM code.
-  useEffect(() => {
-    onLocationChange?.(currentLocation);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLocation]);
 
   const addOnsTotal =
     selectedCodes.reduce((sum, c) => sum + (byCode[c]?.priceExGst ?? 0), 0) + relocationCost;

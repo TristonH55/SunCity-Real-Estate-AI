@@ -4,7 +4,11 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiRole } from "@/lib/require-api-role";
-import { CMS_PROPERTY_TYPES, SYSTEM_TYPE_TO_EXISTING } from "@/lib/cms-mapping";
+import {
+  CMS_PROPERTY_TYPES,
+  CMS_EXISTING_SYSTEM_TYPES,
+  CMS_SYSTEM_LOCATIONS,
+} from "@/lib/cms-mapping";
 import {
   computeRelocationCost,
   isValidRelocationMetres,
@@ -19,8 +23,6 @@ const VALID_SYSTEM_TYPES = [
 
 // Required homeowner/property fields. The three CMS-mapped fields must use the
 // exact key strings from lib/cms-mapping.ts so the lock-time CRM push maps cleanly.
-// existingSystemType is now derived from systemType (Step 1) and systemLocation
-// comes from the Step-3 Inside/Outside answer — neither is collected in Step 4.
 const REQUIRED_CUSTOMER_FIELDS = [
   "firstName",
   "lastName",
@@ -28,6 +30,8 @@ const REQUIRED_CUSTOMER_FIELDS = [
   "phone",
   "postcode",
   "propertyType",
+  "existingSystemType",
+  "systemLocation",
 ] as const;
 
 export async function POST(req: NextRequest) {
@@ -44,7 +48,6 @@ export async function POST(req: NextRequest) {
       extraIds = [],
       customer,
       relocation, // optional (electric "different position"): { newLocation, metres?, requiresSiteVisit? }
-      systemLocation, // Step-3 Inside/Outside ("inside" | "outside") — replaces old Step-4 dropdown
     } = body ?? {};
 
     // ---- Validate selection ----
@@ -92,10 +95,15 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    // systemLocation comes from the Step-3 Inside/Outside answer.
-    if (systemLocation !== "inside" && systemLocation !== "outside") {
+    if (!(customer.existingSystemType in CMS_EXISTING_SYSTEM_TYPES)) {
       return NextResponse.json(
-        { error: "Missing or invalid systemLocation (inside/outside)" },
+        { error: "Invalid existingSystemType" },
+        { status: 400 }
+      );
+    }
+    if (!(customer.systemLocation in CMS_SYSTEM_LOCATIONS)) {
+      return NextResponse.json(
+        { error: "Invalid systemLocation" },
         { status: 400 }
       );
     }
@@ -228,12 +236,6 @@ export async function POST(req: NextRequest) {
         customerSnapshot: {
           ...customer,
           address: fullAddress,
-          // Derived for the CRM (no longer asked in Step 4):
-          existingSystemType:
-            SYSTEM_TYPE_TO_EXISTING[
-              systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING
-            ],
-          systemLocation: systemLocation === "inside" ? "Inside" : "Outside",
           ...(lineItems.length ? { lineItems } : {}),
           ...(requiresSiteVisit ? { requiresSiteVisit: true } : {}),
         },

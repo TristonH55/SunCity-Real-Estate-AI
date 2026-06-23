@@ -24,14 +24,12 @@ export default function PricingPage() {
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [extrasComplete, setExtrasComplete] = useState(false);
   const [relocation, setRelocation] = useState<RelocationMeta>(null);
-  const [systemLocation, setSystemLocation] = useState<"inside" | "outside" | null>(null);
 
   const resetBelowType = () => {
     setCapacityLitres(null);
     setSelectedExtras([]);
     setExtrasComplete(false);
     setRelocation(null);
-    setSystemLocation(null);
   };
 
   if (status === "loading") {
@@ -124,7 +122,6 @@ export default function PricingPage() {
               onChange={setSelectedExtras}
               onCompletionChange={setExtrasComplete}
               onMetaChange={setRelocation}
-              onLocationChange={setSystemLocation}
             />
           ) : (
             <ExtrasList
@@ -133,7 +130,6 @@ export default function PricingPage() {
               selectedExtras={selectedExtras}
               onChange={setSelectedExtras}
               onCompletionChange={setExtrasComplete}
-              onLocationChange={setSystemLocation}
             />
           )}
         </div>
@@ -152,7 +148,6 @@ export default function PricingPage() {
             extraIds={selectedExtras}
             extrasComplete={extrasComplete}
             relocation={relocation}
-            systemLocation={systemLocation}
           />
         </div>
       )}
