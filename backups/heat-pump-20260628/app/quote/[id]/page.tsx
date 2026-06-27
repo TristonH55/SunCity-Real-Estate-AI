@@ -70,8 +70,7 @@ export default async function QuoteViewPage({
         <div>
           <h1 className="text-2xl font-bold mb-2">Your Quote</h1>
           <p className="text-slate-400">
-            {customer.firstName} {customer.lastName} ·{" "}
-            {snapshot.sizeBand ?? `${quote.capacityLitres} L`} ·{" "}
+            {customer.firstName} {customer.lastName} · {quote.capacityLitres} L ·{" "}
             {quote.systemType.replace(/_/g, " ")} ·{" "}
             <span className="uppercase">{quote.status}</span>
           </p>

@@ -348,11 +348,6 @@ async function seedExtras() {
     { code: "support_base_electric", name: "Concrete / Poly support base", systemType: ExtraSystemType.electric, active: true },
 
     // =========================
-    // HEAT PUMP — outside-install support base (heat-pump only)
-    // =========================
-    { code: "support_base_heat_pump", name: "Concrete / Poly support base", systemType: ExtraSystemType.heat_pump, active: true },
-
-    // =========================
     // SOLAR — COMMON
     // =========================
     { code: "double_storey_highset", name: "Double storey / highset roof", systemType: ExtraSystemType.solar, active: true },
@@ -938,23 +933,6 @@ async function seedExtraPrices() {
   };
 
   for (const [code, price] of Object.entries(flatElectric)) {
-    for (const regionId of Object.values(regionMap)) {
-      data.push({
-        extraId: extraMap[code],
-        regionId,
-        price,
-      });
-    }
-  }
-
-  // =================================================
-  // HEAT PUMP — outside-install support base (flat, all regions)
-  // =================================================
-  const flatHeatPump = {
-    support_base_heat_pump: 65,
-  };
-
-  for (const [code, price] of Object.entries(flatHeatPump)) {
     for (const regionId of Object.values(regionMap)) {
       data.push({
         extraId: extraMap[code],

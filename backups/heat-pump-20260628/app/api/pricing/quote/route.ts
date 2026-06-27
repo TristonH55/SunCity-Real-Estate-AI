@@ -9,7 +9,6 @@ import {
   computeRelocationCost,
   isValidRelocationMetres,
 } from "@/lib/relocation-pricing";
-import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 
 const VALID_SYSTEM_TYPES = [
   "electric",
@@ -46,7 +45,6 @@ export async function POST(req: NextRequest) {
       customer,
       relocation, // optional (electric "different position"): { newLocation, metres?, requiresSiteVisit? }
       systemLocation, // Step-3 Inside/Outside ("inside" | "outside") — replaces old Step-4 dropdown
-      sizeBandId, // heat pump only: a HEAT_PUMP_BANDS id (size range) instead of an exact size
     } = body ?? {};
 
     // ---- Validate selection ----
@@ -70,19 +68,6 @@ export async function POST(req: NextRequest) {
         { error: "Invalid capacityLitres" },
         { status: 400 }
       );
-    }
-
-    // Heat pump selects a size BAND (a capacity range); other types use the exact
-    // capacity. The band is resolved from the server whitelist (HEAT_PUMP_BANDS).
-    let capacityFilter: any = { capacityLitres: capacity };
-    let sizeBandLabel: string | null = null;
-    if (systemType === "heat_pump" && sizeBandId) {
-      const band = findHeatPumpBand(sizeBandId);
-      if (!band) {
-        return NextResponse.json({ error: "Invalid sizeBandId" }, { status: 400 });
-      }
-      capacityFilter = { capacityLitres: { gte: band.min, lte: band.max } };
-      sizeBandLabel = band.label;
     }
 
     if (!Array.isArray(extraIds)) {
@@ -136,8 +121,8 @@ export async function POST(req: NextRequest) {
         regionId: region.id,
         system: {
           systemType,
+          capacityLitres: capacity,
           active: true,
-          ...capacityFilter,
         },
       },
       include: {
@@ -249,7 +234,6 @@ export async function POST(req: NextRequest) {
               systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING
             ],
           systemLocation: systemLocation === "inside" ? "Inside" : "Outside",
-          ...(sizeBandLabel ? { sizeBand: sizeBandLabel } : {}),
           ...(lineItems.length ? { lineItems } : {}),
           ...(requiresSiteVisit ? { requiresSiteVisit: true } : {}),
         },

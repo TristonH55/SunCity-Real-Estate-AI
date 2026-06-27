@@ -125,8 +125,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
           <View style={styles.rowBetween}>
             <Text style={styles.label}>System size / type</Text>
             <Text>
-              {snapshot.sizeBand ?? `${quote.capacityLitres} L`} ·{" "}
-              {quote.systemType.replace(/_/g, " ")}
+              {quote.capacityLitres} L · {quote.systemType.replace(/_/g, " ")}
             </Text>
           </View>
         </View>

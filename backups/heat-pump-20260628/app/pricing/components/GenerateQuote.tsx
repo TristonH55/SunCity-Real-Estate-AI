@@ -26,7 +26,6 @@ export default function GenerateQuote({
   extrasComplete,
   relocation,
   systemLocation,
-  sizeBandId,
 }: {
   region: string;
   systemType: string;
@@ -35,7 +34,6 @@ export default function GenerateQuote({
   extrasComplete: boolean;
   relocation?: RelocationMeta;
   systemLocation?: "inside" | "outside" | null;
-  sizeBandId?: string | null;
 }) {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
@@ -83,7 +81,6 @@ export default function GenerateQuote({
           extraIds,
           customer,
           systemLocation,
-          ...(sizeBandId ? { sizeBandId } : {}),
           ...(relocation ? { relocation } : {}),
         }),
       });

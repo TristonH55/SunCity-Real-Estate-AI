@@ -11,12 +11,9 @@ import Image from "next/image";
 import RegionSelect from "./components/RegionSelect";
 import SystemTypeSelect from "./components/SystemTypeSelect";
 import SizeSelect from "./components/SizeSelect";
-import SizeBandSelect from "./components/SizeBandSelect";
 import ExtrasList from "./components/ExtrasList";
 import ElectricWizard, { type RelocationMeta } from "./components/ElectricWizard";
-import HeatPumpWizard from "./components/HeatPumpWizard";
 import GenerateQuote from "./components/GenerateQuote";
-import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 
 export default function PricingPage() {
   const { status } = useSession();
@@ -24,7 +21,6 @@ export default function PricingPage() {
   const [region, setRegion] = useState<string | null>(null);
   const [systemType, setSystemType] = useState<string | null>(null);
   const [capacityLitres, setCapacityLitres] = useState<number | null>(null);
-  const [sizeBandId, setSizeBandId] = useState<string | null>(null); // heat pump only
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [extrasComplete, setExtrasComplete] = useState(false);
   const [relocation, setRelocation] = useState<RelocationMeta>(null);
@@ -32,7 +28,6 @@ export default function PricingPage() {
 
   const resetBelowType = () => {
     setCapacityLitres(null);
-    setSizeBandId(null);
     setSelectedExtras([]);
     setExtrasComplete(false);
     setRelocation(null);
@@ -101,29 +96,16 @@ export default function PricingPage() {
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 2</span> — Tank Size
           </h2>
-          {systemType === "heat_pump" ? (
-            <SizeBandSelect
-              value={sizeBandId}
-              onChange={(bandId) => {
-                setSizeBandId(bandId);
-                const band = findHeatPumpBand(bandId);
-                setCapacityLitres(band ? band.min : null);
-                setSelectedExtras([]);
-                setExtrasComplete(false);
-              }}
-            />
-          ) : (
-            <SizeSelect
-              region={region}
-              systemType={systemType}
-              value={capacityLitres}
-              onChange={(val) => {
-                setCapacityLitres(val);
-                setSelectedExtras([]);
-                setExtrasComplete(false);
-              }}
-            />
-          )}
+          <SizeSelect
+            region={region}
+            systemType={systemType}
+            value={capacityLitres}
+            onChange={(val) => {
+              setCapacityLitres(val);
+              setSelectedExtras([]);
+              setExtrasComplete(false);
+            }}
+          />
         </div>
       )}
 
@@ -132,22 +114,10 @@ export default function PricingPage() {
         <div className="glass-card p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 3</span> —{" "}
-            {systemType === "electric" || systemType === "heat_pump"
-              ? "Installation Questions"
-              : "Extras"}
+            {systemType === "electric" ? "Installation Questions" : "Extras"}
           </h2>
           {systemType === "electric" ? (
             <ElectricWizard
-              region={region}
-              systemType={systemType}
-              selectedExtras={selectedExtras}
-              onChange={setSelectedExtras}
-              onCompletionChange={setExtrasComplete}
-              onMetaChange={setRelocation}
-              onLocationChange={setSystemLocation}
-            />
-          ) : systemType === "heat_pump" ? (
-            <HeatPumpWizard
               region={region}
               systemType={systemType}
               selectedExtras={selectedExtras}
@@ -183,7 +153,6 @@ export default function PricingPage() {
             extrasComplete={extrasComplete}
             relocation={relocation}
             systemLocation={systemLocation}
-            sizeBandId={sizeBandId}
           />
         </div>
       )}
