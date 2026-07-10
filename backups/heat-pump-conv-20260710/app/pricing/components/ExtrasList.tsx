@@ -433,7 +433,10 @@ useEffect(() => {
 
 
                   <div className="flex items-center gap-4">
-                    {/* Price hidden during the questions — shown on the generated quote. */}
+
+                    <span className="text-sm font-medium">
+                      ${e.priceExGst.toLocaleString()} ex-GST
+                    </span>
 
                     {/* <ToggleButton
                       value={answers[e.extraId]}

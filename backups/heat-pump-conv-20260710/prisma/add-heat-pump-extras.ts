@@ -12,9 +12,6 @@ import { ExtraSystemType } from "@prisma/client";
 
 const NEW_EXTRAS = [
   { code: "support_base_heat_pump", name: "Concrete / Poly support base", price: 65 },
-  { code: "off_peak_removal_heat_pump", name: "Off-peak isolator removal", price: 220 },
-  { code: "split_solar_conversion_heat_pump", name: "Split solar conversion", price: 100 },
-  { code: "solar_panel_removal_heat_pump", name: "Solar panel removal & patch", price: 200 },
 ] as const;
 
 async function main() {

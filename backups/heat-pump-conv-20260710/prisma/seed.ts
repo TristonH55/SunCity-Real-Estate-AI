@@ -348,12 +348,9 @@ async function seedExtras() {
     { code: "support_base_electric", name: "Concrete / Poly support base", systemType: ExtraSystemType.electric, active: true },
 
     // =========================
-    // HEAT PUMP — outside-install support base + conversion add-ons (heat-pump only)
+    // HEAT PUMP — outside-install support base (heat-pump only)
     // =========================
     { code: "support_base_heat_pump", name: "Concrete / Poly support base", systemType: ExtraSystemType.heat_pump, active: true },
-    { code: "off_peak_removal_heat_pump", name: "Off-peak isolator removal", systemType: ExtraSystemType.heat_pump, active: true },
-    { code: "split_solar_conversion_heat_pump", name: "Split solar conversion", systemType: ExtraSystemType.heat_pump, active: true },
-    { code: "solar_panel_removal_heat_pump", name: "Solar panel removal & patch", systemType: ExtraSystemType.heat_pump, active: true },
 
     // =========================
     // SOLAR — COMMON
@@ -955,9 +952,6 @@ async function seedExtraPrices() {
   // =================================================
   const flatHeatPump = {
     support_base_heat_pump: 65,
-    off_peak_removal_heat_pump: 220,
-    split_solar_conversion_heat_pump: 100,
-    solar_panel_removal_heat_pump: 200,
   };
 
   for (const [code, price] of Object.entries(flatHeatPump)) {

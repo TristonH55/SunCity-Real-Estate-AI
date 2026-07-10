@@ -52,9 +52,6 @@ export default async function QuoteViewPage({
     ? (snapshot.lineItems as { code: string; label: string; amount: number }[])
     : [];
   const requiresSiteVisit = !!snapshot.requiresSiteVisit;
-  const disclaimers = Array.isArray(snapshot.disclaimers)
-    ? (snapshot.disclaimers as string[])
-    : [];
   const options = [...quote.options].sort(
     (a, b) => Number(a.totalIncGst) - Number(b.totalIncGst)
   );
@@ -103,17 +100,6 @@ export default async function QuoteViewPage({
         </div>
       )}
 
-      {disclaimers.length > 0 && (
-        <div className="mb-5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-amber-200">
-          <p className="font-semibold mb-1">Please note</p>
-          <ul className="list-disc list-inside space-y-1">
-            {disclaimers.map((d, i) => (
-              <li key={i}>{d}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {options.map((o) => (
           <div key={o.id} className="glass-card p-5 space-y-2">
@@ -136,7 +122,7 @@ export default async function QuoteViewPage({
                 <span>{money(Number(o.basePriceExGst))}</span>
               </div>
               <div className="flex justify-between">
-                <span>Included (ex GST)</span>
+                <span>Extras (ex GST)</span>
                 <span>{money(Number(o.extrasTotalExGst))}</span>
               </div>
               <div className="flex justify-between">
@@ -161,7 +147,7 @@ export default async function QuoteViewPage({
       {/* Homeowner verification: install/property answers + selected extras */}
       <div className="glass-card p-5 mt-5">
         <h2 className="text-lg font-semibold text-[#ff5a2c] mb-4">
-          Installation &amp; What&apos;s Included
+          Installation &amp; Extras
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
@@ -180,7 +166,7 @@ export default async function QuoteViewPage({
         </div>
 
         <div className="border-t border-white/10 mt-4 pt-4">
-          <p className="text-slate-400 text-sm mb-2">What&apos;s included</p>
+          <p className="text-slate-400 text-sm mb-2">Selected extras</p>
           {extras.length > 0 ? (
             <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
               {extras.map((e, i) => (

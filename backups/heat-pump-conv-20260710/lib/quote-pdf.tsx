@@ -74,9 +74,6 @@ export async function renderQuotePdf(quoteId: string): Promise<
     ? (snapshot.lineItems as { code: string; label: string; amount: number }[])
     : [];
   const requiresSiteVisit = !!snapshot.requiresSiteVisit;
-  const disclaimers = Array.isArray(snapshot.disclaimers)
-    ? (snapshot.disclaimers as string[])
-    : [];
   const options = [...quote.options].sort(
     (a, b) => Number(a.totalIncGst) - Number(b.totalIncGst)
   );
@@ -137,7 +134,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
         {/* Selected extras (shared across all options) */}
         {(extras.length > 0 || lineItems.length > 0) && (
           <View style={styles.box}>
-            <Text style={styles.boxTitle}>What&apos;s included</Text>
+            <Text style={styles.boxTitle}>Selected extras</Text>
             {extras.map((e, i) => (
               <Text key={i}>• {e.name}</Text>
             ))}
@@ -157,15 +154,6 @@ export async function renderQuotePdf(quoteId: string): Promise<
               pipes/electrical through walls is assessed on site, and may not be feasible). A SunCity
               site visit will be arranged. The options below cover the system and standard items only.
             </Text>
-          </View>
-        )}
-
-        {disclaimers.length > 0 && (
-          <View style={styles.box}>
-            <Text style={styles.boxTitle}>Please note</Text>
-            {disclaimers.map((d, i) => (
-              <Text key={i}>• {d}</Text>
-            ))}
           </View>
         )}
 
@@ -192,7 +180,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
                 <Text>{money(Number(o.basePriceExGst))}</Text>
               </View>
               <View style={styles.breakRow}>
-                <Text>Included (ex GST)</Text>
+                <Text>Extras (ex GST)</Text>
                 <Text>{money(Number(o.extrasTotalExGst))}</Text>
               </View>
               <View style={styles.breakRow}>

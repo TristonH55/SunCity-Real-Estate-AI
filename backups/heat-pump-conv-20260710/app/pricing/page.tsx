@@ -14,7 +14,7 @@ import SizeSelect from "./components/SizeSelect";
 import SizeBandSelect from "./components/SizeBandSelect";
 import ExtrasList from "./components/ExtrasList";
 import ElectricWizard, { type RelocationMeta } from "./components/ElectricWizard";
-import HeatPumpWizard, { type ConversionMeta } from "./components/HeatPumpWizard";
+import HeatPumpWizard from "./components/HeatPumpWizard";
 import GenerateQuote from "./components/GenerateQuote";
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 
@@ -29,7 +29,6 @@ export default function PricingPage() {
   const [extrasComplete, setExtrasComplete] = useState(false);
   const [relocation, setRelocation] = useState<RelocationMeta>(null);
   const [systemLocation, setSystemLocation] = useState<"inside" | "outside" | null>(null);
-  const [conversion, setConversion] = useState<ConversionMeta | null>(null); // heat pump only
 
   const resetBelowType = () => {
     setCapacityLitres(null);
@@ -38,7 +37,6 @@ export default function PricingPage() {
     setExtrasComplete(false);
     setRelocation(null);
     setSystemLocation(null);
-    setConversion(null);
   };
 
   if (status === "loading") {
@@ -157,7 +155,6 @@ export default function PricingPage() {
               onCompletionChange={setExtrasComplete}
               onMetaChange={setRelocation}
               onLocationChange={setSystemLocation}
-              onConversionChange={setConversion}
             />
           ) : (
             <ExtrasList
@@ -187,7 +184,6 @@ export default function PricingPage() {
             relocation={relocation}
             systemLocation={systemLocation}
             sizeBandId={sizeBandId}
-            conversion={conversion}
           />
         </div>
       )}

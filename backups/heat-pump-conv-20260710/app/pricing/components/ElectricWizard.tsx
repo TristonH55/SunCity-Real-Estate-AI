@@ -16,7 +16,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ToggleButton from "./ToggleButton";
-import { isValidRelocationMetres } from "@/lib/relocation-pricing";
+import {
+  RELOCATION_BASE,
+  computeRelocationCost,
+  isValidRelocationMetres,
+  relocationPerMetreRate,
+} from "@/lib/relocation-pricing";
 
 type Extra = {
   extraId: string;
@@ -166,6 +171,11 @@ export default function ElectricWizard({
     return { newLocation: "outside", metres: metresNum, requiresSiteVisit: false };
   }, [samePosition, newLocation, metresValid, metresNum]);
 
+  const relocationCost =
+    relocationMeta && relocationMeta.newLocation === "outside"
+      ? computeRelocationCost(relocationMeta.metres)
+      : 0;
+
   // Which Extra codes are currently selected, derived from the answers.
   const selectedCodes = useMemo(() => {
     const codes: string[] = [...ALWAYS_INCLUDED];
@@ -260,6 +270,9 @@ export default function ElectricWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLocation]);
 
+  const addOnsTotal =
+    selectedCodes.reduce((sum, c) => sum + (byCode[c]?.priceExGst ?? 0), 0) + relocationCost;
+
   if (loading) {
     return <p className="text-slate-400">Loading questions…</p>;
   }
@@ -276,8 +289,10 @@ export default function ElectricWizard({
     </div>
   );
 
-  // Costs are hidden during the questions — show the item name only.
-  const priced = (code: string) => byCode[code]?.name ?? code;
+  const priced = (code: string) => {
+    const e = byCode[code];
+    return e ? `${e.name} — +${money(e.priceExGst)}` : code;
+  };
 
   return (
     <div>
@@ -414,6 +429,13 @@ export default function ElectricWizard({
                   />
                   <span className="text-sm text-slate-400">metres (2–30)</span>
                 </div>
+                {metresValid && (
+                  <p className="mt-2 text-sm font-semibold text-emerald-300">
+                    {money(RELOCATION_BASE)} base + {metresNum}m @{" "}
+                    {money(relocationPerMetreRate(metresNum))}/m ={" "}
+                    {money(computeRelocationCost(metresNum))}
+                  </p>
+                )}
               </Question>
 
               <Question title="Will a concrete / poly support base be required?">
@@ -454,6 +476,22 @@ export default function ElectricWizard({
               </span>
             </div>
           ) : null
+        )}
+        {relocationCost > 0 && (
+          <div className="flex justify-between text-sm py-0.5">
+            <span className="text-slate-200">System relocation ({metresNum} lineal m)</span>
+            <span className="text-amber-300">+{money(relocationCost)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Running total */}
+      <div className="mt-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
+        <span className="font-semibold text-emerald-300">
+          Add-ons so far: {money(addOnsTotal)}
+        </span>
+        {relocationMeta?.requiresSiteVisit && (
+          <span className="ml-2 text-xs text-sky-300">(internal relocation priced at site visit)</span>
         )}
       </div>
 

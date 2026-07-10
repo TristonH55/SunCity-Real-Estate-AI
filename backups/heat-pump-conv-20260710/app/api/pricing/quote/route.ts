@@ -4,11 +4,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiRole } from "@/lib/require-api-role";
-import {
-  CMS_PROPERTY_TYPES,
-  CMS_EXISTING_SYSTEM_TYPES,
-  SYSTEM_TYPE_TO_EXISTING,
-} from "@/lib/cms-mapping";
+import { CMS_PROPERTY_TYPES, SYSTEM_TYPE_TO_EXISTING } from "@/lib/cms-mapping";
 import {
   computeRelocationCost,
   isValidRelocationMetres,
@@ -51,7 +47,6 @@ export async function POST(req: NextRequest) {
       relocation, // optional (electric "different position"): { newLocation, metres?, requiresSiteVisit? }
       systemLocation, // Step-3 Inside/Outside ("inside" | "outside") — replaces old Step-4 dropdown
       sizeBandId, // heat pump only: a HEAT_PUMP_BANDS id (size range) instead of an exact size
-      conversion, // heat pump only: { existingType, disclaimers[], requiresSiteVisit }
     } = body ?? {};
 
     // ---- Validate selection ----
@@ -221,16 +216,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ---- Heat-pump conversion metadata (existing type override + disclaimers + site visit) ----
-    const disclaimers: string[] = Array.isArray(conversion?.disclaimers)
-      ? conversion.disclaimers.filter((d: any) => typeof d === "string")
-      : [];
-    if (conversion?.requiresSiteVisit) requiresSiteVisit = true;
-    const existingSystemType =
-      conversion?.existingType && conversion.existingType in CMS_EXISTING_SYSTEM_TYPES
-        ? conversion.existingType
-        : SYSTEM_TYPE_TO_EXISTING[systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING];
-
     // ---- Build the option rows (base + extras + 10% GST per system) ----
     const optionData = chosen.map((sp) => {
       const base = Number(sp.price);
@@ -259,10 +244,12 @@ export async function POST(req: NextRequest) {
           ...customer,
           address: fullAddress,
           // Derived for the CRM (no longer asked in Step 4):
-          existingSystemType,
+          existingSystemType:
+            SYSTEM_TYPE_TO_EXISTING[
+              systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING
+            ],
           systemLocation: systemLocation === "inside" ? "Inside" : "Outside",
           ...(sizeBandLabel ? { sizeBand: sizeBandLabel } : {}),
-          ...(disclaimers.length ? { disclaimers } : {}),
           ...(lineItems.length ? { lineItems } : {}),
           ...(requiresSiteVisit ? { requiresSiteVisit: true } : {}),
         },

@@ -1,40 +1,33 @@
 "use client";
 
 /**
- * HeatPumpWizard — Step 3 for HEAT PUMP. A heat pump always installs OUTSIDE
- * (it expels air like an aircon), so the tree is simpler than electric:
+ * HeatPumpWizard — Step 3 for HEAT PUMP.
  *
- *   Where is the current system?  Inside / Outside
- *     • Inside  → must move outside ⇒ relocation: lineal-metres + support base
- *     • Outside → Same position?
- *         - Yes → support base only
- *         - No  → relocation: lineal-metres + support base
- *   Electrical isolator & RCD → STANDARD, included in the unit price (shown, not charged)
- *   Remove old tank & disposal → included ($0)
+ * Two layers:
+ *  1) CONVERSION — "What do you currently have?" (Electric / Heat Pump /
+ *     Thermosiphon Solar / Split Solar) drives conversion-specific add-ons +
+ *     disclaimers, and sets the CRM existing-system type.
+ *  2) INSTALL — the always-outside heat-pump questions (inside/outside, same
+ *     position, relocation lineal-metres, support base). SKIPPED for Thermosiphon
+ *     (roof→ground can't be auto-priced → disclaimer + site visit only).
  *
- * No Open/Cupboard, Safe-tray or Mildred valve (inside-only items), and no
- * internal/site-visit branch (the new unit is never inside).
- *
- * Output contract matches ElectricWizard so the pricing page can swap them:
- * onChange(extraIds), onCompletionChange, onMetaChange(relocation), onLocationChange.
+ * Costs are HIDDEN here (no running total, no per-item "+$X"); they appear only
+ * on the generated quote. Reports: onChange(extraIds), onCompletionChange,
+ * onMetaChange(relocation), onLocationChange, onConversionChange(existingType,
+ * disclaimers, requiresSiteVisit).
  */
 
 import { useEffect, useMemo, useState } from "react";
 import ToggleButton from "./ToggleButton";
 import type { RelocationMeta } from "./ElectricWizard";
-import {
-  RELOCATION_BASE,
-  computeRelocationCost,
-  isValidRelocationMetres,
-  relocationPerMetreRate,
-} from "@/lib/relocation-pricing";
+import { isValidRelocationMetres } from "@/lib/relocation-pricing";
 
-type Extra = {
-  extraId: string;
-  code: string;
-  name: string;
-  priceExGst: number;
-  included: boolean;
+type Extra = { extraId: string; code: string; name: string; priceExGst: number; included: boolean };
+
+export type ConversionMeta = {
+  existingType: string | null; // CMS existing-system label (Electric / Heat Pump / Solar)
+  disclaimers: string[];
+  requiresSiteVisit: boolean;
 };
 
 type Props = {
@@ -45,27 +38,37 @@ type Props = {
   onCompletionChange?: (complete: boolean) => void;
   onMetaChange?: (relocation: RelocationMeta) => void;
   onLocationChange?: (loc: "inside" | "outside" | null) => void;
+  onConversionChange?: (conv: ConversionMeta) => void;
 };
 
 const CODE = {
   SUPPORT_BASE: "support_base_heat_pump",
-  ISOLATOR: "electrical_isolator_rcd", // shown as "included", NOT added to extraIds
-  REMOVE_TANK: "remove_old_tank",
+  OFF_PEAK_REMOVAL: "off_peak_removal_heat_pump",
+  SPLIT_SOLAR_CONVERSION: "split_solar_conversion_heat_pump",
+  SOLAR_PANEL_REMOVAL: "solar_panel_removal_heat_pump",
+  REMOVE_TANK: "remove_old_tank", // included $0
 } as const;
 
-// Always added to the quote (both $0 / included for heat pump). The isolator is
-// included in the unit price, so it is shown but NOT added to extraIds.
-const ALWAYS_INCLUDED = [CODE.REMOVE_TANK];
+type Have = "electric" | "heat_pump" | "thermosiphon" | "split_solar";
 
-const money = (n: number) =>
-  n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 0 });
+const EXISTING_LABEL: Record<Have, string> = {
+  electric: "Electric",
+  heat_pump: "Heat Pump",
+  thermosiphon: "Solar",
+  split_solar: "Solar",
+};
+
+const THERMOSIPHON_DISCLAIMER =
+  "Converting a roof-mounted solar system to a ground heat pump: roughly $750–$1,250 for plumbing/electrical to relocate services to ground and supply a support base. A site visit is required to confirm — we'll be in direct contact.";
+const OFF_PEAK_UNSURE_DISCLAIMER =
+  "If you have an off-peak isolator and need it removed to utilise solar power, that's about +$220 — confirmed on site.";
 
 function OptionPills<T extends string>({
   options,
   value,
   onChange,
 }: {
-  options: { value: T; label: string; hint?: string }[];
+  options: { value: T; label: string }[];
   value: T | null;
   onChange: (v: T) => void;
 }) {
@@ -83,7 +86,6 @@ function OptionPills<T extends string>({
           }`}
         >
           {o.label}
-          {o.hint && <span className="ml-2 text-xs opacity-80">{o.hint}</span>}
         </button>
       ))}
     </div>
@@ -99,6 +101,20 @@ function Question({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
+function Note({ tone, children }: { tone: "amber" | "info"; children: React.ReactNode }) {
+  return (
+    <div
+      className={`mt-3 rounded-lg px-4 py-3 text-sm border ${
+        tone === "amber"
+          ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
+          : "bg-sky-500/10 border-sky-500/30 text-sky-200"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function HeatPumpWizard({
   region,
   systemType,
@@ -106,23 +122,38 @@ export default function HeatPumpWizard({
   onCompletionChange,
   onMetaChange,
   onLocationChange,
+  onConversionChange,
 }: Props) {
   const [byCode, setByCode] = useState<Record<string, Extra>>({});
   const [loading, setLoading] = useState(true);
 
+  // Conversion layer
+  const [have, setHave] = useState<Have | null>(null);
+  const [offPeak, setOffPeak] = useState<"yes" | "no" | "unsure" | null>(null);
+  const [offPeakRemove, setOffPeakRemove] = useState<"yes" | "no" | null>(null);
+  const [panelRemoval, setPanelRemoval] = useState<"yes" | "no" | null>(null);
+
+  // Install layer (skipped for thermosiphon)
   const [currentLocation, setCurrentLocation] = useState<"inside" | "outside" | null>(null);
   const [samePosition, setSamePosition] = useState<"yes" | "no" | null>(null);
   const [metres, setMetres] = useState("");
   const [needsBase, setNeedsBase] = useState<"yes" | "no" | null>(null);
 
-  const resetAll = () => {
-    setCurrentLocation(null);
-    resetBelowLocation();
+  const resetConversion = () => {
+    setOffPeak(null);
+    setOffPeakRemove(null);
+    setPanelRemoval(null);
   };
-  const resetBelowLocation = () => {
+  const resetInstall = () => {
+    setCurrentLocation(null);
     setSamePosition(null);
     setMetres("");
     setNeedsBase(null);
+  };
+  const resetAll = () => {
+    setHave(null);
+    resetConversion();
+    resetInstall();
   };
 
   useEffect(() => {
@@ -140,44 +171,65 @@ export default function HeatPumpWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region, systemType]);
 
-  // A heat pump moves (relocation) when: current is inside (must go outside), or
-  // current is outside but not the same position.
-  const isMoving =
-    currentLocation === "inside" ||
-    (currentLocation === "outside" && samePosition === "no");
+  const isThermosiphon = have === "thermosiphon";
 
+  // Install-layer relocation (only for non-thermosiphon). Heat pump always outside.
   const metresNum = parseInt(metres, 10);
   const metresValid = isValidRelocationMetres(metresNum);
+  const isMoving =
+    !isThermosiphon &&
+    (currentLocation === "inside" || (currentLocation === "outside" && samePosition === "no"));
 
-  // Relocation is always to OUTSIDE for a heat pump (never a site visit).
   const relocationMeta: RelocationMeta = useMemo(() => {
     if (!isMoving || !metresValid) return null;
     return { newLocation: "outside", metres: metresNum, requiresSiteVisit: false };
   }, [isMoving, metresValid, metresNum]);
 
-  const relocationCost = relocationMeta ? computeRelocationCost(relocationMeta.metres) : 0;
-
+  // Selected extra codes (costs hidden in UI; still drive the priced quote).
   const selectedCodes = useMemo(() => {
-    const codes: string[] = [...ALWAYS_INCLUDED];
-    if (needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
-    return codes.filter((c) => byCode[c]);
-  }, [byCode, needsBase]);
-
-  const complete = useMemo(() => {
-    if (!currentLocation) return false;
-    if (currentLocation === "inside") {
-      return metresValid && !!needsBase; // forced relocation outside
+    const codes: string[] = [CODE.REMOVE_TANK];
+    if (have === "split_solar") {
+      codes.push(CODE.SPLIT_SOLAR_CONVERSION);
+      if (panelRemoval === "yes") codes.push(CODE.SOLAR_PANEL_REMOVAL);
     }
-    // outside
+    if (have === "electric" && offPeak === "yes" && offPeakRemove === "yes") {
+      codes.push(CODE.OFF_PEAK_REMOVAL);
+    }
+    if (!isThermosiphon && needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
+    return codes.filter((c) => byCode[c]);
+  }, [byCode, have, panelRemoval, offPeak, offPeakRemove, isThermosiphon, needsBase]);
+
+  // Disclaimers + site-visit + existing type for the CRM/quote.
+  const conversion: ConversionMeta = useMemo(() => {
+    const disclaimers: string[] = [];
+    let requiresSiteVisit = false;
+    if (isThermosiphon) {
+      disclaimers.push(THERMOSIPHON_DISCLAIMER);
+      requiresSiteVisit = true;
+    }
+    if (have === "electric" && offPeak === "unsure") disclaimers.push(OFF_PEAK_UNSURE_DISCLAIMER);
+    return { existingType: have ? EXISTING_LABEL[have] : null, disclaimers, requiresSiteVisit };
+  }, [isThermosiphon, have, offPeak]);
+
+  const installComplete = useMemo(() => {
+    if (!currentLocation) return false;
+    if (currentLocation === "inside") return metresValid && !!needsBase;
     if (!samePosition) return false;
     if (samePosition === "yes") return !!needsBase;
-    return metresValid && !!needsBase; // outside + moving
+    return metresValid && !!needsBase;
   }, [currentLocation, samePosition, metresValid, needsBase]);
 
-  const selectedIds = useMemo(
-    () => selectedCodes.map((c) => byCode[c].extraId),
-    [selectedCodes, byCode]
-  );
+  const conversionComplete = useMemo(() => {
+    if (!have) return false;
+    if (have === "electric") return offPeak !== null && (offPeak !== "yes" || offPeakRemove !== null);
+    if (have === "split_solar") return panelRemoval !== null;
+    return true; // heat_pump, thermosiphon
+  }, [have, offPeak, offPeakRemove, panelRemoval]);
+
+  const complete = conversionComplete && (isThermosiphon || installComplete);
+
+  // Report up.
+  const selectedIds = useMemo(() => selectedCodes.map((c) => byCode[c].extraId), [selectedCodes, byCode]);
   const idsKey = selectedIds.join(",");
   useEffect(() => {
     onChange(selectedIds);
@@ -192,35 +244,22 @@ export default function HeatPumpWizard({
     onMetaChange?.(relocationMeta);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metaKey]);
+  // Existing-system location for CRM. Thermosiphon (roof) → treat as outside.
+  const effectiveLocation = isThermosiphon ? "outside" : currentLocation;
   useEffect(() => {
-    onLocationChange?.(currentLocation);
+    onLocationChange?.(effectiveLocation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLocation]);
-
-  const addOnsTotal =
-    selectedCodes.reduce((sum, c) => sum + (byCode[c]?.priceExGst ?? 0), 0) + relocationCost;
+  }, [effectiveLocation]);
+  const convKey = JSON.stringify(conversion);
+  useEffect(() => {
+    onConversionChange?.(conversion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convKey]);
 
   if (loading) return <p className="text-slate-400">Loading questions…</p>;
 
-  const Note = ({ tone, children }: { tone: "amber" | "info"; children: React.ReactNode }) => (
-    <div
-      className={`mt-3 rounded-lg px-4 py-3 text-sm border ${
-        tone === "amber"
-          ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
-          : "bg-sky-500/10 border-sky-500/30 text-sky-200"
-      }`}
-    >
-      {children}
-    </div>
-  );
-
-  const supportBaseLabel = byCode[CODE.SUPPORT_BASE]
-    ? `${byCode[CODE.SUPPORT_BASE].name} — +${money(byCode[CODE.SUPPORT_BASE].priceExGst)}`
-    : "Concrete / Poly support base";
-
-  // The lineal-metres + support-base questions (shown whenever the unit is moving,
-  // or staying put outside where only the base applies).
-  const relocationQuestions = (
+  // Install questions block (metres + support base) shown when the unit is moving.
+  const movingQuestions = (
     <>
       <Question title="How far will the new system move? (lineal metres)">
         <div className="flex items-center gap-3 mt-2">
@@ -235,98 +274,147 @@ export default function HeatPumpWizard({
           />
           <span className="text-sm text-slate-400">metres (2–30)</span>
         </div>
-        {metresValid && (
-          <p className="mt-2 text-sm font-semibold text-emerald-300">
-            {money(RELOCATION_BASE)} base + {metresNum}m @ {money(relocationPerMetreRate(metresNum))}/m ={" "}
-            {money(computeRelocationCost(metresNum))}
-          </p>
-        )}
       </Question>
-
       <Question title="Will a concrete / poly support base be required?">
         <ToggleButton value={needsBase} onChange={setNeedsBase} />
-        {needsBase === "yes" && <Note tone="amber">{supportBaseLabel}</Note>}
       </Question>
     </>
   );
 
   return (
     <div>
-      <p className="text-sm text-slate-400 mb-5">
-        Answer each question — more will appear as you go.
-      </p>
+      <p className="text-sm text-slate-400 mb-5">Answer each question — more will appear as you go.</p>
 
-      <Question title="Where is the current system?">
+      {/* CONVERSION — what do you currently have? */}
+      <Question title="What type of hot water system do you currently have?">
         <OptionPills
           options={[
-            { value: "inside", label: "Inside" },
-            { value: "outside", label: "Outside" },
+            { value: "electric", label: "Electric" },
+            { value: "heat_pump", label: "Heat Pump" },
+            { value: "thermosiphon", label: "Thermosiphon Solar" },
+            { value: "split_solar", label: "Split Solar" },
           ]}
-          value={currentLocation}
+          value={have}
           onChange={(v) => {
-            setCurrentLocation(v);
-            resetBelowLocation();
+            setHave(v);
+            resetConversion();
+            resetInstall();
           }}
         />
-        {currentLocation === "inside" && (
-          <Note tone="info">
-            A heat pump installs <strong>outside</strong> (it expels air like an aircon), so it will
-            be relocated from the current inside position.
-          </Note>
-        )}
       </Question>
 
-      {/* Current INSIDE → forced relocation outside */}
-      {currentLocation === "inside" && relocationQuestions}
-
-      {/* Current OUTSIDE → same position? */}
-      {currentLocation === "outside" && (
-        <Question title="Same position as the existing system?">
-          <ToggleButton
-            value={samePosition}
+      {/* ELECTRIC → off-peak */}
+      {have === "electric" && (
+        <Question title="Is your electric water heater on an off-peak tariff?">
+          <OptionPills
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+              { value: "unsure", label: "Unsure" },
+            ]}
+            value={offPeak}
             onChange={(v) => {
-              setSamePosition(v);
-              setMetres("");
-              setNeedsBase(null);
+              setOffPeak(v);
+              setOffPeakRemove(null);
             }}
           />
+          {offPeak === "yes" && (
+            <div className="mt-4">
+              <p className="font-semibold text-white">Do you want it removed to utilise solar power?</p>
+              <ToggleButton value={offPeakRemove} onChange={setOffPeakRemove} />
+            </div>
+          )}
+          {offPeak === "unsure" && (
+            <Note tone="info">A note about off-peak removal will be added to the quote.</Note>
+          )}
         </Question>
       )}
 
-      {/* Outside + same position → support base only */}
-      {currentLocation === "outside" && samePosition === "yes" && (
-        <Question title="Will a concrete / poly support base be required?">
-          <ToggleButton value={needsBase} onChange={setNeedsBase} />
-          {needsBase === "yes" && <Note tone="amber">{supportBaseLabel}</Note>}
+      {/* SPLIT SOLAR → panel removal */}
+      {have === "split_solar" && (
+        <Question title="Do you want the solar hot water panels removed from your roof?">
+          <p className="text-sm text-slate-400 mt-1">
+            We can disconnect and leave them (to avoid disturbing roof penetrations), or remove and
+            patch the holes.
+          </p>
+          <ToggleButton value={panelRemoval} onChange={setPanelRemoval} />
         </Question>
       )}
 
-      {/* Outside + moving → relocation questions */}
-      {currentLocation === "outside" && samePosition === "no" && relocationQuestions}
+      {/* THERMOSIPHON → disclaimer + site visit, skip install */}
+      {isThermosiphon && (
+        <Note tone="amber">
+          This conversion (roof solar → ground heat pump) needs a <strong>site visit</strong> — roof
+          type, location and plumbing/electrical all vary. A ballpark and the site-visit note will
+          appear on the quote; we'll be in direct contact.
+        </Note>
+      )}
 
-      {/* Standard (included) */}
+      {/* INSTALL questions (all conversions except thermosiphon) */}
+      {have && !isThermosiphon && (
+        <>
+          <Question title="Where is the current system?">
+            <OptionPills
+              options={[
+                { value: "inside", label: "Inside" },
+                { value: "outside", label: "Outside" },
+              ]}
+              value={currentLocation}
+              onChange={(v) => {
+                setCurrentLocation(v);
+                setSamePosition(null);
+                setMetres("");
+                setNeedsBase(null);
+              }}
+            />
+            {currentLocation === "inside" && (
+              <Note tone="info">
+                A heat pump installs <strong>outside</strong> (it expels air like an aircon), so it
+                will be relocated from the current inside position.
+              </Note>
+            )}
+          </Question>
+
+          {currentLocation === "inside" && movingQuestions}
+
+          {currentLocation === "outside" && (
+            <Question title="Same position as the existing system?">
+              <ToggleButton
+                value={samePosition}
+                onChange={(v) => {
+                  setSamePosition(v);
+                  setMetres("");
+                  setNeedsBase(null);
+                }}
+              />
+            </Question>
+          )}
+
+          {currentLocation === "outside" && samePosition === "yes" && (
+            <Question title="Will a concrete / poly support base be required?">
+              <ToggleButton value={needsBase} onChange={setNeedsBase} />
+            </Question>
+          )}
+
+          {currentLocation === "outside" && samePosition === "no" && movingQuestions}
+        </>
+      )}
+
+      {/* Standard (included) — no prices */}
       <div className="mt-6 pt-4 border-t border-white/10">
         <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">Standard (included)</p>
         <div className="flex justify-between text-sm py-0.5">
           <span className="text-slate-200">Electrical isolator &amp; RCD</span>
           <span className="text-slate-400">Included</span>
         </div>
-        {byCode[CODE.REMOVE_TANK] && (
-          <div className="flex justify-between text-sm py-0.5">
-            <span className="text-slate-200">{byCode[CODE.REMOVE_TANK].name}</span>
-            <span className="text-slate-400">Included ($0)</span>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
-        <span className="font-semibold text-emerald-300">
-          Add-ons so far: {money(addOnsTotal)}
-        </span>
+        <div className="flex justify-between text-sm py-0.5">
+          <span className="text-slate-200">Remove old tank &amp; disposal</span>
+          <span className="text-slate-400">Included</span>
+        </div>
       </div>
 
       {!complete && (
-        <div className="mt-3 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm font-semibold text-red-300">
+        <div className="mt-4 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm font-semibold text-red-300">
           ⚠️ Please answer all questions before continuing.
         </div>
       )}

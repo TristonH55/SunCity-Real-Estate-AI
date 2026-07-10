@@ -156,9 +156,6 @@ export async function pushConfirmationToCMS(
           ...(customer.requiresSiteVisit
             ? ["** Internal relocation — final price subject to site visit. **"]
             : []),
-          ...(Array.isArray(customer.disclaimers) && customer.disclaimers.length
-            ? ["Disclaimers:", ...customer.disclaimers.map((d: any) => `- ${d}`)]
-            : []),
           ``,
           `Customer: ${customer.firstName ?? ""} ${customer.lastName ?? ""}`,
           `Email: ${customer.email ?? ""}`,

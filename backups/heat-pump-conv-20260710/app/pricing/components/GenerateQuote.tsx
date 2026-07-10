@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RelocationMeta } from "./ElectricWizard";
-import type { ConversionMeta } from "./HeatPumpWizard";
 
 type CustomerDetails = {
   firstName: string;
@@ -28,7 +27,6 @@ export default function GenerateQuote({
   relocation,
   systemLocation,
   sizeBandId,
-  conversion,
 }: {
   region: string;
   systemType: string;
@@ -38,7 +36,6 @@ export default function GenerateQuote({
   relocation?: RelocationMeta;
   systemLocation?: "inside" | "outside" | null;
   sizeBandId?: string | null;
-  conversion?: ConversionMeta | null;
 }) {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
@@ -88,7 +85,6 @@ export default function GenerateQuote({
           systemLocation,
           ...(sizeBandId ? { sizeBandId } : {}),
           ...(relocation ? { relocation } : {}),
-          ...(conversion ? { conversion } : {}),
         }),
       });
       const data = await res.json();
