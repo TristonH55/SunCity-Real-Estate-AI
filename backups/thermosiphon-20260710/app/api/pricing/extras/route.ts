@@ -149,12 +149,6 @@ export async function GET(req: Request) {
         return false;
       }
 
-      // Thermosiphon-only Step-3 add-ons — both solar subtypes map to "solar",
-      // so keep these out of the split-solar list.
-      if (code.endsWith("_thermosiphon")) {
-        return systemType === "solar_thermosiphon";
-      }
-
       return true;
     })
     .map((ep) => ({

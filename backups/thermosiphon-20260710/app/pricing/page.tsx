@@ -15,7 +15,6 @@ import SizeBandSelect from "./components/SizeBandSelect";
 import ExtrasList from "./components/ExtrasList";
 import ElectricWizard, { type RelocationMeta } from "./components/ElectricWizard";
 import HeatPumpWizard, { type ConversionMeta } from "./components/HeatPumpWizard";
-import ThermosiphonWizard from "./components/ThermosiphonWizard";
 import GenerateQuote from "./components/GenerateQuote";
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 
@@ -135,9 +134,7 @@ export default function PricingPage() {
         <div className="glass-card p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 3</span> —{" "}
-            {systemType === "electric" ||
-            systemType === "heat_pump" ||
-            systemType === "solar_thermosiphon"
+            {systemType === "electric" || systemType === "heat_pump"
               ? "Installation Questions"
               : "Extras"}
           </h2>
@@ -161,15 +158,6 @@ export default function PricingPage() {
               onMetaChange={setRelocation}
               onLocationChange={setSystemLocation}
               onConversionChange={setConversion}
-            />
-          ) : systemType === "solar_thermosiphon" ? (
-            <ThermosiphonWizard
-              region={region}
-              systemType={systemType}
-              selectedExtras={selectedExtras}
-              onChange={setSelectedExtras}
-              onCompletionChange={setExtrasComplete}
-              onLocationChange={setSystemLocation}
             />
           ) : (
             <ExtrasList

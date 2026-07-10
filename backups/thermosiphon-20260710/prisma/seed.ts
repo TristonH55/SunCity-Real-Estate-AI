@@ -374,14 +374,6 @@ async function seedExtras() {
     // =========================
     { code: "flat_roof_frame_split", name: "Flat roof frame (Split solar)", systemType: ExtraSystemType.solar, active: true },
     { code: "cyclone_frame_split", name: "Cyclone frame (Split solar)", systemType: ExtraSystemType.solar, active: true },
-
-    // =========================
-    // THERMOSIPHON SOLAR — Darren's Step-3 questions (shown only for solar_thermosiphon via API filter)
-    // =========================
-    { code: "double_storey_thermosiphon", name: "Double storey / highset roof", systemType: ExtraSystemType.solar, active: true },
-    { code: "pitch_steep_thermosiphon", name: "Steep roof pitch", systemType: ExtraSystemType.solar, active: true },
-    { code: "pitch_crazy_steep_thermosiphon", name: "Very steep roof pitch", systemType: ExtraSystemType.solar, active: true },
-    { code: "tilt_frame_thermosiphon", name: "Tilt / pitch frame (new)", systemType: ExtraSystemType.solar, active: true },
   ];
 
   await prisma.extra.createMany({ data: extras });
@@ -969,26 +961,6 @@ async function seedExtraPrices() {
   };
 
   for (const [code, price] of Object.entries(flatHeatPump)) {
-    for (const regionId of Object.values(regionMap)) {
-      data.push({
-        extraId: extraMap[code],
-        regionId,
-        price,
-      });
-    }
-  }
-
-  // =================================================
-  // THERMOSIPHON SOLAR — Darren's Step-3 add-ons (flat, all regions)
-  // =================================================
-  const flatThermosiphon = {
-    double_storey_thermosiphon: 450,
-    pitch_steep_thermosiphon: 150,
-    pitch_crazy_steep_thermosiphon: 500,
-    tilt_frame_thermosiphon: 875,
-  };
-
-  for (const [code, price] of Object.entries(flatThermosiphon)) {
     for (const regionId of Object.values(regionMap)) {
       data.push({
         extraId: extraMap[code],
