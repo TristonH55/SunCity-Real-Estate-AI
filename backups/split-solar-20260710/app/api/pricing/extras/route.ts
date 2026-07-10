@@ -155,12 +155,6 @@ export async function GET(req: Request) {
         return systemType === "solar_thermosiphon";
       }
 
-      // Split-solar-only Step-3 add-ons (cyclone_/flat_roof_ split codes are handled
-      // by the explicit checks above; this catches the rest).
-      if (code.endsWith("_split")) {
-        return systemType === "solar_split";
-      }
-
       return true;
     })
     .map((ep) => ({

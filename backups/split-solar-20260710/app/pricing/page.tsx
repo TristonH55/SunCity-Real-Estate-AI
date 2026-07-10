@@ -16,7 +16,6 @@ import ExtrasList from "./components/ExtrasList";
 import ElectricWizard, { type RelocationMeta } from "./components/ElectricWizard";
 import HeatPumpWizard, { type ConversionMeta } from "./components/HeatPumpWizard";
 import ThermosiphonWizard from "./components/ThermosiphonWizard";
-import SplitSolarWizard from "./components/SplitSolarWizard";
 import GenerateQuote from "./components/GenerateQuote";
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 
@@ -138,8 +137,7 @@ export default function PricingPage() {
             <span className="text-xl">Step 3</span> —{" "}
             {systemType === "electric" ||
             systemType === "heat_pump" ||
-            systemType === "solar_thermosiphon" ||
-            systemType === "solar_split"
+            systemType === "solar_thermosiphon"
               ? "Installation Questions"
               : "Extras"}
           </h2>
@@ -166,15 +164,6 @@ export default function PricingPage() {
             />
           ) : systemType === "solar_thermosiphon" ? (
             <ThermosiphonWizard
-              region={region}
-              systemType={systemType}
-              selectedExtras={selectedExtras}
-              onChange={setSelectedExtras}
-              onCompletionChange={setExtrasComplete}
-              onLocationChange={setSystemLocation}
-            />
-          ) : systemType === "solar_split" ? (
-            <SplitSolarWizard
               region={region}
               systemType={systemType}
               selectedExtras={selectedExtras}

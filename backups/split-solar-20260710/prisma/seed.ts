@@ -382,16 +382,6 @@ async function seedExtras() {
     { code: "pitch_steep_thermosiphon", name: "Steep roof pitch", systemType: ExtraSystemType.solar, active: true },
     { code: "pitch_crazy_steep_thermosiphon", name: "Very steep roof pitch", systemType: ExtraSystemType.solar, active: true },
     { code: "tilt_frame_thermosiphon", name: "Tilt / pitch frame (new)", systemType: ExtraSystemType.solar, active: true },
-
-    // =========================
-    // SPLIT SOLAR — Darren's Step-3 questions (shown only for solar_split via API filter)
-    // =========================
-    { code: "double_storey_split", name: "Double storey / highset roof", systemType: ExtraSystemType.solar, active: true },
-    { code: "pitch_steep_split", name: "Steep roof pitch", systemType: ExtraSystemType.solar, active: true },
-    { code: "pitch_crazy_steep_split", name: "Very steep roof pitch", systemType: ExtraSystemType.solar, active: true },
-    { code: "tilt_frame_split", name: "Tilt / pitch frame (new)", systemType: ExtraSystemType.solar, active: true },
-    { code: "safe_catch_tray_split", name: "Safe / Catch Tray", systemType: ExtraSystemType.solar, active: true },
-    { code: "mildred_valve_split", name: "Mildred anti-flood valve", systemType: ExtraSystemType.solar, active: true },
   ];
 
   await prisma.extra.createMany({ data: extras });
@@ -999,28 +989,6 @@ async function seedExtraPrices() {
   };
 
   for (const [code, price] of Object.entries(flatThermosiphon)) {
-    for (const regionId of Object.values(regionMap)) {
-      data.push({
-        extraId: extraMap[code],
-        regionId,
-        price,
-      });
-    }
-  }
-
-  // =================================================
-  // SPLIT SOLAR — Darren's Step-3 add-ons (flat, all regions)
-  // =================================================
-  const flatSplit = {
-    double_storey_split: 450,
-    pitch_steep_split: 150,
-    pitch_crazy_steep_split: 500,
-    tilt_frame_split: 675,
-    safe_catch_tray_split: 165,
-    mildred_valve_split: 225,
-  };
-
-  for (const [code, price] of Object.entries(flatSplit)) {
     for (const regionId of Object.values(regionMap)) {
       data.push({
         extraId: extraMap[code],
