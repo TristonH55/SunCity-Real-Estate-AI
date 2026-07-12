@@ -231,18 +231,22 @@ export default function SplitSolarWizard({
 
           {pitch === "flat" && (
             <>
-              <Note>
-                Solar hot water needs a pitch of at least 10° to work efficiently, so a tilt/pitch
-                frame may be required.
-              </Note>
               <div className="mt-4">
                 <p className="font-semibold text-white">Is it already on a tilt frame?</p>
                 <ToggleButton value={onTiltFrame} onChange={(v) => { setOnTiltFrame(v); setTiltReusable(null); }} />
               </div>
+              {onTiltFrame === "no" && (
+                <Note>
+                  Solar hot water needs a pitch of at least 10° to work efficiently, so a new
+                  tilt/pitch frame will be required.
+                </Note>
+              )}
               {onTiltFrame === "yes" && (
                 <div className="mt-4">
                   <p className="font-semibold text-white">Is it in good condition and reusable?</p>
                   <ToggleButton value={tiltReusable} onChange={setTiltReusable} />
+                  {tiltReusable === "no" && <Note>A new tilt/pitch frame will be required.</Note>}
+                  {tiltReusable === "yes" && <Note>Existing tilt frame is fine — no extra cost.</Note>}
                 </div>
               )}
             </>
