@@ -12,7 +12,7 @@ const BRAND_BROCHURES: Record<string, Brochure[]> = {
     { label: "AquaMAX PDF", file: "Aquamax-Electric-brochure.pdf" },
     { label: "Vulcan PDF", file: "Vulcan_Gas___Electric_Brochure.pdf" },
   ],
-  "OMNI X": [
+  "OMNI X / Thermann": [
     { label: "OMNI X PDF", file: "OMNI-X-Stainless Steel-Electric-brochure.pdf" },
   ],
   "Rheem Stellar": [

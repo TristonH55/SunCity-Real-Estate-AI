@@ -128,15 +128,15 @@ async function seedElectricSystems() {
     { brand: "AquaMAX / Vulcan", model: "Electric 400L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Rheem manufactured system", active: true },
 
     // =========================
-    // OMNI X – Stainless Steel
+    // OMNI X / Thermann – Mild Steel
     // =========================
-    { brand: "OMNI X", model: "Electric 50L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 50, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
-    { brand: "OMNI X", model: "Electric 80L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 80, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
-    { brand: "OMNI X", model: "Electric 125L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 125, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
-    { brand: "OMNI X", model: "Electric 160L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 160, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
-    { brand: "OMNI X", model: "Electric 250L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 250, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
-    { brand: "OMNI X", model: "Electric 315L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 315, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
-    { brand: "OMNI X", model: "Electric 400L Stainless", systemType: SystemType.electric, tankMaterial: TankMaterial.stainless_steel, capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "OMNI X stainless steel tank", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 50L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 50, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 80L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 80, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 125L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 125, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 160L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 160, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 250L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 250, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 315L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 315, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "OMNI X / Thermann", model: "Electric 400L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
 
     // =========================
     // Rheem Stellar – Stainless Steel
@@ -432,15 +432,15 @@ async function seedElectricSystemPrices() {
     ["AquaMAX / Vulcan | Electric 400L Mild Steel", 2300, 2300, 2400, 2400, 2500, 2625],
 
     // =========================
-    // OMNI X – Stainless Steel
+    // OMNI X / Thermann – Mild Steel
     // =========================
-    ["OMNI X | Electric 50L Stainless", 1600, 1600, 1700, 1700, 1800, 1925],
-    ["OMNI X | Electric 80L Stainless", 1750, 1750, 1850, 1850, 1950, 2075],
-    ["OMNI X | Electric 125L Stainless", 1850, 1850, 1950, 1950, 2050, 2175],
-    ["OMNI X | Electric 160L Stainless", 1950, 1950, 2050, 2050, 2150, 2275],
-    ["OMNI X | Electric 250L Stainless", 2000, 2000, 2100, 2100, 2200, 2325],
-    ["OMNI X | Electric 315L Stainless", 2100, 2100, 2200, 2200, 2300, 2425],
-    ["OMNI X | Electric 400L Stainless", 2450, 2450, 2550, 2550, 2650, 2775],
+    ["OMNI X / Thermann | Electric 50L Mild Steel", 1600, 1600, 1700, 1700, 1800, 1925],
+    ["OMNI X / Thermann | Electric 80L Mild Steel", 1750, 1750, 1850, 1850, 1950, 2075],
+    ["OMNI X / Thermann | Electric 125L Mild Steel", 1850, 1850, 1950, 1950, 2050, 2175],
+    ["OMNI X / Thermann | Electric 160L Mild Steel", 1950, 1950, 2050, 2050, 2150, 2275],
+    ["OMNI X / Thermann | Electric 250L Mild Steel", 2000, 2000, 2100, 2100, 2200, 2325],
+    ["OMNI X / Thermann | Electric 315L Mild Steel", 2100, 2100, 2200, 2200, 2300, 2425],
+    ["OMNI X / Thermann | Electric 400L Mild Steel", 2450, 2450, 2550, 2550, 2650, 2775],
 
     // =========================
     // Rheem Stellar – Stainless Steel
