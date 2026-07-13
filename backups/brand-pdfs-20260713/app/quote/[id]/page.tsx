@@ -6,7 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import LockQuote from "./LockQuote";
 import HomeownerCard from "./HomeownerCard";
-import { brandBrochures } from "@/lib/brand-brochures";
 
 const money = (v: number) =>
   v.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
@@ -130,22 +129,6 @@ export default async function QuoteViewPage({
                 : ""}{" "}
               yrs
             </p>
-
-            {brandBrochures(o.system.brand).length > 0 && (
-              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
-                {brandBrochures(o.system.brand).map((b) => (
-                  <a
-                    key={b.href}
-                    href={b.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-sky-300 hover:text-sky-200 underline"
-                  >
-                    📄 {b.label}
-                  </a>
-                ))}
-              </div>
-            )}
 
             <div className="border-t border-white/10 pt-3 mt-3 space-y-1 text-sm text-slate-200">
               <div className="flex justify-between">

@@ -29,7 +29,6 @@ export const limiters = {
   lock: make(30, "1 m", "lock"),
   updateContact: make(30, "1 m", "update-contact"),
   google: make(60, "1 m", "google"),
-  adminPrices: make(60, "1 m", "admin-prices"),
 };
 
 /**

@@ -44,15 +44,15 @@
 //       { brand: "AquaMAX / Vulcan", model: "Electric 400L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Rheem manufactured system", active: true },
 
 //       // =========================
-//       // OMNI X / Thermann – Mild Steel
+//       // Dux / Thermann – Mild Steel
 //       // =========================
-//       { brand: "OMNI X / Thermann", model: "Electric 50L Mild Steel",  systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 50,  warrantyPrimaryYears: 7,  warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-//       { brand: "OMNI X / Thermann", model: "Electric 80L Mild Steel",  systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 80,  warrantyPrimaryYears: 7,  warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-//       { brand: "OMNI X / Thermann", model: "Electric 125L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 125, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-//       { brand: "OMNI X / Thermann", model: "Electric 160L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 160, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-//       { brand: "OMNI X / Thermann", model: "Electric 250L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 250, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-//       { brand: "OMNI X / Thermann", model: "Electric 315L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 315, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-//       { brand: "OMNI X / Thermann", model: "Electric 400L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 50L Mild Steel",  systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 50,  warrantyPrimaryYears: 7,  warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 80L Mild Steel",  systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 80,  warrantyPrimaryYears: 7,  warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 125L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 125, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 160L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 160, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 250L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 250, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 315L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 315, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+//       { brand: "Dux / Thermann", model: "Electric 400L Mild Steel", systemType: "electric", tankMaterial: "mild_steel", capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
 
 //       // =========================
 //       // Rheem Stellar – Stainless Steel
@@ -128,15 +128,15 @@ async function seedElectricSystems() {
     { brand: "AquaMAX / Vulcan", model: "Electric 400L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Rheem manufactured system", active: true },
 
     // =========================
-    // OMNI X / Thermann – Mild Steel
+    // Dux / Thermann – Mild Steel
     // =========================
-    { brand: "OMNI X / Thermann", model: "Electric 50L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 50, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-    { brand: "OMNI X / Thermann", model: "Electric 80L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 80, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-    { brand: "OMNI X / Thermann", model: "Electric 125L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 125, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-    { brand: "OMNI X / Thermann", model: "Electric 160L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 160, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-    { brand: "OMNI X / Thermann", model: "Electric 250L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 250, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-    { brand: "OMNI X / Thermann", model: "Electric 315L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 315, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
-    { brand: "OMNI X / Thermann", model: "Electric 400L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 50L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 50, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 80L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 80, warrantyPrimaryYears: 7, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 125L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 125, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 160L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 160, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 250L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 250, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 315L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 315, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
+    { brand: "Dux / Thermann", model: "Electric 400L Mild Steel", systemType: SystemType.electric, tankMaterial: TankMaterial.mild_steel, capacityLitres: 400, warrantyPrimaryYears: 10, warrantySecondaryYears: null, notes: "Equivalent to Dux manufactured system", active: true },
 
     // =========================
     // Rheem Stellar – Stainless Steel
@@ -432,15 +432,15 @@ async function seedElectricSystemPrices() {
     ["AquaMAX / Vulcan | Electric 400L Mild Steel", 2300, 2300, 2400, 2400, 2500, 2625],
 
     // =========================
-    // OMNI X / Thermann – Mild Steel
+    // Dux / Thermann – Mild Steel
     // =========================
-    ["OMNI X / Thermann | Electric 50L Mild Steel", 1600, 1600, 1700, 1700, 1800, 1925],
-    ["OMNI X / Thermann | Electric 80L Mild Steel", 1750, 1750, 1850, 1850, 1950, 2075],
-    ["OMNI X / Thermann | Electric 125L Mild Steel", 1850, 1850, 1950, 1950, 2050, 2175],
-    ["OMNI X / Thermann | Electric 160L Mild Steel", 1950, 1950, 2050, 2050, 2150, 2275],
-    ["OMNI X / Thermann | Electric 250L Mild Steel", 2000, 2000, 2100, 2100, 2200, 2325],
-    ["OMNI X / Thermann | Electric 315L Mild Steel", 2100, 2100, 2200, 2200, 2300, 2425],
-    ["OMNI X / Thermann | Electric 400L Mild Steel", 2450, 2450, 2550, 2550, 2650, 2775],
+    ["Dux / Thermann | Electric 50L Mild Steel", 1600, 1600, 1700, 1700, 1800, 1925],
+    ["Dux / Thermann | Electric 80L Mild Steel", 1750, 1750, 1850, 1850, 1950, 2075],
+    ["Dux / Thermann | Electric 125L Mild Steel", 1850, 1850, 1950, 1950, 2050, 2175],
+    ["Dux / Thermann | Electric 160L Mild Steel", 1950, 1950, 2050, 2050, 2150, 2275],
+    ["Dux / Thermann | Electric 250L Mild Steel", 2000, 2000, 2100, 2100, 2200, 2325],
+    ["Dux / Thermann | Electric 315L Mild Steel", 2100, 2100, 2200, 2200, 2300, 2425],
+    ["Dux / Thermann | Electric 400L Mild Steel", 2450, 2450, 2550, 2550, 2650, 2775],
 
     // =========================
     // Rheem Stellar – Stainless Steel

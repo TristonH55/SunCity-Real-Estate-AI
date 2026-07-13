@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { brandBrochures } from "@/lib/brand-brochures";
 import {
   Image,
   Document,
@@ -7,7 +6,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Link,
   pdf,
 } from "@react-pdf/renderer";
 
@@ -188,16 +186,6 @@ export async function renderQuotePdf(quoteId: string): Promise<
                   : ""}{" "}
                 yrs
               </Text>
-
-              {brandBrochures(o.system.brand).map((b, i) => (
-                <Link
-                  key={i}
-                  src={`${process.env.NEXTAUTH_URL ?? ""}${b.href}`}
-                  style={{ color: "#2563eb", fontSize: 8, marginBottom: 2 }}
-                >
-                  {b.label}
-                </Link>
-              ))}
 
               <View style={styles.breakRow}>
                 <Text>Base (ex GST)</Text>

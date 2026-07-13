@@ -744,14 +744,9 @@ export default async function AdminPage() {
     <div className="flex justify-center py-10 min-h-screen px-4">
       <div className="w-full max-w-[1200px] space-y-10">
 
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="text-3xl heading text-gradient">
-            Admin Dashboard
-          </h1>
-          <a href="/admin/prices" className="btn-primary whitespace-nowrap">
-            ⚙ Settings — Prices
-          </a>
-        </div>
+        <h1 className="text-3xl heading text-gradient">
+          Admin Dashboard
+        </h1>
 
         {/* STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

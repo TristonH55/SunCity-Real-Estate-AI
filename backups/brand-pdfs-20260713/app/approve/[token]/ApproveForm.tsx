@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { brandBrochures } from "@/lib/brand-brochures";
 
 type Opt = {
   id: string;
@@ -130,23 +129,6 @@ export default function ApproveForm({
                       : ""}{" "}
                     yrs · price inc GST
                   </p>
-
-                  {brandBrochures(o.brand).length > 0 && (
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                      {brandBrochures(o.brand).map((b) => (
-                        <a
-                          key={b.href}
-                          href={b.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-xs text-sky-300 hover:text-sky-200 underline"
-                        >
-                          📄 {b.label}
-                        </a>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </label>
