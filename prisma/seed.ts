@@ -335,7 +335,9 @@ async function seedExtras() {
     // ALL SYSTEMS
     // =========================
     { code: "electrical_isolator_rcd", name: "Electrical isolator & RCD", systemType: ExtraSystemType.all, active: true },
-    { code: "safe_tray_mildred_valve", name: "Safe tray / Mildred valve", systemType: ExtraSystemType.all, active: true },
+    // Dead legacy row — electric/split use their own safe_catch_tray_*/mildred_valve_* rows;
+    // thermosiphon (roof tank) never needs a tray. Inactive so it doesn't clutter the editor.
+    { code: "safe_tray_mildred_valve", name: "Safe tray / Mildred valve", systemType: ExtraSystemType.all, active: false },
     { code: "remove_old_tank", name: "Remove old tank & disposal", systemType: ExtraSystemType.all, active: true },
     // Dead legacy row — superseded by support_base_electric / support_base_heat_pump.
     // No wizard/API references it; kept inactive so it never shows in Step 3 or the admin add-on editor.
@@ -348,6 +350,9 @@ async function seedExtras() {
     { code: "safe_catch_tray_electric", name: "Safe / Catch Tray", systemType: ExtraSystemType.electric, active: true },
     { code: "mildred_valve_electric", name: "Mildred anti-flood valve", systemType: ExtraSystemType.electric, active: true },
     { code: "support_base_electric", name: "Concrete / Poly support base", systemType: ExtraSystemType.electric, active: true },
+    // Base charge for an internal relocation (new system installed inside); final
+    // extent still subject to a site visit. Per-region, admin-editable.
+    { code: "internal_relocation_electric", name: "Internal relocation (inside)", systemType: ExtraSystemType.electric, active: true },
 
     // =========================
     // HEAT PUMP — outside-install support base + conversion add-ons (heat-pump only)
@@ -958,6 +963,7 @@ async function seedExtraPrices() {
     safe_catch_tray_electric: 165,
     mildred_valve_electric: 225,
     support_base_electric: 65,
+    internal_relocation_electric: 125,
   };
 
   for (const [code, price] of Object.entries(flatElectric)) {

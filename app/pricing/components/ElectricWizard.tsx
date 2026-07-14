@@ -49,6 +49,7 @@ const CODE = {
   SUPPORT_BASE: "support_base_electric",
   ISOLATOR: "electrical_isolator_rcd",
   REMOVE_TANK: "remove_old_tank",
+  INTERNAL_RELOCATION: "internal_relocation_electric",
 } as const;
 
 // Always part of an electric quote. The isolator/RCD is an optional Yes/No extra
@@ -183,7 +184,9 @@ export default function ElectricWizard({
       } else {
         // relocation
         if (newLocation === "outside" && needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
-        // newLocation === "inside" → site visit; no menu add-ons here.
+        // newLocation === "inside" → base internal-relocation charge (per region,
+        // default $125), plus the site-visit flag/disclaimer for any extra on-site work.
+        if (newLocation === "inside") codes.push(CODE.INTERNAL_RELOCATION);
       }
     }
     return codes.filter((c) => byCode[c]);
