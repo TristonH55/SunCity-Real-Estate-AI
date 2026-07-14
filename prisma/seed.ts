@@ -337,7 +337,9 @@ async function seedExtras() {
     { code: "electrical_isolator_rcd", name: "Electrical isolator & RCD", systemType: ExtraSystemType.all, active: true },
     { code: "safe_tray_mildred_valve", name: "Safe tray / Mildred valve", systemType: ExtraSystemType.all, active: true },
     { code: "remove_old_tank", name: "Remove old tank & disposal", systemType: ExtraSystemType.all, active: true },
-    { code: "concrete_base", name: "Concrete base (if required)", systemType: ExtraSystemType.all, active: true },
+    // Dead legacy row — superseded by support_base_electric / support_base_heat_pump.
+    // No wizard/API references it; kept inactive so it never shows in Step 3 or the admin add-on editor.
+    { code: "concrete_base", name: "Concrete base (if required)", systemType: ExtraSystemType.all, active: false },
 
     // =========================
     // ELECTRIC — Darren's same-location replacement add-ons (electric-only)
