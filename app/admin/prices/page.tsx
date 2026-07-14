@@ -1,7 +1,9 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { getGstMode } from "@/lib/gst";
 import PriceEditor from "./PriceEditor";
+import GstModeToggle from "./GstModeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,8 @@ export default async function AdminPricesPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   if (session.user.role !== "admin") redirect("/pricing");
+
+  const gstMode = await getGstMode();
 
   return (
     <div className="flex justify-center py-10 min-h-screen px-4">
@@ -23,9 +27,11 @@ export default async function AdminPricesPage() {
           </a>
         </div>
         <p className="text-slate-400 text-sm">
-          Pick a region and system type, edit the prices, then Save. Prices are ex-GST.
+          Pick a region and system type, edit the prices, then Save. Prices are{" "}
+          {gstMode === "inclusive" ? "GST-inclusive" : "ex-GST"}.
         </p>
-        <PriceEditor />
+        <GstModeToggle initialMode={gstMode} />
+        <PriceEditor gstMode={gstMode} />
       </div>
     </div>
   );

@@ -1178,6 +1178,13 @@ async function main() {
   await seedSolarSystemPrices();
   await seedExtraPrices();
 
+  // Site-wide GST mode — Darren's prices are GST-inclusive.
+  await prisma.appSetting.upsert({
+    where: { key: "gst_mode" },
+    update: {},
+    create: { key: "gst_mode", value: "inclusive" },
+  });
+  console.log("✅ AppSetting gst_mode = inclusive");
 }
 
 

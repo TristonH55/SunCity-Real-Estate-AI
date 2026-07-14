@@ -23,7 +23,9 @@ type ExtraRow = {
 
 type Tab = "systems" | "extras";
 
-export default function PriceEditor() {
+export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "exclusive" }) {
+  const gstLabel = gstMode === "exclusive" ? "ex-GST" : "inc GST";
+
   const [region, setRegion] = useState<string | null>(null);
   const [systemType, setSystemType] = useState<string | null>(null);
   const [regionName, setRegionName] = useState("");
@@ -271,7 +273,7 @@ export default function PriceEditor() {
                   <th className="text-left py-2">Brand</th>
                   <th className="text-left py-2">Model</th>
                   <th className="text-left py-2">Size</th>
-                  <th className="text-left py-2">Price (ex-GST)</th>
+                  <th className="text-left py-2">Price ({gstLabel})</th>
                 </tr>
               </thead>
               <tbody>
@@ -339,7 +341,7 @@ export default function PriceEditor() {
               <thead>
                 <tr className="border-b border-white/10 text-slate-300">
                   <th className="text-left py-2">Add-on</th>
-                  <th className="text-left py-2">Price (ex-GST)</th>
+                  <th className="text-left py-2">Price ({gstLabel})</th>
                 </tr>
               </thead>
               <tbody>

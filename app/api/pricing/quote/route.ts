@@ -14,6 +14,7 @@ import {
   isValidRelocationMetres,
 } from "@/lib/relocation-pricing";
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
+import { computeOptionPricing, getGstMode } from "@/lib/gst";
 
 const VALID_SYSTEM_TYPES = [
   "electric",
@@ -231,20 +232,12 @@ export async function POST(req: NextRequest) {
         ? conversion.existingType
         : SYSTEM_TYPE_TO_EXISTING[systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING];
 
-    // ---- Build the option rows (base + extras + 10% GST per system) ----
+    // ---- Build the option rows (GST handled per the site-wide mode) ----
+    const gstMode = await getGstMode();
     const optionData = chosen.map((sp) => {
       const base = Number(sp.price);
-      const subtotal = base + extrasTotal;
-      const gst = subtotal * 0.1;
-      const total = subtotal + gst;
-      return {
-        systemId: sp.system.id,
-        basePriceExGst: base,
-        extrasTotalExGst: extrasTotal,
-        subtotalExGst: subtotal,
-        gst,
-        totalIncGst: total,
-      };
+      const pricing = computeOptionPricing(base, extrasTotal, gstMode);
+      return { systemId: sp.system.id, ...pricing };
     });
 
     // ---- Create the presented quote + its options atomically ----

@@ -189,3 +189,9 @@ enum ExtraSystemType {
   solar
   all
 }
+
+// Small key/value store for site-wide settings (e.g. `gst_mode`).
+model AppSetting {
+  key   String @id
+  value String
+}

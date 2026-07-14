@@ -100,6 +100,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
+import { computeOptionPricing, getGstMode } from "@/lib/gst";
 
 export async function POST(req: NextRequest) {
   try {
@@ -160,25 +161,19 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 4️⃣ Pricing math (ALL numbers)
-    const systemPriceExGst = Number(systemPrice.price);
-
-    const extrasTotalExGst = extras.reduce(
-      (sum, e) => sum + Number(e.price),
-      0
-    );
-
-    const subtotalExGst = systemPriceExGst + extrasTotalExGst;
-    const gst = subtotalExGst * 0.1;
-    const totalIncGst = subtotalExGst + gst;
+    // 4️⃣ Pricing math (GST handled per the site-wide mode)
+    const base = Number(systemPrice.price);
+    const extrasTotal = extras.reduce((sum, e) => sum + Number(e.price), 0);
+    const gstMode = await getGstMode();
+    const pricing = computeOptionPricing(base, extrasTotal, gstMode);
 
     // 5️⃣ Return EXACT shape expected by UI
     return NextResponse.json({
-      systemPriceExGst,
-      extrasTotalExGst,
-      subtotalExGst,
-      gst,
-      totalIncGst,
+      systemPriceExGst: pricing.basePriceExGst,
+      extrasTotalExGst: pricing.extrasTotalExGst,
+      subtotalExGst: pricing.subtotalExGst,
+      gst: pricing.gst,
+      totalIncGst: pricing.totalIncGst,
     });
   } catch (err) {
     console.error(err);
