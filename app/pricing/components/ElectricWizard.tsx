@@ -174,6 +174,9 @@ export default function ElectricWizard({
     if (currentLocation && samePosition) {
       if (samePosition === "yes") {
         if (currentLocation === "inside") {
+          // New unit stays inside → internal-install charge (+$125). No site
+          // visit (straight swap); the cupboard/tray items below are additive.
+          codes.push(CODE.INTERNAL_RELOCATION);
           if (openOrCupboard === "cupboard") codes.push(CODE.CUPBOARD);
           if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
           else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);

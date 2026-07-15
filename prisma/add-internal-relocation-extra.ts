@@ -11,7 +11,7 @@ import { prisma } from "../lib/prisma";
 import { ExtraSystemType } from "@prisma/client";
 
 const CODE = "internal_relocation_electric";
-const NAME = "Internal relocation (inside)";
+const NAME = "Internal installation";
 const DEFAULT_PRICE = 125;
 
 async function main() {

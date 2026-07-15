@@ -352,7 +352,7 @@ async function seedExtras() {
     { code: "support_base_electric", name: "Concrete / Poly support base", systemType: ExtraSystemType.electric, active: true },
     // Base charge for an internal relocation (new system installed inside); final
     // extent still subject to a site visit. Per-region, admin-editable.
-    { code: "internal_relocation_electric", name: "Internal relocation (inside)", systemType: ExtraSystemType.electric, active: true },
+    { code: "internal_relocation_electric", name: "Internal installation", systemType: ExtraSystemType.electric, active: true },
 
     // =========================
     // HEAT PUMP — outside-install support base + conversion add-ons (heat-pump only)
