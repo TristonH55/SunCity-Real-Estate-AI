@@ -79,6 +79,7 @@ export default function SystemTypeSelect({
   onChange: (val: string) => void;
 }) {
   const types = [
+    { value: "gas", label: "Gas" },
     { value: "electric", label: "Electric" },
     { value: "heat_pump", label: "Heat Pump" },
     { value: "solar_thermosiphon", label: "Thermosiphon Solar" },

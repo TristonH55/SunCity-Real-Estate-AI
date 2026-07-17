@@ -9,6 +9,7 @@ import { checkOrigin } from "@/lib/origin-check";
 import { clientIp } from "@/lib/client-ip";
 
 const VALID_TYPES = [
+  "gas",
   "electric",
   "heat_pump",
   "solar_thermosiphon",

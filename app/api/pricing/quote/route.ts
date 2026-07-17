@@ -17,6 +17,7 @@ import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 import { computeOptionPricing, getGstMode } from "@/lib/gst";
 
 const VALID_SYSTEM_TYPES = [
+  "gas",
   "electric",
   "heat_pump",
   "solar_thermosiphon",

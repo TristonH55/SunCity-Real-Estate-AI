@@ -136,14 +136,15 @@ export default function PricingPage() {
         <div className="glass-card p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 3</span> —{" "}
-            {systemType === "electric" ||
+            {systemType === "gas" ||
+            systemType === "electric" ||
             systemType === "heat_pump" ||
             systemType === "solar_thermosiphon" ||
             systemType === "solar_split"
               ? "Installation Questions"
               : "Extras"}
           </h2>
-          {systemType === "electric" ? (
+          {systemType === "electric" || systemType === "gas" ? (
             <ElectricWizard
               region={region}
               systemType={systemType}

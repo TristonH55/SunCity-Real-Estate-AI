@@ -67,6 +67,7 @@ export const CMS_ENQUIRY_TYPES = {
   // longer ask it again in Step 4 (like-for-like replacement). Values must be
   // keys of CMS_EXISTING_SYSTEM_TYPES above.
   export const SYSTEM_TYPE_TO_EXISTING = {
+    gas:                "Gas",
     electric:           "Electric",
     heat_pump:          "Heat Pump",
     solar_thermosiphon: "Solar",

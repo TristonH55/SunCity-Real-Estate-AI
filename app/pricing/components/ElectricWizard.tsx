@@ -139,9 +139,11 @@ export default function ElectricWizard({
     setNeedsBase(null);
   };
 
-  // Load electric extras (now includes `code`), keyed by code.
+  // Load electric extras (now includes `code`), keyed by code. Gas temporarily
+  // reuses the electric Step-3 flow + electric add-ons (type=electric below)
+  // until Darren specs a dedicated gas flow.
   useEffect(() => {
-    if (!region || systemType !== "electric") return;
+    if (!region || (systemType !== "electric" && systemType !== "gas")) return;
     setLoading(true);
     fetch(`/api/pricing/extras?region=${region}&type=electric`)
       .then((res) => res.json())

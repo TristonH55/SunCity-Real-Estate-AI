@@ -178,6 +178,7 @@ enum SystemType {
   heat_pump
   solar_thermosiphon
   solar_split
+  gas
 }
 
 enum TankMaterial {
