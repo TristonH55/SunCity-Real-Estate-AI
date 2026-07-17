@@ -55,6 +55,7 @@ model SystemPrice {
   region   Region @relation(fields: [regionId], references: [id])
   regionId String
   price    Decimal
+  active   Boolean @default(true) // per-region availability (global on/off is System.active)
 }
 
 model Extra {

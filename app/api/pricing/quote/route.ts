@@ -136,10 +136,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid region" }, { status: 400 });
     }
 
-    // ---- Find candidate systems (same type + same size + has a price in region) ----
+    // ---- Find candidate systems (same type + same size + available in region) ----
+    // active: true here = the per-region availability toggle; system.active = global.
     const systemPrices = await prisma.systemPrice.findMany({
       where: {
         regionId: region.id,
+        active: true,
         system: {
           systemType,
           active: true,

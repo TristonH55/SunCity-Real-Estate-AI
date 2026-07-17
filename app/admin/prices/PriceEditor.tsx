@@ -11,6 +11,8 @@ type Row = {
   capacityLitres: number;
   tankMaterial: string;
   price: number | null;
+  regionActive: boolean;
+  globalActive: boolean;
 };
 
 type ExtraRow = {
@@ -22,6 +24,44 @@ type ExtraRow = {
 };
 
 type Tab = "systems" | "extras";
+type Avail = { regionActive: boolean; globalActive: boolean };
+
+const emptyProduct = {
+  brand: "",
+  model: "",
+  size: "",
+  tankMaterial: "mild_steel",
+  warrantyPrimary: "",
+  warrantySecondary: "",
+  price: "",
+};
+
+function ToggleChip({
+  on,
+  onClick,
+  disabled,
+}: {
+  on: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${
+        disabled
+          ? "opacity-40 cursor-not-allowed border-white/10 bg-white/5 text-slate-400"
+          : on
+          ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
+          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+      }`}
+    >
+      {on ? "On" : "Off"}
+    </button>
+  );
+}
 
 export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "exclusive" }) {
   const gstLabel = gstMode === "exclusive" ? "ex-GST" : "inc GST";
@@ -31,9 +71,10 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const [regionName, setRegionName] = useState("");
   const [tab, setTab] = useState<Tab>("systems");
 
-  // System (unit) prices
+  // System (unit) prices + availability
   const [rows, setRows] = useState<Row[]>([]);
   const [edits, setEdits] = useState<Record<string, string>>({});
+  const [avail, setAvail] = useState<Record<string, Avail>>({});
   const [sizeFilter, setSizeFilter] = useState<string>("all");
 
   // Add-on (Extra) prices
@@ -44,6 +85,11 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [message, setMessage] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+
+  // Add-new-product form
+  const [addOpen, setAddOpen] = useState(false);
+  const [np, setNp] = useState({ ...emptyProduct });
+  const [adding, setAdding] = useState(false);
 
   const loadSystems = (regionCode: string, type: string) => {
     setLoading(true);
@@ -57,9 +103,14 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         setRows(systems);
         setRegionName(data.region ?? "");
         setSizeFilter("all");
-        const init: Record<string, string> = {};
-        for (const s of systems) init[s.systemId] = s.price != null ? String(s.price) : "";
-        setEdits(init);
+        const initE: Record<string, string> = {};
+        const initA: Record<string, Avail> = {};
+        for (const s of systems) {
+          initE[s.systemId] = s.price != null ? String(s.price) : "";
+          initA[s.systemId] = { regionActive: s.regionActive, globalActive: s.globalActive };
+        }
+        setEdits(initE);
+        setAvail(initA);
       })
       .catch(() => setMessage({ tone: "err", text: "Failed to load systems." }))
       .finally(() => setLoading(false));
@@ -84,7 +135,6 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
       .finally(() => setLoading(false));
   };
 
-  // Load whichever tab is active (called on region/type change and tab switch).
   const loadTab = (regionCode: string, type: string, which: Tab) => {
     if (which === "systems") loadSystems(regionCode, type);
     else loadExtras(regionCode, type);
@@ -111,14 +161,20 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   );
 
   const visibleRows =
-    sizeFilter === "all"
-      ? rows
-      : rows.filter((r) => String(r.capacityLitres) === sizeFilter);
+    sizeFilter === "all" ? rows : rows.filter((r) => String(r.capacityLitres) === sizeFilter);
 
-  const changed = rows.filter((r) => {
+  const availOf = (id: string): Avail => avail[id] ?? { regionActive: true, globalActive: true };
+
+  const priceChanged = (r: Row) => {
     const original = r.price != null ? String(r.price) : "";
     return (edits[r.systemId] ?? "") !== original && (edits[r.systemId] ?? "") !== "";
-  });
+  };
+  const availChanged = (r: Row) => {
+    const a = availOf(r.systemId);
+    return a.regionActive !== r.regionActive || a.globalActive !== r.globalActive;
+  };
+
+  const changed = rows.filter((r) => priceChanged(r) || availChanged(r));
 
   const changedExtras = extraRows.filter((e) => {
     const original = e.price != null ? String(e.price) : "";
@@ -130,13 +186,20 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const save = async () => {
     setMessage(null);
     if (tab === "systems") {
-      const updates = changed.map((r) => ({ systemId: r.systemId, price: Number(edits[r.systemId]) }));
-      if (updates.length === 0) {
+      if (changed.length === 0) {
         setMessage({ tone: "err", text: "No changes to save." });
         return;
       }
+      const updates = changed.map((r) => {
+        const u: any = { systemId: r.systemId };
+        if (priceChanged(r)) u.price = Number(edits[r.systemId]);
+        const a = availOf(r.systemId);
+        if (a.regionActive !== r.regionActive) u.regionActive = a.regionActive;
+        if (a.globalActive !== r.globalActive) u.globalActive = a.globalActive;
+        return u;
+      });
       for (const u of updates) {
-        if (!Number.isFinite(u.price) || u.price < 0) {
+        if (u.price !== undefined && (!Number.isFinite(u.price) || u.price < 0)) {
           setMessage({ tone: "err", text: "Prices must be numbers of 0 or more." });
           return;
         }
@@ -150,13 +213,17 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         });
         const data = await res.json();
         if (res.ok) {
-          setMessage({ tone: "ok", text: `Saved ${data.updated} price${data.updated === 1 ? "" : "s"}.` });
+          setMessage({ tone: "ok", text: `Saved ${data.updated} change${data.updated === 1 ? "" : "s"}.` });
           setRows((prev) =>
-            prev.map((r) =>
-              edits[r.systemId] !== undefined && edits[r.systemId] !== ""
-                ? { ...r, price: Number(edits[r.systemId]) }
-                : r
-            )
+            prev.map((r) => {
+              const a = availOf(r.systemId);
+              return {
+                ...r,
+                price: priceChanged(r) ? Number(edits[r.systemId]) : r.price,
+                regionActive: a.regionActive,
+                globalActive: a.globalActive,
+              };
+            })
           );
         } else {
           setMessage({ tone: "err", text: data.error || "Save failed." });
@@ -206,8 +273,59 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
     }
   };
 
+  const submitAdd = async () => {
+    setMessage(null);
+    if (!np.brand.trim() || !np.model.trim()) {
+      setMessage({ tone: "err", text: "Brand and model are required." });
+      return;
+    }
+    if (!Number.isInteger(Number(np.size)) || Number(np.size) <= 0) {
+      setMessage({ tone: "err", text: "Size must be a whole number of litres." });
+      return;
+    }
+    if (np.price === "" || !Number.isFinite(Number(np.price)) || Number(np.price) < 0) {
+      setMessage({ tone: "err", text: "Enter a valid price." });
+      return;
+    }
+    setAdding(true);
+    try {
+      const res = await fetch("/api/admin/prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          regionCode: region,
+          systemType,
+          product: {
+            brand: np.brand.trim(),
+            model: np.model.trim(),
+            capacityLitres: Number(np.size),
+            tankMaterial: np.tankMaterial,
+            warrantyPrimaryYears: Number(np.warrantyPrimary || 0),
+            warrantySecondaryYears: np.warrantySecondary === "" ? null : Number(np.warrantySecondary),
+            price: Number(np.price),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAddOpen(false);
+        setNp({ ...emptyProduct });
+        setMessage({ tone: "ok", text: "Product added." });
+        if (region && systemType) loadSystems(region, systemType);
+      } else {
+        setMessage({ tone: "err", text: data.error || "Could not add product." });
+      }
+    } catch {
+      setMessage({ tone: "err", text: "Could not add product. Please try again." });
+    } finally {
+      setAdding(false);
+    }
+  };
+
   const inputClass =
     "w-32 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition";
+  const formInput =
+    "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition";
 
   const tabClass = (which: Tab) =>
     `px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -215,6 +333,9 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         ? "bg-[#db231f] text-white"
         : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
     }`;
+
+  const setAvailFor = (id: string, patch: Partial<Avail>) =>
+    setAvail((prev) => ({ ...prev, [id]: { ...availOf(id), ...patch } }));
 
   return (
     <div className="space-y-6">
@@ -225,7 +346,6 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
           <SystemTypeSelect value={systemType} onChange={onSelectType} />
         </div>
 
-        {/* Tab toggle */}
         <div className="flex gap-2">
           <button type="button" className={tabClass("systems")} onClick={() => onSelectTab("systems")}>
             System Prices
@@ -261,54 +381,96 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         <p className="text-slate-400">Choose a region and system type to load prices.</p>
       ) : tab === "systems" ? (
         <div className="glass-card p-6">
-          <h2 className="text-lg font-semibold text-[#ff5a2c] mb-4">
-            {regionName} · {systemType.replace(/_/g, " ")} — {visibleRows.length} system
-            {visibleRows.length === 1 ? "" : "s"}
-          </h2>
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+            <h2 className="text-lg font-semibold text-[#ff5a2c]">
+              {regionName} · {systemType.replace(/_/g, " ")} — {visibleRows.length} product
+              {visibleRows.length === 1 ? "" : "s"}
+            </h2>
+            <button
+              type="button"
+              onClick={() => {
+                setNp({ ...emptyProduct });
+                setAddOpen(true);
+              }}
+              className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+            >
+              + Add new product
+            </button>
+          </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[640px]">
+            <table className="w-full text-sm min-w-[820px]">
               <thead>
                 <tr className="border-b border-white/10 text-slate-300">
                   <th className="text-left py-2">Brand</th>
                   <th className="text-left py-2">Model</th>
                   <th className="text-left py-2">Size</th>
                   <th className="text-left py-2">Price ({gstLabel})</th>
+                  <th className="text-left py-2">This region</th>
+                  <th className="text-left py-2">Global</th>
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map((r) => (
-                  <tr key={r.systemId} className="border-b border-white/10 text-slate-200">
-                    <td className="py-2 pr-3">{r.brand}</td>
-                    <td className="pr-3">{r.model}</td>
-                    <td className="pr-3">{r.capacityLitres} L</td>
-                    <td className="py-1">
-                      <div className="flex items-center gap-1">
-                        <span className="text-slate-400">$</span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={edits[r.systemId] ?? ""}
-                          placeholder={r.price == null ? "not set" : ""}
-                          onChange={(e) =>
-                            setEdits((prev) => ({ ...prev, [r.systemId]: e.target.value }))
-                          }
-                          className={inputClass}
+                {visibleRows.map((r) => {
+                  const a = availOf(r.systemId);
+                  const hasPrice = (edits[r.systemId] ?? "") !== "" || r.price != null;
+                  return (
+                    <tr key={r.systemId} className="border-b border-white/10 text-slate-200">
+                      <td className="py-2 pr-3">{r.brand}</td>
+                      <td className="pr-3">{r.model}</td>
+                      <td className="pr-3">{r.capacityLitres} L</td>
+                      <td className="py-1">
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-400">$</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={edits[r.systemId] ?? ""}
+                            placeholder={r.price == null ? "not set" : ""}
+                            onChange={(e) =>
+                              setEdits((prev) => ({ ...prev, [r.systemId]: e.target.value }))
+                            }
+                            className={inputClass}
+                          />
+                        </div>
+                      </td>
+                      <td className="pr-3">
+                        {!hasPrice ? (
+                          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-400">
+                            Not priced
+                          </span>
+                        ) : (
+                          <ToggleChip
+                            on={a.regionActive && a.globalActive}
+                            disabled={!a.globalActive}
+                            onClick={() => setAvailFor(r.systemId, { regionActive: !a.regionActive })}
+                          />
+                        )}
+                      </td>
+                      <td className="pr-3">
+                        <ToggleChip
+                          on={a.globalActive}
+                          onClick={() => setAvailFor(r.systemId, { globalActive: !a.globalActive })}
                         />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {visibleRows.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-4 text-slate-400">
-                      No systems for this selection.
+                    <td colSpan={6} className="py-4 text-slate-400">
+                      No products for this selection.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          <p className="mt-3 text-xs text-slate-400">
+            <strong>This region</strong> = available in {regionName || "this region"} only.{" "}
+            <strong>Global</strong> = the product everywhere; turning Global off hides it in every region.
+          </p>
 
           <div className="mt-5 flex items-center gap-4 flex-wrap">
             <button
@@ -411,19 +573,82 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         </div>
       )}
 
+      {/* Add new product modal */}
+      {addOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="glass-card w-full max-w-lg p-6 space-y-4">
+            <h3 className="text-lg font-bold text-[#ff5a2c]">
+              Add product — {regionName} · {systemType?.replace(/_/g, " ")}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Brand</label>
+                <input className={formInput} value={np.brand} onChange={(e) => setNp({ ...np, brand: e.target.value })} placeholder="e.g. Rheem Stellar" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Model</label>
+                <input className={formInput} value={np.model} onChange={(e) => setNp({ ...np, model: e.target.value })} placeholder="e.g. Heat Pump 200L Stainless" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Size (litres)</label>
+                <input type="number" min={1} className={formInput} value={np.size} onChange={(e) => setNp({ ...np, size: e.target.value })} placeholder="e.g. 200" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Tank material</label>
+                <select
+                  className={`${formInput} appearance-none [&_option]:bg-[#0d1220]`}
+                  value={np.tankMaterial}
+                  onChange={(e) => setNp({ ...np, tankMaterial: e.target.value })}
+                >
+                  <option value="mild_steel">Mild Steel</option>
+                  <option value="stainless_steel">Stainless Steel</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Warranty (years)</label>
+                <input type="number" min={0} className={formInput} value={np.warrantyPrimary} onChange={(e) => setNp({ ...np, warrantyPrimary: e.target.value })} placeholder="e.g. 7" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">+ extra warranty (optional)</label>
+                <input type="number" min={0} className={formInput} value={np.warrantySecondary} onChange={(e) => setNp({ ...np, warrantySecondary: e.target.value })} placeholder="e.g. 5" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Price ({gstLabel})</label>
+                <input type="number" min={0} className={formInput} value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="e.g. 3200" />
+              </div>
+            </div>
+            <p className="text-xs text-slate-400">
+              Adds the product to <strong>{regionName}</strong> at this price. It also appears (unpriced)
+              in other regions so you can price it there.
+            </p>
+            <div className="flex justify-end gap-3 pt-1">
+              <button
+                onClick={() => setAddOpen(false)}
+                className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+              >
+                Cancel
+              </button>
+              <button onClick={submitAdd} disabled={adding} className="btn-primary">
+                {adding ? "Adding…" : "Add product"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Live-price safety confirmation */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="glass-card w-full max-w-md p-6 space-y-4">
-            <h3 className="text-lg font-bold text-amber-300">⚠ Update live prices?</h3>
+            <h3 className="text-lg font-bold text-amber-300">⚠ Update live app?</h3>
             <p className="text-sm text-slate-200">
               You are about to update the{" "}
-              {tab === "systems" ? "system prices" : "add-on prices"} on the{" "}
+              {tab === "systems" ? "products/prices" : "add-on prices"} on the{" "}
               <strong>live app</strong>. These changes take effect{" "}
               <strong>immediately</strong> for real customer quotes. Are you sure?
             </p>
             <p className="text-xs text-slate-400">
-              {changedCount} price{changedCount === 1 ? "" : "s"} will change
+              {changedCount} change{changedCount === 1 ? "" : "s"} will be applied
               {regionName ? ` for ${regionName}` : ""}.
             </p>
             <div className="flex justify-end gap-3 pt-1">
@@ -440,7 +665,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                 }}
                 className="btn-primary"
               >
-                Yes, update prices
+                Yes, update
               </button>
             </div>
           </div>
