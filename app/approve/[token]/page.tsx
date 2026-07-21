@@ -46,6 +46,7 @@ export default async function ApprovePage({
               capacityLitres: true,
               warrantyPrimaryYears: true,
               warrantySecondaryYears: true,
+              brochureUrl: true,
             },
           },
         },
@@ -91,6 +92,7 @@ export default async function ApprovePage({
       capacityLitres: o.system.capacityLitres,
       warrantyPrimaryYears: o.system.warrantyPrimaryYears,
       warrantySecondaryYears: o.system.warrantySecondaryYears,
+      brochureUrl: o.system.brochureUrl,
       total: Number(o.totalIncGst),
     }));
 

@@ -10,9 +10,12 @@ type Row = {
   model: string;
   capacityLitres: number;
   tankMaterial: string;
+  warrantyPrimaryYears: number;
+  warrantySecondaryYears: number | null;
   price: number | null;
   regionActive: boolean;
   globalActive: boolean;
+  brochureUrl: string | null;
 };
 
 type ExtraRow = {
@@ -21,7 +24,14 @@ type ExtraRow = {
   name: string;
   price: number | null;
   shared: boolean;
+  infoText: string | null;
+  brochureUrl: string | null;
 };
+
+// Media (brochure/info) editor target.
+type MediaTarget =
+  | { kind: "system"; id: string; name: string; brochureUrl: string; infoText: string }
+  | { kind: "extra"; id: string; name: string; brochureUrl: string; infoText: string };
 
 type Tab = "systems" | "extras";
 type Avail = { regionActive: boolean; globalActive: boolean };
@@ -34,7 +44,10 @@ const emptyProduct = {
   warrantyPrimary: "",
   warrantySecondary: "",
   price: "",
+  brochureUrl: "",
 };
+
+const isImage = (url: string) => /\.(png|jpe?g|webp|gif)$/i.test(url.split("?")[0]);
 
 function ToggleChip({
   on,
@@ -86,10 +99,75 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [message, setMessage] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
-  // Add-new-product form
+  // Add/Edit product form
   const [addOpen, setAddOpen] = useState(false);
   const [np, setNp] = useState({ ...emptyProduct });
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null); // null = add mode
+
+  // Brochure / info editor (shared for products + add-ons)
+  const [media, setMedia] = useState<MediaTarget | null>(null);
+  const [mediaSaving, setMediaSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Upload a file to R2, return its URL (or null on failure).
+  const uploadFile = async (file: File): Promise<string | null> => {
+    setUploading(true);
+    setMessage(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (res.ok && data.url) return data.url as string;
+      setMessage({ tone: "err", text: data.error || "Upload failed." });
+      return null;
+    } catch {
+      setMessage({ tone: "err", text: "Upload failed." });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const saveMedia = async () => {
+    if (!media) return;
+    setMediaSaving(true);
+    setMessage(null);
+    try {
+      const res =
+        media.kind === "system"
+          ? await fetch("/api/admin/prices", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                regionCode: region,
+                updates: [{ systemId: media.id, brochureUrl: media.brochureUrl }],
+              }),
+            })
+          : await fetch("/api/admin/extra-info", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                extraId: media.id,
+                infoText: media.infoText,
+                brochureUrl: media.brochureUrl,
+              }),
+            });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ tone: "ok", text: "Saved." });
+        setMedia(null);
+        if (region && systemType) loadTab(region, systemType, tab);
+      } else {
+        setMessage({ tone: "err", text: data.error || "Save failed." });
+      }
+    } catch {
+      setMessage({ tone: "err", text: "Save failed." });
+    } finally {
+      setMediaSaving(false);
+    }
+  };
 
   const loadSystems = (regionCode: string, type: string) => {
     setLoading(true);
@@ -273,7 +351,28 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
     }
   };
 
-  const submitAdd = async () => {
+  const openAdd = () => {
+    setEditingId(null);
+    setNp({ ...emptyProduct });
+    setAddOpen(true);
+  };
+
+  const openEdit = (r: Row) => {
+    setEditingId(r.systemId);
+    setNp({
+      brand: r.brand,
+      model: r.model,
+      size: String(r.capacityLitres),
+      tankMaterial: r.tankMaterial,
+      warrantyPrimary: String(r.warrantyPrimaryYears),
+      warrantySecondary: r.warrantySecondaryYears != null ? String(r.warrantySecondaryYears) : "",
+      price: "",
+      brochureUrl: r.brochureUrl ?? "",
+    });
+    setAddOpen(true);
+  };
+
+  const submitProduct = async () => {
     setMessage(null);
     if (!np.brand.trim() || !np.model.trim()) {
       setMessage({ tone: "err", text: "Brand and model are required." });
@@ -283,42 +382,71 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
       setMessage({ tone: "err", text: "Size must be a whole number of litres." });
       return;
     }
-    if (np.price === "" || !Number.isFinite(Number(np.price)) || Number(np.price) < 0) {
+    // Price is only entered when adding (editing changes product fields, not the region price).
+    if (!editingId && (np.price === "" || !Number.isFinite(Number(np.price)) || Number(np.price) < 0)) {
       setMessage({ tone: "err", text: "Enter a valid price." });
       return;
     }
+    const productFields = {
+      brand: np.brand.trim(),
+      model: np.model.trim(),
+      capacityLitres: Number(np.size),
+      tankMaterial: np.tankMaterial,
+      warrantyPrimaryYears: Number(np.warrantyPrimary || 0),
+      warrantySecondaryYears: np.warrantySecondary === "" ? null : Number(np.warrantySecondary),
+      brochureUrl: np.brochureUrl,
+    };
     setAdding(true);
     try {
-      const res = await fetch("/api/admin/prices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          regionCode: region,
-          systemType,
-          product: {
-            brand: np.brand.trim(),
-            model: np.model.trim(),
-            capacityLitres: Number(np.size),
-            tankMaterial: np.tankMaterial,
-            warrantyPrimaryYears: Number(np.warrantyPrimary || 0),
-            warrantySecondaryYears: np.warrantySecondary === "" ? null : Number(np.warrantySecondary),
-            price: Number(np.price),
-          },
-        }),
-      });
+      const res = editingId
+        ? await fetch("/api/admin/prices", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ systemId: editingId, product: productFields }),
+          })
+        : await fetch("/api/admin/prices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              regionCode: region,
+              systemType,
+              product: { ...productFields, price: Number(np.price) },
+            }),
+          });
       const data = await res.json();
       if (res.ok) {
         setAddOpen(false);
         setNp({ ...emptyProduct });
-        setMessage({ tone: "ok", text: "Product added." });
+        setMessage({ tone: "ok", text: editingId ? "Product updated." : "Product added." });
+        setEditingId(null);
         if (region && systemType) loadSystems(region, systemType);
       } else {
-        setMessage({ tone: "err", text: data.error || "Could not add product." });
+        setMessage({ tone: "err", text: data.error || "Could not save product." });
       }
     } catch {
-      setMessage({ tone: "err", text: "Could not add product. Please try again." });
+      setMessage({ tone: "err", text: "Could not save product. Please try again." });
     } finally {
       setAdding(false);
+    }
+  };
+
+  const hideProduct = async (id: string) => {
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/prices", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates: [{ systemId: id, archived: true }] }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ tone: "ok", text: "Product hidden — see Hidden products." });
+        if (region && systemType) loadSystems(region, systemType);
+      } else {
+        setMessage({ tone: "err", text: data.error || "Could not hide product." });
+      }
+    } catch {
+      setMessage({ tone: "err", text: "Could not hide product." });
     }
   };
 
@@ -388,10 +516,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
             </h2>
             <button
               type="button"
-              onClick={() => {
-                setNp({ ...emptyProduct });
-                setAddOpen(true);
-              }}
+              onClick={openAdd}
               className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
             >
               + Add new product
@@ -399,7 +524,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[820px]">
+            <table className="w-full text-sm min-w-[1040px]">
               <thead>
                 <tr className="border-b border-white/10 text-slate-300">
                   <th className="text-left py-2">Brand</th>
@@ -408,6 +533,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                   <th className="text-left py-2">Price ({gstLabel})</th>
                   <th className="text-left py-2">This region</th>
                   <th className="text-left py-2">Global</th>
+                  <th className="text-left py-2">Manage</th>
                 </tr>
               </thead>
               <tbody>
@@ -453,12 +579,45 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                           onClick={() => setAvailFor(r.systemId, { globalActive: !a.globalActive })}
                         />
                       </td>
+                      <td className="pr-3">
+                        <div className="flex items-center gap-3 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(r)}
+                            className="text-xs text-sky-300 hover:text-sky-200 underline"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMedia({
+                                kind: "system",
+                                id: r.systemId,
+                                name: `${r.brand} ${r.model}`,
+                                brochureUrl: r.brochureUrl ?? "",
+                                infoText: "",
+                              })
+                            }
+                            className="text-xs text-sky-300 hover:text-sky-200 underline"
+                          >
+                            {r.brochureUrl ? "📄 Brochure" : "＋ Brochure"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => hideProduct(r.systemId)}
+                            className="text-xs text-amber-300 hover:text-amber-200 underline"
+                          >
+                            Hide
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
                 {visibleRows.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-4 text-slate-400">
+                    <td colSpan={7} className="py-4 text-slate-400">
                       No products for this selection.
                     </td>
                   </tr>
@@ -499,11 +658,12 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[560px]">
+            <table className="w-full text-sm min-w-[680px]">
               <thead>
                 <tr className="border-b border-white/10 text-slate-300">
                   <th className="text-left py-2">Add-on</th>
                   <th className="text-left py-2">Price ({gstLabel})</th>
+                  <th className="text-left py-2">Info / Brochure</th>
                 </tr>
               </thead>
               <tbody>
@@ -532,11 +692,28 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                         />
                       </div>
                     </td>
+                    <td className="pr-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMedia({
+                            kind: "extra",
+                            id: e.extraId,
+                            name: e.name,
+                            brochureUrl: e.brochureUrl ?? "",
+                            infoText: e.infoText ?? "",
+                          })
+                        }
+                        className="text-xs text-sky-300 hover:text-sky-200 underline whitespace-nowrap"
+                      >
+                        {e.brochureUrl || e.infoText ? "📄 Edit" : "＋ Add"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {extraRows.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="py-4 text-slate-400">
+                    <td colSpan={3} className="py-4 text-slate-400">
                       No add-ons for this selection.
                     </td>
                   </tr>
@@ -578,7 +755,8 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="glass-card w-full max-w-lg p-6 space-y-4">
             <h3 className="text-lg font-bold text-[#ff5a2c]">
-              Add product — {regionName} · {systemType?.replace(/_/g, " ")}
+              {editingId ? "Edit product" : "Add product"} — {regionName} ·{" "}
+              {systemType?.replace(/_/g, " ")}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -602,6 +780,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                 >
                   <option value="mild_steel">Mild Steel</option>
                   <option value="stainless_steel">Stainless Steel</option>
+                  <option value="copper">Copper</option>
                 </select>
               </div>
               <div>
@@ -612,24 +791,138 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                 <label className="block text-xs text-slate-400 mb-1">+ extra warranty (optional)</label>
                 <input type="number" min={0} className={formInput} value={np.warrantySecondary} onChange={(e) => setNp({ ...np, warrantySecondary: e.target.value })} placeholder="e.g. 5" />
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Price ({gstLabel})</label>
-                <input type="number" min={0} className={formInput} value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="e.g. 3200" />
+              {!editingId && (
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Price ({gstLabel})</label>
+                  <input type="number" min={0} className={formInput} value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="e.g. 3200" />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Brochure (optional)</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      const url = await uploadFile(f);
+                      if (url) setNp((p) => ({ ...p, brochureUrl: url }));
+                    }
+                  }}
+                  className="text-xs text-slate-300"
+                />
+                {uploading && <span className="text-xs text-slate-400">Uploading…</span>}
+                {np.brochureUrl && <span className="text-xs text-emerald-300">Attached ✓</span>}
               </div>
             </div>
-            <p className="text-xs text-slate-400">
-              Adds the product to <strong>{regionName}</strong> at this price. It also appears (unpriced)
-              in other regions so you can price it there.
-            </p>
+            {!editingId && (
+              <p className="text-xs text-slate-400">
+                Adds the product to <strong>{regionName}</strong> at this price. It also appears
+                (unpriced) in other regions so you can price it there.
+              </p>
+            )}
+            {editingId && (
+              <p className="text-xs text-slate-400">
+                Editing the product details (brand, model, size, warranty, brochure). Prices are edited
+                per region in the table.
+              </p>
+            )}
             <div className="flex justify-end gap-3 pt-1">
               <button
-                onClick={() => setAddOpen(false)}
+                onClick={() => {
+                  setAddOpen(false);
+                  setEditingId(null);
+                }}
                 className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
               >
                 Cancel
               </button>
-              <button onClick={submitAdd} disabled={adding} className="btn-primary">
-                {adding ? "Adding…" : "Add product"}
+              <button onClick={submitProduct} disabled={adding} className="btn-primary">
+                {adding ? "Saving…" : editingId ? "Save changes" : "Add product"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Brochure / info editor (products + add-ons) */}
+      {media && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="glass-card w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-bold text-[#ff5a2c]">
+              {media.kind === "system" ? "Product brochure" : "Add-on info & brochure"} — {media.name}
+            </h3>
+
+            {media.kind === "extra" && (
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Info (what this add-on is)</label>
+                <textarea
+                  className={`${formInput} min-h-[80px]`}
+                  value={media.infoText}
+                  onChange={(e) => setMedia({ ...media, infoText: e.target.value })}
+                  placeholder="Short description shown to the customer…"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Brochure / image</label>
+              {media.brochureUrl && (
+                <div className="flex items-center gap-3 mb-2">
+                  {isImage(media.brochureUrl) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={media.brochureUrl}
+                      alt=""
+                      className="max-h-24 rounded border border-white/20 bg-white"
+                    />
+                  ) : (
+                    <a
+                      href={media.brochureUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-sky-300 underline"
+                    >
+                      Current file
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setMedia({ ...media, brochureUrl: "" })}
+                    className="text-xs text-red-300 underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      const url = await uploadFile(f);
+                      if (url) setMedia({ ...media, brochureUrl: url });
+                    }
+                  }}
+                  className="text-xs text-slate-300"
+                />
+                {uploading && <span className="text-xs text-slate-400">Uploading…</span>}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-1">
+              <button
+                onClick={() => setMedia(null)}
+                className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+              >
+                Cancel
+              </button>
+              <button onClick={saveMedia} disabled={mediaSaving || uploading} className="btn-primary">
+                {mediaSaving ? "Saving…" : "Save"}
               </button>
             </div>
           </div>

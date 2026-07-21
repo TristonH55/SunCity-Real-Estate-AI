@@ -66,7 +66,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
   const extras = quote.extraIds.length
     ? await prisma.extra.findMany({
         where: { id: { in: quote.extraIds } },
-        select: { name: true },
+        select: { name: true, brochureUrl: true },
       })
     : [];
 
@@ -121,7 +121,10 @@ export async function renderQuotePdf(quoteId: string): Promise<
           </View>
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Existing system</Text>
-            <Text>{customer.existingSystemType || "—"}</Text>
+            <Text>
+              {customer.existingSystemType || "—"}
+              {customer.existingSize ? ` · ${customer.existingSize}` : ""}
+            </Text>
           </View>
           <View style={styles.rowBetween}>
             <Text style={styles.label}>System location</Text>
@@ -140,9 +143,25 @@ export async function renderQuotePdf(quoteId: string): Promise<
         {(extras.length > 0 || lineItems.length > 0) && (
           <View style={styles.box}>
             <Text style={styles.boxTitle}>What&apos;s included</Text>
-            {extras.map((e, i) => (
-              <Text key={i}>• {e.name}</Text>
-            ))}
+            {extras.map((e, i) => {
+              const src = e.brochureUrl
+                ? e.brochureUrl.startsWith("http")
+                  ? e.brochureUrl
+                  : `${process.env.NEXTAUTH_URL ?? ""}${e.brochureUrl}`
+                : null;
+              return (
+                <Text key={i}>
+                  • {e.name}
+                  {src ? (
+                    <Link src={src} style={{ color: "#2563eb" }}>
+                      {"  (view)"}
+                    </Link>
+                  ) : (
+                    ""
+                  )}
+                </Text>
+              );
+            })}
             {lineItems.map((li, i) => (
               <Text key={`li-${i}`}>
                 • {li.label}
@@ -198,6 +217,18 @@ export async function renderQuotePdf(quoteId: string): Promise<
                   {b.label}
                 </Link>
               ))}
+              {o.system.brochureUrl ? (
+                <Link
+                  src={
+                    o.system.brochureUrl.startsWith("http")
+                      ? o.system.brochureUrl
+                      : `${process.env.NEXTAUTH_URL ?? ""}${o.system.brochureUrl}`
+                  }
+                  style={{ color: "#2563eb", fontSize: 8, marginBottom: 2 }}
+                >
+                  Brochure
+                </Link>
+              ) : null}
 
               <View style={styles.breakRow}>
                 <Text>Base (ex GST)</Text>
@@ -255,6 +286,7 @@ function loadQuote(quoteId: string) {
               capacityLitres: true,
               warrantyPrimaryYears: true,
               warrantySecondaryYears: true,
+              brochureUrl: true,
             },
           },
         },

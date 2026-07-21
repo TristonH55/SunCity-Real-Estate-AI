@@ -9,15 +9,15 @@ import { HEAT_PUMP_BANDS } from "@/lib/heat-pump-bands";
 export default function SizeBandSelect({
   value,
   onChange,
+  label = "Tank size",
 }: {
   value: string | null;
   onChange: (bandId: string) => void;
+  label?: string;
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-slate-300 mb-3">
-        Tank size
-      </label>
+      <label className="block text-sm font-semibold text-slate-300 mb-3">{label}</label>
       <div className="flex flex-wrap gap-3">
         {HEAT_PUMP_BANDS.map((b) => {
           const active = value === b.id;
@@ -37,6 +37,16 @@ export default function SizeBandSelect({
           );
         })}
       </div>
+
+      {/* Sizing helper — a link (NOT a selectable size), opens the guide image. */}
+      <a
+        href="/pdfs/Extras/Tank-Sizes.png"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-300 hover:text-sky-200 underline"
+      >
+        Unsure what size? View the size guide →
+      </a>
     </div>
   );
 }

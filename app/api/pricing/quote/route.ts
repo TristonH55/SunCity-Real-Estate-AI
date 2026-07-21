@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
       systemLocation, // Step-3 Inside/Outside ("inside" | "outside") — replaces old Step-4 dropdown
       sizeBandId, // heat pump only: a HEAT_PUMP_BANDS id (size range) instead of an exact size
       conversion, // heat pump only: { existingType, disclaimers[], requiresSiteVisit }
+      existingType, // Step-1 "what do you have?" (optional): a SystemType value or "none"
+      existingSizeLabel, // Step-2 existing-system size (optional, informational)
     } = body ?? {};
 
     // ---- Validate selection ----
@@ -146,6 +148,7 @@ export async function POST(req: NextRequest) {
         system: {
           systemType,
           active: true,
+          archived: false,
           ...capacityFilter,
         },
       },
@@ -230,10 +233,21 @@ export async function POST(req: NextRequest) {
       ? conversion.disclaimers.filter((d: any) => typeof d === "string")
       : [];
     if (conversion?.requiresSiteVisit) requiresSiteVisit = true;
+    // Step-1 "what do you have?" (optional) → CRM existing-system type, highest
+    // priority. "none" → "No Existing System". Falls back to the heat-pump
+    // conversion answer, then to the like-for-like derived default.
+    const step1Existing =
+      existingType === "none"
+        ? "No Existing System"
+        : existingType && existingType in SYSTEM_TYPE_TO_EXISTING
+        ? SYSTEM_TYPE_TO_EXISTING[existingType as keyof typeof SYSTEM_TYPE_TO_EXISTING]
+        : null;
+
     const existingSystemType =
-      conversion?.existingType && conversion.existingType in CMS_EXISTING_SYSTEM_TYPES
+      step1Existing ??
+      (conversion?.existingType && conversion.existingType in CMS_EXISTING_SYSTEM_TYPES
         ? conversion.existingType
-        : SYSTEM_TYPE_TO_EXISTING[systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING];
+        : SYSTEM_TYPE_TO_EXISTING[systemType as keyof typeof SYSTEM_TYPE_TO_EXISTING]);
 
     // ---- Build the option rows (GST handled per the site-wide mode) ----
     const gstMode = await getGstMode();
@@ -256,6 +270,9 @@ export async function POST(req: NextRequest) {
           address: fullAddress,
           // Derived for the CRM (no longer asked in Step 4):
           existingSystemType,
+          ...(typeof existingSizeLabel === "string" && existingSizeLabel
+            ? { existingSize: existingSizeLabel }
+            : {}),
           systemLocation: systemLocation === "inside" ? "Inside" : "Outside",
           ...(sizeBandLabel ? { sizeBand: sizeBandLabel } : {}),
           ...(disclaimers.length ? { disclaimers } : {}),

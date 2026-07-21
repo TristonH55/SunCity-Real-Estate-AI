@@ -19,10 +19,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ToggleButton from "./ToggleButton";
+import ExtraInfo from "./ExtraInfo";
 import type { RelocationMeta } from "./ElectricWizard";
 import { isValidRelocationMetres } from "@/lib/relocation-pricing";
 
-type Extra = { extraId: string; code: string; name: string; priceExGst: number; included: boolean };
+type Extra = {
+  extraId: string;
+  code: string;
+  name: string;
+  priceExGst: number;
+  included: boolean;
+  infoText?: string | null;
+  brochureUrl?: string | null;
+};
 
 export type ConversionMeta = {
   existingType: string | null; // CMS existing-system label (Electric / Heat Pump / Solar)
@@ -39,6 +48,7 @@ type Props = {
   onMetaChange?: (relocation: RelocationMeta) => void;
   onLocationChange?: (loc: "inside" | "outside" | null) => void;
   onConversionChange?: (conv: ConversionMeta) => void;
+  existingType?: string | null; // Step-1 "what do you have?" → pre-fills the conversion question
 };
 
 const CODE = {
@@ -56,6 +66,15 @@ const EXISTING_LABEL: Record<Have, string> = {
   heat_pump: "Heat Pump",
   thermosiphon: "Solar",
   split_solar: "Solar",
+};
+
+// Map a Step-1 "what do you have?" value (SystemType) → this wizard's conversion
+// options, so it can be pre-filled. Gas / none have no conversion path here.
+const HAVE_FROM_EXISTING: Record<string, Have> = {
+  electric: "electric",
+  heat_pump: "heat_pump",
+  solar_thermosiphon: "thermosiphon",
+  solar_split: "split_solar",
 };
 
 const THERMOSIPHON_DISCLAIMER =
@@ -92,10 +111,21 @@ function OptionPills<T extends string>({
   );
 }
 
-function Question({ title, children }: { title: string; children: React.ReactNode }) {
+function Question({
+  title,
+  right,
+  children,
+}: {
+  title: string;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="mb-5">
-      <p className="font-semibold text-white">{title}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-semibold text-white">{title}</p>
+        {right}
+      </div>
       {children}
     </div>
   );
@@ -123,7 +153,10 @@ export default function HeatPumpWizard({
   onMetaChange,
   onLocationChange,
   onConversionChange,
+  existingType,
 }: Props) {
+  const defaultHave: Have | null =
+    existingType && existingType in HAVE_FROM_EXISTING ? HAVE_FROM_EXISTING[existingType] : null;
   const [byCode, setByCode] = useState<Record<string, Extra>>({});
   const [loading, setLoading] = useState(true);
 
@@ -151,7 +184,7 @@ export default function HeatPumpWizard({
     setNeedsBase(null);
   };
   const resetAll = () => {
-    setHave(null);
+    setHave(defaultHave); // pre-fill from Step-1 "what do you have?" when it maps
     resetConversion();
     resetInstall();
   };
@@ -276,7 +309,10 @@ export default function HeatPumpWizard({
         </div>
       </Question>
       <Question title="Will a concrete / poly support base be required?">
-        <ToggleButton value={needsBase} onChange={setNeedsBase} />
+        <div className="flex items-center gap-4 flex-wrap">
+          <ToggleButton value={needsBase} onChange={setNeedsBase} />
+          <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+        </div>
       </Question>
     </>
   );
@@ -392,7 +428,10 @@ export default function HeatPumpWizard({
 
           {currentLocation === "outside" && samePosition === "yes" && (
             <Question title="Will a concrete / poly support base be required?">
-              <ToggleButton value={needsBase} onChange={setNeedsBase} />
+              <div className="flex items-center gap-4 flex-wrap">
+                <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+              </div>
             </Question>
           )}
 

@@ -111,6 +111,8 @@ export async function GET(req: Request) {
           id: true,
           code: true,
           name: true,
+          infoText: true,
+          brochureUrl: true,
         },
       },
     },
@@ -167,6 +169,8 @@ export async function GET(req: Request) {
       extraId: ep.extra.id,
       code: ep.extra.code,
       name: ep.extra.name,
+      infoText: ep.extra.infoText,
+      brochureUrl: ep.extra.brochureUrl,
       priceExGst: ep.price.toNumber(),
       included: ep.price.toNumber() === 0,
     }));

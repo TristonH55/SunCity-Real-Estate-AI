@@ -40,7 +40,9 @@ model System {
   warrantyPrimaryYears   Int
   warrantySecondaryYears Int?
   notes                  String?
+  brochureUrl            String?  // link to a product brochure (R2 upload or /pdfs/... path)
   active                 Boolean  @default(true)
+  archived               Boolean  @default(false) // hidden from the admin list + quotes; restorable
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
@@ -59,14 +61,16 @@ model SystemPrice {
 }
 
 model Extra {
-  id         String    @id @default(uuid())
-  code       String    @unique
-  name       String
-  systemType ExtraSystemType
-  notes      String?
-  active     Boolean   @default(true)
+  id          String    @id @default(uuid())
+  code        String    @unique
+  name        String
+  systemType  ExtraSystemType
+  notes       String?
+  infoText    String?   // customer-facing description of what this add-on is
+  brochureUrl String?   // link to a brochure/image (R2 upload or /pdfs/... path)
+  active      Boolean   @default(true)
 
-  prices     ExtraPrice[]
+  prices      ExtraPrice[]
 }
 
 model ExtraPrice {
@@ -184,6 +188,7 @@ enum SystemType {
 enum TankMaterial {
   mild_steel
   stainless_steel
+  copper
 }
 enum ExtraSystemType {
   electric

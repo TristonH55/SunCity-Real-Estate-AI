@@ -19,8 +19,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ToggleButton from "./ToggleButton";
+import ExtraInfo from "./ExtraInfo";
 
-type Extra = { extraId: string; code: string; name: string; priceExGst: number; included: boolean };
+type Extra = {
+  extraId: string;
+  code: string;
+  name: string;
+  priceExGst: number;
+  included: boolean;
+  infoText?: string | null;
+  brochureUrl?: string | null;
+};
 
 type Props = {
   region: string;
@@ -100,10 +109,21 @@ function OptionPills<T extends string>({
   );
 }
 
-function Question({ title, children }: { title: string; children: React.ReactNode }) {
+function Question({
+  title,
+  right,
+  children,
+}: {
+  title: string;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="mb-5">
-      <p className="font-semibold text-white">{title}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-semibold text-white">{title}</p>
+        {right}
+      </div>
       {children}
     </div>
   );
@@ -277,7 +297,10 @@ export default function SplitSolarWizard({
           </Question>
 
           <Question title="Is there a Safe / Catch Tray?">
-            <ToggleButton value={hasTray} onChange={(v) => { setHasTray(v); setTrayReusable(null); }} />
+            <div className="flex items-center gap-4 flex-wrap">
+              <ToggleButton value={hasTray} onChange={(v) => { setHasTray(v); setTrayReusable(null); }} />
+              <ExtraInfo extra={byCode[CODE.TRAY]} />
+            </div>
             {hasTray === "no" && (
               <Note>May be required to meet regulations: Safe / Catch Tray and Mildred anti-flood valve.</Note>
             )}

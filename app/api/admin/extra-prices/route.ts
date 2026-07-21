@@ -96,6 +96,8 @@ export async function GET(req: NextRequest) {
       name: e.name,
       price: e.prices[0] ? Number(e.prices[0].price) : null,
       shared: e.systemType === "all",
+      infoText: e.infoText,
+      brochureUrl: e.brochureUrl,
     }));
 
   return NextResponse.json({ region: region.name, extras: result });

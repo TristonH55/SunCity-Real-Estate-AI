@@ -29,6 +29,8 @@ export default function GenerateQuote({
   systemLocation,
   sizeBandId,
   conversion,
+  existingType,
+  existingSizeLabel,
 }: {
   region: string;
   systemType: string;
@@ -39,6 +41,8 @@ export default function GenerateQuote({
   systemLocation?: "inside" | "outside" | null;
   sizeBandId?: string | null;
   conversion?: ConversionMeta | null;
+  existingType?: string | null;
+  existingSizeLabel?: string | null;
 }) {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
@@ -86,6 +90,8 @@ export default function GenerateQuote({
           extraIds,
           customer,
           systemLocation,
+          ...(existingType ? { existingType } : {}),
+          ...(existingSizeLabel ? { existingSizeLabel } : {}),
           ...(sizeBandId ? { sizeBandId } : {}),
           ...(relocation ? { relocation } : {}),
           ...(conversion ? { conversion } : {}),

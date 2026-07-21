@@ -24,9 +24,12 @@ export default function PricingPage() {
   const { status } = useSession();
 
   const [region, setRegion] = useState<string | null>(null);
+  const [existingType, setExistingType] = useState<string | null>(null); // "what do you have?" — CRM only, optional
   const [systemType, setSystemType] = useState<string | null>(null);
   const [capacityLitres, setCapacityLitres] = useState<number | null>(null);
   const [sizeBandId, setSizeBandId] = useState<string | null>(null); // heat pump only
+  const [existingSize, setExistingSize] = useState<number | null>(null); // existing system size (informational)
+  const [existingSizeBandId, setExistingSizeBandId] = useState<string | null>(null); // existing heat pump band
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [extrasComplete, setExtrasComplete] = useState(false);
   const [relocation, setRelocation] = useState<RelocationMeta>(null);
@@ -85,9 +88,25 @@ export default function PricingPage() {
             value={region}
             onChange={(val) => {
               setRegion(val);
+              setExistingType(null);
+              setExistingSize(null);
+              setExistingSizeBandId(null);
               setSystemType(null);
               resetBelowType();
             }}
+          />
+          {/* What do you HAVE? — informational (CRM existing-system type + size).
+              Does not affect sizes/wizards/pricing (those follow the WANT type below). */}
+          <SystemTypeSelect
+            value={existingType}
+            onChange={(val) => {
+              setExistingType(val);
+              setExistingSize(null);
+              setExistingSizeBandId(null);
+            }}
+            label="What type of hot water system do you have?"
+            includeNone
+            glow={!!existingType && existingType !== "none"}
           />
           <SystemTypeSelect
             value={systemType}
@@ -95,39 +114,71 @@ export default function PricingPage() {
               setSystemType(val);
               resetBelowType();
             }}
+            label="What type of hot water system do you want?"
           />
         </div>
       </div>
 
-      {/* Step 2 — Size */}
-      {region && systemType && (
+      {/* Step 2 — Size (gated on the required "have" answer too) */}
+      {region && existingType && systemType && (
         <div className="glass-card p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 2</span> — Tank Size
           </h2>
-          {systemType === "heat_pump" ? (
-            <SizeBandSelect
-              value={sizeBandId}
-              onChange={(bandId) => {
-                setSizeBandId(bandId);
-                const band = findHeatPumpBand(bandId);
-                setCapacityLitres(band ? band.min : null);
-                setSelectedExtras([]);
-                setExtrasComplete(false);
-              }}
-            />
-          ) : (
-            <SizeSelect
-              region={region}
-              systemType={systemType}
-              value={capacityLitres}
-              onChange={(val) => {
-                setCapacityLitres(val);
-                setSelectedExtras([]);
-                setExtrasComplete(false);
-              }}
-            />
+
+          {/* Existing system size — informational (optional). Card-within-a-card,
+              tinted so it's clearly a separate question from the size they want. */}
+          {existingType !== "none" && (
+            <div className="mb-6 rounded-xl border border-sky-400/30 bg-sky-500/10 p-5">
+              <p className="text-sm font-semibold text-sky-200 mb-3">
+                Your current system{" "}
+                <span className="font-normal opacity-70">(optional)</span>
+              </p>
+              {existingType === "heat_pump" ? (
+                <SizeBandSelect
+                  value={existingSizeBandId}
+                  onChange={setExistingSizeBandId}
+                  label="What size is your existing hot water system?"
+                />
+              ) : (
+                <SizeSelect
+                  region={region}
+                  systemType={existingType}
+                  value={existingSize}
+                  onChange={setExistingSize}
+                  label="What size is your existing hot water system?"
+                />
+              )}
+            </div>
           )}
+
+          <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-5">
+            {systemType === "heat_pump" ? (
+              <SizeBandSelect
+                value={sizeBandId}
+                label="What size of hot water system are you after?"
+                onChange={(bandId) => {
+                  setSizeBandId(bandId);
+                  const band = findHeatPumpBand(bandId);
+                  setCapacityLitres(band ? band.min : null);
+                  setSelectedExtras([]);
+                  setExtrasComplete(false);
+                }}
+              />
+            ) : (
+              <SizeSelect
+                region={region}
+                systemType={systemType}
+                value={capacityLitres}
+                label="What size of hot water system are you after?"
+                onChange={(val) => {
+                  setCapacityLitres(val);
+                  setSelectedExtras([]);
+                  setExtrasComplete(false);
+                }}
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -164,6 +215,7 @@ export default function PricingPage() {
               onMetaChange={setRelocation}
               onLocationChange={setSystemLocation}
               onConversionChange={setConversion}
+              existingType={existingType}
             />
           ) : systemType === "solar_thermosiphon" ? (
             <ThermosiphonWizard
@@ -212,6 +264,18 @@ export default function PricingPage() {
             systemLocation={systemLocation}
             sizeBandId={sizeBandId}
             conversion={conversion}
+            existingType={existingType}
+            existingSizeLabel={
+              !existingType || existingType === "none"
+                ? null
+                : existingType === "heat_pump"
+                ? existingSizeBandId
+                  ? findHeatPumpBand(existingSizeBandId)?.label ?? null
+                  : null
+                : existingSize != null
+                ? `${existingSize} L`
+                : null
+            }
           />
         </div>
       )}

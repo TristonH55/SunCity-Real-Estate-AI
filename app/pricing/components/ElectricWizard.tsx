@@ -16,6 +16,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ToggleButton from "./ToggleButton";
+import ExtraInfo from "./ExtraInfo";
 import { isValidRelocationMetres } from "@/lib/relocation-pricing";
 
 type Extra = {
@@ -24,6 +25,8 @@ type Extra = {
   name: string;
   priceExGst: number;
   included: boolean;
+  infoText?: string | null;
+  brochureUrl?: string | null;
 };
 
 export type RelocationMeta =
@@ -89,10 +92,21 @@ function OptionPills<T extends string>({
   );
 }
 
-function Question({ title, children }: { title: string; children: React.ReactNode }) {
+function Question({
+  title,
+  right,
+  children,
+}: {
+  title: string;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="mb-5">
-      <p className="font-semibold text-white">{title}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-semibold text-white">{title}</p>
+        {right}
+      </div>
       {children}
     </div>
   );
@@ -337,13 +351,16 @@ export default function ElectricWizard({
           </Question>
 
           <Question title="Is there a Safe / Catch Tray?">
-            <ToggleButton
-              value={hasTray}
-              onChange={(v) => {
-                setHasTray(v);
-                setTrayReusable(null);
-              }}
-            />
+            <div className="flex items-center gap-4 flex-wrap">
+              <ToggleButton
+                value={hasTray}
+                onChange={(v) => {
+                  setHasTray(v);
+                  setTrayReusable(null);
+                }}
+              />
+              <ExtraInfo extra={byCode[CODE.TRAY]} />
+            </div>
             {hasTray === "no" && (
               <Note tone="amber">
                 ⚠ May be required to meet regulations:
@@ -369,13 +386,16 @@ export default function ElectricWizard({
       {currentLocation === "outside" && samePosition === "yes" && (
         <>
           <Question title="Is it sitting on a concrete / support base?">
-            <ToggleButton
-              value={hasBase}
-              onChange={(v) => {
-                setHasBase(v);
-                setBaseReusable(null);
-              }}
-            />
+            <div className="flex items-center gap-4 flex-wrap">
+              <ToggleButton
+                value={hasBase}
+                onChange={(v) => {
+                  setHasBase(v);
+                  setBaseReusable(null);
+                }}
+              />
+              <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+            </div>
             {hasBase === "no" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
           </Question>
 
@@ -425,7 +445,10 @@ export default function ElectricWizard({
               </Question>
 
               <Question title="Will a concrete / poly support base be required?">
-                <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                <div className="flex items-center gap-4 flex-wrap">
+                  <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                  <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+                </div>
                 {needsBase === "yes" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
               </Question>
             </>

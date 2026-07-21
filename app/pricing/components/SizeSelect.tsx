@@ -7,11 +7,13 @@ export default function SizeSelect({
   systemType,
   value,
   onChange,
+  label = "Tank size",
 }: {
   region: string;
   systemType: string;
   value: number | null;
   onChange: (val: number) => void;
+  label?: string;
 }) {
   const [sizes, setSizes] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +46,7 @@ export default function SizeSelect({
   return (
     <div>
       <label className="block text-sm font-semibold text-slate-300 mb-3">
-        Tank size
+        {label}
       </label>
       <div className="flex flex-wrap gap-3">
         {sizes.map((s) => {
@@ -65,6 +67,16 @@ export default function SizeSelect({
           );
         })}
       </div>
+
+      {/* Sizing helper — a link (NOT a selectable size), opens the guide image. */}
+      <a
+        href="/pdfs/Extras/Tank-Sizes.png"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-300 hover:text-sky-200 underline"
+      >
+        Unsure what size? View the size guide →
+      </a>
     </div>
   );
 }

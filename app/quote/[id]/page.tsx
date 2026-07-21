@@ -33,6 +33,7 @@ export default async function QuoteViewPage({
               capacityLitres: true,
               warrantyPrimaryYears: true,
               warrantySecondaryYears: true,
+              brochureUrl: true,
             },
           },
         },
@@ -64,7 +65,7 @@ export default async function QuoteViewPage({
   const extras = quote.extraIds.length
     ? await prisma.extra.findMany({
         where: { id: { in: quote.extraIds } },
-        select: { name: true },
+        select: { name: true, infoText: true, brochureUrl: true },
       })
     : [];
 
@@ -147,6 +148,19 @@ export default async function QuoteViewPage({
               </div>
             )}
 
+            {o.system.brochureUrl && (
+              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+                <a
+                  href={o.system.brochureUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-sky-300 hover:text-sky-200 underline"
+                >
+                  📄 Brochure
+                </a>
+              </div>
+            )}
+
             <div className="border-t border-white/10 pt-3 mt-3 space-y-1 text-sm text-slate-200">
               <div className="flex justify-between">
                 <span>Base (ex GST)</span>
@@ -188,7 +202,10 @@ export default async function QuoteViewPage({
           </div>
           <div>
             <p className="text-slate-400">Existing system</p>
-            <p className="text-white">{customer.existingSystemType || "—"}</p>
+            <p className="text-white">
+              {customer.existingSystemType || "—"}
+              {customer.existingSize ? ` · ${customer.existingSize}` : ""}
+            </p>
           </div>
           <div>
             <p className="text-slate-400">System location</p>
@@ -201,7 +218,22 @@ export default async function QuoteViewPage({
           {extras.length > 0 ? (
             <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
               {extras.map((e, i) => (
-                <li key={i}>{e.name}</li>
+                <li key={i}>
+                  {e.name}
+                  {e.brochureUrl && (
+                    <a
+                      href={e.brochureUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-xs text-sky-300 hover:text-sky-200 underline"
+                    >
+                      📄 View
+                    </a>
+                  )}
+                  {e.infoText && (
+                    <span className="block ml-5 text-xs text-slate-400">{e.infoText}</span>
+                  )}
+                </li>
               ))}
             </ul>
           ) : (

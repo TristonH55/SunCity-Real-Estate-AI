@@ -74,9 +74,15 @@
 export default function SystemTypeSelect({
   value,
   onChange,
+  label = "System Type",
+  includeNone = false,
+  glow = false,
 }: {
   value: string | null;
   onChange: (val: string) => void;
+  label?: string;
+  includeNone?: boolean;
+  glow?: boolean;
 }) {
   const types = [
     { value: "gas", label: "Gas" },
@@ -84,19 +90,24 @@ export default function SystemTypeSelect({
     { value: "heat_pump", label: "Heat Pump" },
     { value: "solar_thermosiphon", label: "Thermosiphon Solar" },
     { value: "solar_split", label: "Split Solar" },
+    ...(includeNone ? [{ value: "none", label: "I don't have one" }] : []),
   ];
 
   return (
     <div className="mb-6 max-w-xs"> {/* 👈 SAME WIDTH AS REGION */}
       <label className="block text-sm font-semibold text-slate-300 mb-2">
-        System Type
+        {label}
       </label>
 
       <div className="relative">
         <select
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-10 text-white shadow-sm focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white"
+          className={`w-full appearance-none rounded-xl border bg-white/5 px-4 py-3 pr-10 text-white shadow-sm focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white ${
+            glow
+              ? "border-sky-400/50 shadow-[0_0_18px_rgba(56,189,248,0.45)]"
+              : "border-white/10"
+          }`}
         >
           <option value="" disabled>
             Select system type

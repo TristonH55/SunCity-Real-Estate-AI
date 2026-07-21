@@ -17,7 +17,7 @@ const VALID_TYPES = [
   "solar_split",
 ] as const;
 
-const VALID_TANK = ["mild_steel", "stainless_steel"] as const;
+const VALID_TANK = ["mild_steel", "stainless_steel", "copper"] as const;
 
 // GET ?region=<code>&type=<systemType> → every system of that type (active or
 // not, so a globally-disabled one can be re-enabled) with its price + both
@@ -27,6 +27,27 @@ export async function GET(req: NextRequest) {
   if (error) return error;
 
   const { searchParams } = new URL(req.url);
+
+  // Hidden (archived) products — all types, no region needed. Used by the
+  // "Hidden products" page for restore/delete.
+  if (searchParams.get("hidden") === "1") {
+    const archived = await prisma.system.findMany({
+      where: { archived: true },
+      orderBy: [{ systemType: "asc" }, { brand: "asc" }, { capacityLitres: "asc" }],
+      include: { _count: { select: { quoteOptions: true } } },
+    });
+    return NextResponse.json({
+      systems: archived.map((s) => ({
+        systemId: s.id,
+        brand: s.brand,
+        model: s.model,
+        systemType: s.systemType,
+        capacityLitres: s.capacityLitres,
+        usedInQuotes: s._count.quoteOptions,
+      })),
+    });
+  }
+
   const regionCode = searchParams.get("region");
   const systemType = searchParams.get("type");
 
@@ -43,7 +64,7 @@ export async function GET(req: NextRequest) {
   }
 
   const systems = await prisma.system.findMany({
-    where: { systemType: systemType as any },
+    where: { systemType: systemType as any, archived: false },
     include: {
       systemPrices: { where: { regionId: region.id }, select: { price: true, active: true } },
     },
@@ -56,10 +77,13 @@ export async function GET(req: NextRequest) {
     model: s.model,
     capacityLitres: s.capacityLitres,
     tankMaterial: s.tankMaterial,
+    warrantyPrimaryYears: s.warrantyPrimaryYears,
+    warrantySecondaryYears: s.warrantySecondaryYears,
     price: s.systemPrices[0] ? Number(s.systemPrices[0].price) : null,
     // per-region availability (only meaningful once priced); global availability
     regionActive: s.systemPrices[0] ? s.systemPrices[0].active : true,
     globalActive: s.active,
+    brochureUrl: s.brochureUrl,
   }));
 
   return NextResponse.json({ region: region.name, systems: result });
@@ -124,6 +148,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Price must be a number ≥ 0" }, { status: 400 });
   }
 
+  const brochureUrl =
+    product.brochureUrl && String(product.brochureUrl).trim() !== ""
+      ? String(product.brochureUrl).trim()
+      : null;
+
   const system = await prisma.system.create({
     data: {
       brand,
@@ -133,6 +162,7 @@ export async function POST(req: NextRequest) {
       capacityLitres,
       warrantyPrimaryYears,
       warrantySecondaryYears,
+      brochureUrl,
       active: true,
       systemPrices: { create: { regionId: region.id, price, active: true } },
     },
@@ -157,13 +187,25 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const { regionCode, updates } = body ?? {};
 
-  if (!regionCode || !Array.isArray(updates) || updates.length === 0) {
-    return NextResponse.json({ error: "Missing regionCode or updates" }, { status: 400 });
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return NextResponse.json({ error: "Missing updates" }, { status: 400 });
   }
 
-  const region = await prisma.region.findUnique({ where: { code: regionCode } });
-  if (!region) {
-    return NextResponse.json({ error: "Invalid region" }, { status: 400 });
+  // Region only needed when a price / per-region availability changes; product-
+  // level flags (archived/global/brochure) don't need it (e.g. restore from the
+  // Hidden page, which has no region context).
+  const needsRegion = updates.some(
+    (u: any) => u?.price !== undefined || u?.regionActive !== undefined
+  );
+  let region: { id: string } | null = null;
+  if (needsRegion) {
+    if (!regionCode) {
+      return NextResponse.json({ error: "Missing regionCode" }, { status: 400 });
+    }
+    region = await prisma.region.findUnique({ where: { code: regionCode } });
+    if (!region) {
+      return NextResponse.json({ error: "Invalid region" }, { status: 400 });
+    }
   }
 
   // Validate every row first (all-or-nothing).
@@ -181,13 +223,22 @@ export async function PATCH(req: NextRequest) {
 
   let updated = 0;
   for (const u of updates) {
-    // Global availability toggle.
-    if (u.globalActive !== undefined) {
-      await prisma.system.update({ where: { id: u.systemId }, data: { active: !!u.globalActive } });
+    // Global availability toggle, product brochure and/or archive (hide) flag.
+    if (u.globalActive !== undefined || u.brochureUrl !== undefined || u.archived !== undefined) {
+      await prisma.system.update({
+        where: { id: u.systemId },
+        data: {
+          ...(u.globalActive !== undefined ? { active: !!u.globalActive } : {}),
+          ...(u.brochureUrl !== undefined
+            ? { brochureUrl: u.brochureUrl === "" ? null : String(u.brochureUrl) }
+            : {}),
+          ...(u.archived !== undefined ? { archived: !!u.archived } : {}),
+        },
+      });
     }
 
-    // Price and/or per-region availability (needs a SystemPrice row).
-    if (u.price !== undefined || u.regionActive !== undefined) {
+    // Price and/or per-region availability (needs a SystemPrice row + region).
+    if ((u.price !== undefined || u.regionActive !== undefined) && region) {
       const existing = await prisma.systemPrice.findFirst({
         where: { systemId: u.systemId, regionId: region.id },
       });
@@ -215,4 +266,105 @@ export async function PATCH(req: NextRequest) {
   }
 
   return NextResponse.json({ success: true, updated });
+}
+
+// PUT { systemId, product:{ brand, model, capacityLitres, tankMaterial,
+// warrantyPrimaryYears, warrantySecondaryYears?, brochureUrl? } } → edit a
+// product's global fields (not its per-region price / availability).
+export async function PUT(req: NextRequest) {
+  const { error } = await requireApiRole("admin");
+  if (error) return error;
+
+  const originError = checkOrigin(req);
+  if (originError) return originError;
+
+  if (!(await allow(limiters.adminPrices, clientIp(req)))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const { systemId, product } = body ?? {};
+  if (!systemId || !product) {
+    return NextResponse.json({ error: "Missing systemId or product" }, { status: 400 });
+  }
+
+  const brand = String(product.brand ?? "").trim();
+  const model = String(product.model ?? "").trim();
+  const capacityLitres = Number(product.capacityLitres);
+  const tankMaterial = String(product.tankMaterial ?? "");
+  const warrantyPrimaryYears = Number(product.warrantyPrimaryYears);
+  const warrantySecondaryYears =
+    product.warrantySecondaryYears === "" || product.warrantySecondaryYears == null
+      ? null
+      : Number(product.warrantySecondaryYears);
+
+  if (!brand || !model) {
+    return NextResponse.json({ error: "Brand and model are required" }, { status: 400 });
+  }
+  if (!Number.isInteger(capacityLitres) || capacityLitres <= 0) {
+    return NextResponse.json({ error: "Size (litres) must be a whole number > 0" }, { status: 400 });
+  }
+  if (!VALID_TANK.includes(tankMaterial as (typeof VALID_TANK)[number])) {
+    return NextResponse.json({ error: "Invalid tank material" }, { status: 400 });
+  }
+  if (!Number.isInteger(warrantyPrimaryYears) || warrantyPrimaryYears < 0) {
+    return NextResponse.json({ error: "Warranty (years) must be a whole number ≥ 0" }, { status: 400 });
+  }
+  if (warrantySecondaryYears !== null && (!Number.isInteger(warrantySecondaryYears) || warrantySecondaryYears < 0)) {
+    return NextResponse.json({ error: "Secondary warranty must be a whole number ≥ 0" }, { status: 400 });
+  }
+
+  const brochureUrl =
+    product.brochureUrl === undefined
+      ? undefined
+      : String(product.brochureUrl).trim() === ""
+      ? null
+      : String(product.brochureUrl).trim();
+
+  await prisma.system.update({
+    where: { id: systemId },
+    data: {
+      brand,
+      model,
+      capacityLitres,
+      tankMaterial: tankMaterial as TankMaterial,
+      warrantyPrimaryYears,
+      warrantySecondaryYears,
+      ...(brochureUrl !== undefined ? { brochureUrl } : {}),
+    },
+  });
+
+  return NextResponse.json({ success: true });
+}
+
+// DELETE { systemId } → permanently delete a product. Blocked if it's referenced
+// by any past quote (keep it hidden instead, to preserve quote history).
+export async function DELETE(req: NextRequest) {
+  const { error } = await requireApiRole("admin");
+  if (error) return error;
+
+  const originError = checkOrigin(req);
+  if (originError) return originError;
+
+  if (!(await allow(limiters.adminPrices, clientIp(req)))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const { systemId } = body ?? {};
+  if (!systemId) {
+    return NextResponse.json({ error: "Missing systemId" }, { status: 400 });
+  }
+
+  const used = await prisma.quoteOption.count({ where: { systemId } });
+  if (used > 0) {
+    return NextResponse.json(
+      { error: `Can't delete — used in ${used} past quote(s). Keep it hidden instead.` },
+      { status: 409 }
+    );
+  }
+
+  await prisma.systemPrice.deleteMany({ where: { systemId } });
+  await prisma.system.delete({ where: { id: systemId } });
+  return NextResponse.json({ success: true });
 }

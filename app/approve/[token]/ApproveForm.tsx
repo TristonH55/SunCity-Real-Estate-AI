@@ -10,6 +10,7 @@ type Opt = {
   capacityLitres: number;
   warrantyPrimaryYears: number;
   warrantySecondaryYears: number | null;
+  brochureUrl: string | null;
   total: number;
 };
 
@@ -131,7 +132,7 @@ export default function ApproveForm({
                     yrs · price inc GST
                   </p>
 
-                  {brandBrochures(o.brand).length > 0 && (
+                  {(brandBrochures(o.brand).length > 0 || o.brochureUrl) && (
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                       {brandBrochures(o.brand).map((b) => (
                         <a
@@ -145,6 +146,17 @@ export default function ApproveForm({
                           📄 {b.label}
                         </a>
                       ))}
+                      {o.brochureUrl && (
+                        <a
+                          href={o.brochureUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-xs text-sky-300 hover:text-sky-200 underline"
+                        >
+                          📄 Brochure
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>
