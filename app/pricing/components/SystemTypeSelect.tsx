@@ -88,8 +88,8 @@ export default function SystemTypeSelect({
     { value: "gas", label: "Gas" },
     { value: "electric", label: "Electric" },
     { value: "heat_pump", label: "Heat Pump" },
-    { value: "solar_thermosiphon", label: "Thermosiphon Solar" },
-    { value: "solar_split", label: "Split Solar" },
+    { value: "solar_thermosiphon", label: "Thermosiphon Solar (tank on roof)" },
+    { value: "solar_split", label: "Split Solar (tank on ground)" },
     ...(includeNone ? [{ value: "none", label: "I don't have one" }] : []),
   ];
 

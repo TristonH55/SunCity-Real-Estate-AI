@@ -321,23 +321,27 @@ export default function HeatPumpWizard({
     <div>
       <p className="text-sm text-slate-400 mb-5">Answer each question — more will appear as you go.</p>
 
-      {/* CONVERSION — what do you currently have? */}
-      <Question title="What type of hot water system do you currently have?">
-        <OptionPills
-          options={[
-            { value: "electric", label: "Electric" },
-            { value: "heat_pump", label: "Heat Pump" },
-            { value: "thermosiphon", label: "Thermosiphon Solar" },
-            { value: "split_solar", label: "Split Solar" },
-          ]}
-          value={have}
-          onChange={(v) => {
-            setHave(v);
-            resetConversion();
-            resetInstall();
-          }}
-        />
-      </Question>
+      {/* CONVERSION — pre-filled from Step 1, so we don't re-ask it. It's only
+          asked here if Step 1's answer has no heat-pump conversion path
+          (e.g. gas / "I don't have one"). */}
+      {!defaultHave && (
+        <Question title="What type of hot water system do you currently have?">
+          <OptionPills
+            options={[
+              { value: "electric", label: "Electric" },
+              { value: "heat_pump", label: "Heat Pump" },
+              { value: "thermosiphon", label: "Thermosiphon Solar" },
+              { value: "split_solar", label: "Split Solar" },
+            ]}
+            value={have}
+            onChange={(v) => {
+              setHave(v);
+              resetConversion();
+              resetInstall();
+            }}
+          />
+        </Question>
+      )}
 
       {/* ELECTRIC → off-peak */}
       {have === "electric" && (
