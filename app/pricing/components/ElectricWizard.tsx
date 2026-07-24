@@ -1,17 +1,20 @@
 "use client";
 
 /**
- * ElectricWizard — Darren's "same-location replacement" branching question flow
- * for ELECTRIC systems only. Rendered by the pricing page in place of the flat
- * ExtrasList when systemType === "electric". Other system types are untouched.
+ * ElectricWizard — Step-3 branching flow for ELECTRIC (and, as a placeholder,
+ * GAS) systems. Rendered by the pricing page in place of the flat ExtrasList.
  *
- * Output contract:
- *  - onChange(extraIds)            — selected Extra ids (existing pipeline).
- *  - onCompletionChange(complete)  — whether the tree is fully answered.
- *  - onMetaChange(relocation)      — relocation metadata (Phase 3): an outside
- *      move carries its lineal-metres (priced server-side); an internal move
- *      carries requiresSiteVisit. null when not a relocation. The quote route
- *      turns this into a priced line item / site-visit flag on the order.
+ * Three flow modes:
+ *  - Same position (existing ground/wall tank stays put) → priced menu items.
+ *  - Relocation (existing tank moves) → new-location + relocation pricing.
+ *  - FRESH INSTALL (existing = roof Thermosiphon Solar, or "I don't have one")
+ *    → the old unit isn't a ground/wall tank, so we skip "where is the current
+ *    system / same position" and just ask where the NEW system goes.
+ *
+ * Regulation (Darren): whenever the location changes (relocation or fresh
+ * install) the electrical isolator & RCD is REQUIRED — not an optional Yes/No.
+ *
+ * Output contract: onChange(extraIds), onCompletionChange, onMetaChange, onLocationChange.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -42,6 +45,7 @@ type Props = {
   onCompletionChange?: (complete: boolean) => void;
   onMetaChange?: (relocation: RelocationMeta) => void;
   onLocationChange?: (loc: "inside" | "outside" | null) => void;
+  existingType?: string | null; // Step-1 "what do you have?" — drives the fresh-install path
 };
 
 // Extra codes this wizard maps answers onto (must match prisma seed / upsert).
@@ -55,8 +59,8 @@ const CODE = {
   INTERNAL_RELOCATION: "internal_relocation_electric",
 } as const;
 
-// Always part of an electric quote. The isolator/RCD is an optional Yes/No extra
-// (Darren 2026-06-23), so only tank removal ($0) is auto-included.
+// Remove old tank & disposal ($0) is always included. The isolator is required
+// on a location change and optional otherwise (handled below).
 const ALWAYS_INCLUDED = [CODE.REMOVE_TANK];
 
 const money = (n: number) =>
@@ -119,9 +123,14 @@ export default function ElectricWizard({
   onCompletionChange,
   onMetaChange,
   onLocationChange,
+  existingType,
 }: Props) {
   const [byCode, setByCode] = useState<Record<string, Extra>>({});
   const [loading, setLoading] = useState(true);
+
+  // A roof-mounted (Thermosiphon Solar) existing system, or no existing system,
+  // means the new electric tank is a brand-new install (never "same position").
+  const isFreshInstall = existingType === "solar_thermosiphon" || existingType === "none";
 
   // Branching answers
   const [currentLocation, setCurrentLocation] = useState<"inside" | "outside" | null>(null);
@@ -134,14 +143,8 @@ export default function ElectricWizard({
   const [newLocation, setNewLocation] = useState<"inside" | "outside" | null>(null);
   const [metres, setMetres] = useState(""); // relocation distance (outside move)
   const [needsBase, setNeedsBase] = useState<"yes" | "no" | null>(null);
-  const [isolator, setIsolator] = useState<"yes" | "no" | null>(null); // optional extra (any electric job)
+  const [isolator, setIsolator] = useState<"yes" | "no" | null>(null);
 
-  const resetAll = () => {
-    setCurrentLocation(null);
-    setSamePosition(null);
-    setIsolator(null);
-    resetBranches();
-  };
   const resetBranches = () => {
     setOpenOrCupboard(null);
     setHasTray(null);
@@ -152,10 +155,15 @@ export default function ElectricWizard({
     setMetres("");
     setNeedsBase(null);
   };
+  const resetAll = () => {
+    setCurrentLocation(null);
+    setSamePosition(null);
+    setIsolator(null);
+    resetBranches();
+  };
 
-  // Load electric extras (now includes `code`), keyed by code. Gas temporarily
-  // reuses the electric Step-3 flow + electric add-ons (type=electric below)
-  // until Darren specs a dedicated gas flow.
+  // Load electric extras, keyed by code. Gas temporarily reuses the electric
+  // add-ons (type=electric) until Darren specs a dedicated gas flow.
   useEffect(() => {
     if (!region || (systemType !== "electric" && systemType !== "gas")) return;
     setLoading(true);
@@ -171,28 +179,49 @@ export default function ElectricWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region, systemType]);
 
+  // Reset the flow if the existing-system answer (Step 1) changes.
+  useEffect(() => {
+    resetAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingType]);
+
   const metresNum = parseInt(metres, 10);
   const metresValid = isValidRelocationMetres(metresNum);
 
-  // Relocation metadata reported to the parent (drives server-side pricing/flag).
-  const relocationMeta: RelocationMeta = useMemo(() => {
-    if (samePosition !== "no" || !newLocation) return null;
-    if (newLocation === "inside")
-      return { newLocation: "inside", requiresSiteVisit: true };
-    if (!metresValid) return null; // outside move not complete until a valid distance
-    return { newLocation: "outside", metres: metresNum, requiresSiteVisit: false };
-  }, [samePosition, newLocation, metresValid, metresNum]);
+  // A location change = relocation of an existing tank, or a fresh install.
+  const changingLocation = isFreshInstall || samePosition === "no";
 
-  // Which Extra codes are currently selected, derived from the answers.
+  // Relocation metadata (lineal-metre pricing / site-visit flag). Fresh installs
+  // carry neither (nothing is being moved).
+  const relocationMeta: RelocationMeta = useMemo(() => {
+    if (isFreshInstall) return null;
+    if (samePosition !== "no" || !newLocation) return null;
+    if (newLocation === "inside") return { newLocation: "inside", requiresSiteVisit: true };
+    if (!metresValid) return null;
+    return { newLocation: "outside", metres: metresNum, requiresSiteVisit: false };
+  }, [isFreshInstall, samePosition, newLocation, metresValid, metresNum]);
+
+  // Which Extra codes are selected, derived from the answers.
   const selectedCodes = useMemo(() => {
     const codes: string[] = [...ALWAYS_INCLUDED];
-    if (isolator === "yes") codes.push(CODE.ISOLATOR);
-    if (currentLocation && samePosition) {
+
+    // Isolator/RCD — required by regulation on a location change; else optional.
+    if (changingLocation) codes.push(CODE.ISOLATOR);
+    else if (isolator === "yes") codes.push(CODE.ISOLATOR);
+
+    if (isFreshInstall) {
+      if (newLocation === "inside") {
+        codes.push(CODE.INTERNAL_RELOCATION); // inside install → +$125
+        if (openOrCupboard === "cupboard") codes.push(CODE.CUPBOARD);
+        if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
+        else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);
+      } else if (newLocation === "outside") {
+        if (needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
+      }
+    } else if (currentLocation && samePosition) {
       if (samePosition === "yes") {
         if (currentLocation === "inside") {
-          // New unit stays inside → internal-install charge (+$125). No site
-          // visit (straight swap); the cupboard/tray items below are additive.
-          codes.push(CODE.INTERNAL_RELOCATION);
+          codes.push(CODE.INTERNAL_RELOCATION); // inside install → +$125
           if (openOrCupboard === "cupboard") codes.push(CODE.CUPBOARD);
           if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
           else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);
@@ -201,16 +230,16 @@ export default function ElectricWizard({
           else if (hasBase === "yes" && baseReusable === "no") codes.push(CODE.SUPPORT_BASE);
         }
       } else {
-        // relocation
+        // relocation of an existing tank
         if (newLocation === "outside" && needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
-        // newLocation === "inside" → base internal-relocation charge (per region,
-        // default $125), plus the site-visit flag/disclaimer for any extra on-site work.
         if (newLocation === "inside") codes.push(CODE.INTERNAL_RELOCATION);
       }
     }
     return codes.filter((c) => byCode[c]);
   }, [
     byCode,
+    isFreshInstall,
+    changingLocation,
     currentLocation,
     samePosition,
     openOrCupboard,
@@ -224,9 +253,19 @@ export default function ElectricWizard({
   ]);
 
   const complete = useMemo(() => {
-    if (!isolator) return false; // isolator/RCD Yes/No required on every electric quote
+    if (isFreshInstall) {
+      if (!newLocation) return false;
+      if (newLocation === "inside") {
+        if (!openOrCupboard || !hasTray) return false;
+        if (hasTray === "yes" && !trayReusable) return false;
+      } else if (newLocation === "outside") {
+        if (!needsBase) return false;
+      }
+      return true; // isolator is forced-on, no answer needed
+    }
     if (!currentLocation || !samePosition) return false;
     if (samePosition === "yes") {
+      if (!isolator) return false; // optional here, but must be answered
       if (currentLocation === "inside") {
         if (!openOrCupboard || !hasTray) return false;
         if (hasTray === "yes" && !trayReusable) return false;
@@ -236,14 +275,15 @@ export default function ElectricWizard({
       if (hasBase === "yes" && !baseReusable) return false;
       return true;
     }
-    // relocation
+    // relocation — isolator forced-on
     if (!newLocation) return false;
     if (newLocation === "outside") {
       if (!metresValid) return false;
       if (!needsBase) return false;
     }
-    return true; // inside → site visit is a valid terminal state
+    return true;
   }, [
+    isFreshInstall,
     currentLocation,
     samePosition,
     openOrCupboard,
@@ -276,11 +316,13 @@ export default function ElectricWizard({
     onMetaChange?.(relocationMeta);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metaKey]);
-  // Report the existing-system location (Inside/Outside) up for the CRM code.
+  // Report the system location for the CRM: fresh install → where the new unit
+  // goes; otherwise the existing system's location.
+  const reportedLocation = isFreshInstall ? newLocation : currentLocation;
   useEffect(() => {
-    onLocationChange?.(currentLocation);
+    onLocationChange?.(reportedLocation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLocation]);
+  }, [reportedLocation]);
 
   if (loading) {
     return <p className="text-slate-400">Loading questions…</p>;
@@ -301,118 +343,62 @@ export default function ElectricWizard({
   // Costs are hidden during the questions — show the item name only.
   const priced = (code: string) => byCode[code]?.name ?? code;
 
+  // Inside-install sub-questions (open/cupboard + safe tray) reused by the
+  // same-position-inside branch and the fresh-install-inside branch.
+  const insideItems = (
+    <>
+      <Question title="Open area or in a cupboard?">
+        <OptionPills
+          options={[
+            { value: "open", label: "Open area", hint: "+$0" },
+            { value: "cupboard", label: "Cupboard", hint: "+$50" },
+          ]}
+          value={openOrCupboard}
+          onChange={setOpenOrCupboard}
+        />
+      </Question>
+
+      <Question title="Is there a Safe / Catch Tray?">
+        <div className="flex items-center gap-4 flex-wrap">
+          <ToggleButton
+            value={hasTray}
+            onChange={(v) => {
+              setHasTray(v);
+              setTrayReusable(null);
+            }}
+          />
+          <ExtraInfo extra={byCode[CODE.TRAY]} />
+        </div>
+        {hasTray === "no" && (
+          <Note tone="amber">
+            ⚠ May be required to meet regulations:
+            <div className="mt-1">• {priced(CODE.TRAY)}</div>
+            <div>• {priced(CODE.VALVE)}</div>
+          </Note>
+        )}
+      </Question>
+
+      {hasTray === "yes" && (
+        <Question title="Is it in good condition and reusable?">
+          <ToggleButton value={trayReusable} onChange={setTrayReusable} />
+          {trayReusable === "no" && <Note tone="amber">Replacement {priced(CODE.TRAY)}</Note>}
+          {trayReusable === "yes" && <Note tone="info">No extra cost.</Note>}
+        </Question>
+      )}
+    </>
+  );
+
   return (
     <div>
       <p className="text-sm text-slate-400 mb-5">
         Answer each question — more will appear as you go.
       </p>
 
-      {/* Q1 — current location */}
-      <Question title="Where is the current system?">
-        <OptionPills
-          options={[
-            { value: "inside", label: "Inside" },
-            { value: "outside", label: "Outside" },
-          ]}
-          value={currentLocation}
-          onChange={(v) => {
-            setCurrentLocation(v);
-            setSamePosition(null);
-            resetBranches();
-          }}
-        />
-      </Question>
-
-      {/* Q2 — same position */}
-      {currentLocation && (
-        <Question title="Same position as the existing system?">
-          <ToggleButton
-            value={samePosition}
-            onChange={(v) => {
-              setSamePosition(v);
-              resetBranches();
-            }}
-          />
-        </Question>
-      )}
-
-      {/* INSIDE + SAME POSITION */}
-      {currentLocation === "inside" && samePosition === "yes" && (
+      {isFreshInstall ? (
+        /* FRESH INSTALL — old unit is on the roof (or none), so it's a brand-new
+           placement: ask only where the NEW system goes. */
         <>
-          <Question title="Open area or in a cupboard?">
-            <OptionPills
-              options={[
-                { value: "open", label: "Open area", hint: "+$0" },
-                { value: "cupboard", label: "Cupboard", hint: "+$50" },
-              ]}
-              value={openOrCupboard}
-              onChange={setOpenOrCupboard}
-            />
-          </Question>
-
-          <Question title="Is there a Safe / Catch Tray?">
-            <div className="flex items-center gap-4 flex-wrap">
-              <ToggleButton
-                value={hasTray}
-                onChange={(v) => {
-                  setHasTray(v);
-                  setTrayReusable(null);
-                }}
-              />
-              <ExtraInfo extra={byCode[CODE.TRAY]} />
-            </div>
-            {hasTray === "no" && (
-              <Note tone="amber">
-                ⚠ May be required to meet regulations:
-                <div className="mt-1">• {priced(CODE.TRAY)}</div>
-                <div>• {priced(CODE.VALVE)}</div>
-              </Note>
-            )}
-          </Question>
-
-          {hasTray === "yes" && (
-            <Question title="Is it in good condition and reusable?">
-              <ToggleButton value={trayReusable} onChange={setTrayReusable} />
-              {trayReusable === "no" && (
-                <Note tone="amber">Replacement {priced(CODE.TRAY)}</Note>
-              )}
-              {trayReusable === "yes" && <Note tone="info">No extra cost.</Note>}
-            </Question>
-          )}
-        </>
-      )}
-
-      {/* OUTSIDE + SAME POSITION */}
-      {currentLocation === "outside" && samePosition === "yes" && (
-        <>
-          <Question title="Is it sitting on a concrete / support base?">
-            <div className="flex items-center gap-4 flex-wrap">
-              <ToggleButton
-                value={hasBase}
-                onChange={(v) => {
-                  setHasBase(v);
-                  setBaseReusable(null);
-                }}
-              />
-              <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
-            </div>
-            {hasBase === "no" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
-          </Question>
-
-          {hasBase === "yes" && (
-            <Question title="Is it in good condition and reusable?">
-              <ToggleButton value={baseReusable} onChange={setBaseReusable} />
-              {baseReusable === "no" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
-              {baseReusable === "yes" && <Note tone="info">No extra cost.</Note>}
-            </Question>
-          )}
-        </>
-      )}
-
-      {/* RELOCATION (different position) */}
-      {samePosition === "no" && (
-        <>
-          <Question title="Will the new system be installed inside or outside?">
+          <Question title="Where will the new electric system be installed?">
             <OptionPills
               options={[
                 { value: "inside", label: "Inside" },
@@ -421,56 +407,160 @@ export default function ElectricWizard({
               value={newLocation}
               onChange={(v) => {
                 setNewLocation(v);
-                setMetres("");
+                setOpenOrCupboard(null);
+                setHasTray(null);
+                setTrayReusable(null);
                 setNeedsBase(null);
               }}
             />
           </Question>
 
-          {newLocation === "outside" && (
-            <>
-              <Question title="How far will the new system move? (lineal metres)">
-                <div className="flex items-center gap-3 mt-2">
-                  <input
-                    type="number"
-                    min={2}
-                    max={30}
-                    value={metres}
-                    onChange={(e) => setMetres(e.target.value)}
-                    placeholder="e.g. 8"
-                    className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition"
-                  />
-                  <span className="text-sm text-slate-400">metres (2–30)</span>
-                </div>
-              </Question>
+          {newLocation === "inside" && insideItems}
 
-              <Question title="Will a concrete / poly support base be required?">
+          {newLocation === "outside" && (
+            <Question title="Will a concrete / poly support base be required?">
+              <div className="flex items-center gap-4 flex-wrap">
+                <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+              </div>
+              {needsBase === "yes" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
+            </Question>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Q1 — current location */}
+          <Question title="Where is the current system?">
+            <OptionPills
+              options={[
+                { value: "inside", label: "Inside" },
+                { value: "outside", label: "Outside" },
+              ]}
+              value={currentLocation}
+              onChange={(v) => {
+                setCurrentLocation(v);
+                setSamePosition(null);
+                setIsolator(null);
+                resetBranches();
+              }}
+            />
+          </Question>
+
+          {/* Q2 — same position */}
+          {currentLocation && (
+            <Question title="Same position as the existing system?">
+              <ToggleButton
+                value={samePosition}
+                onChange={(v) => {
+                  setSamePosition(v);
+                  setIsolator(null);
+                  resetBranches();
+                }}
+              />
+            </Question>
+          )}
+
+          {/* INSIDE + SAME POSITION */}
+          {currentLocation === "inside" && samePosition === "yes" && insideItems}
+
+          {/* OUTSIDE + SAME POSITION */}
+          {currentLocation === "outside" && samePosition === "yes" && (
+            <>
+              <Question title="Is it sitting on a concrete / support base?">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                  <ToggleButton
+                    value={hasBase}
+                    onChange={(v) => {
+                      setHasBase(v);
+                      setBaseReusable(null);
+                    }}
+                  />
                   <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
                 </div>
-                {needsBase === "yes" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
+                {hasBase === "no" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
               </Question>
+
+              {hasBase === "yes" && (
+                <Question title="Is it in good condition and reusable?">
+                  <ToggleButton value={baseReusable} onChange={setBaseReusable} />
+                  {baseReusable === "no" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
+                  {baseReusable === "yes" && <Note tone="info">No extra cost.</Note>}
+                </Question>
+              )}
             </>
           )}
 
-          {newLocation === "inside" && (
-            <Note tone="info">
-              Internal relocation — final price subject to a <strong>site visit</strong>. New pipes
-              and electrical may need to run through walls (assessed on site; in some cases may not
-              be possible). A SunCity site visit will be arranged. The quote below covers the system
-              and standard items only.
-            </Note>
+          {/* RELOCATION (different position) */}
+          {samePosition === "no" && (
+            <>
+              <Question title="Will the new system be installed inside or outside?">
+                <OptionPills
+                  options={[
+                    { value: "inside", label: "Inside" },
+                    { value: "outside", label: "Outside" },
+                  ]}
+                  value={newLocation}
+                  onChange={(v) => {
+                    setNewLocation(v);
+                    setMetres("");
+                    setNeedsBase(null);
+                  }}
+                />
+              </Question>
+
+              {newLocation === "outside" && (
+                <>
+                  <Question title="How far will the new system move? (lineal metres)">
+                    <div className="flex items-center gap-3 mt-2">
+                      <input
+                        type="number"
+                        min={2}
+                        max={30}
+                        value={metres}
+                        onChange={(e) => setMetres(e.target.value)}
+                        placeholder="e.g. 8"
+                        className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition"
+                      />
+                      <span className="text-sm text-slate-400">metres (2–30)</span>
+                    </div>
+                  </Question>
+
+                  <Question title="Will a concrete / poly support base be required?">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                      <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+                    </div>
+                    {needsBase === "yes" && <Note tone="amber">{priced(CODE.SUPPORT_BASE)}</Note>}
+                  </Question>
+                </>
+              )}
+
+              {newLocation === "inside" && (
+                <Note tone="info">
+                  Internal relocation — final price subject to a <strong>site visit</strong>. New pipes
+                  and electrical may need to run through walls (assessed on site; in some cases may not
+                  be possible). A SunCity site visit will be arranged. The quote below covers the system
+                  and standard items only.
+                </Note>
+              )}
+            </>
           )}
         </>
       )}
 
-      {/* Electrical isolator & RCD — optional extra on any electric job */}
+      {/* Electrical isolator & RCD — required on a location change, else optional. */}
       <div className="mt-6 pt-4 border-t border-white/10">
-        <Question title="Is an electrical isolator & RCD required?">
-          <ToggleButton value={isolator} onChange={setIsolator} />
-          {isolator === "yes" && <Note tone="amber">{priced(CODE.ISOLATOR)}</Note>}
-        </Question>
+        {changingLocation ? (
+          <Note tone="amber">
+            <strong>{priced(CODE.ISOLATOR)}</strong> — required by regulation for a relocation / new
+            install (included).
+          </Note>
+        ) : (
+          <Question title="Is an electrical isolator & RCD required?">
+            <ToggleButton value={isolator} onChange={setIsolator} />
+            {isolator === "yes" && <Note tone="amber">{priced(CODE.ISOLATOR)}</Note>}
+          </Question>
+        )}
       </div>
 
       {/* Standard (always included) */}

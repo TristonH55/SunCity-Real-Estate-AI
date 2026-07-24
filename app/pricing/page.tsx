@@ -204,6 +204,7 @@ export default function PricingPage() {
               onCompletionChange={setExtrasComplete}
               onMetaChange={setRelocation}
               onLocationChange={setSystemLocation}
+              existingType={existingType}
             />
           ) : systemType === "heat_pump" ? (
             <HeatPumpWizard
