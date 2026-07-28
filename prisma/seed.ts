@@ -399,6 +399,7 @@ async function seedExtras() {
     { code: "tilt_frame_split", name: "Tilt / pitch frame (new)", systemType: ExtraSystemType.solar, active: true },
     { code: "safe_catch_tray_split", name: "Safe / Catch Tray", systemType: ExtraSystemType.solar, active: true },
     { code: "mildred_valve_split", name: "Mildred anti-flood valve", systemType: ExtraSystemType.solar, active: true },
+    { code: "support_base_split", name: "Concrete / Poly support base", systemType: ExtraSystemType.solar, active: true },
   ];
 
   await prisma.extra.createMany({ data: extras });
@@ -1026,6 +1027,7 @@ async function seedExtraPrices() {
     tilt_frame_split: 675,
     safe_catch_tray_split: 165,
     mildred_valve_split: 225,
+    support_base_split: 65,
   };
 
   for (const [code, price] of Object.entries(flatSplit)) {

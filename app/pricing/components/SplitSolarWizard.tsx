@@ -9,7 +9,7 @@
  *             Flat → tilt frame needed: on a tilt frame? Yes → reusable? Yes=$0/No=new (+$675) ; No = new (+$675)
  *   Q3 Access: Yes / No / Unsure (informational)
  *   Same as electric (ground tank):
- *     - Electrical isolator & RCD → Yes/No (+$350)
+ *     - Electrical isolator & RCD → mandatory, always included (+$350; not asked)
  *     - Safe / Catch tray → No = tray (+$165) + Mildred valve (+$225) ; Yes → reusable? No = tray (+$165) / Yes = $0
  *   Included: Remove old tank & disposal ($0)
  *
@@ -48,6 +48,7 @@ const CODE = {
   ISOLATOR: "electrical_isolator_rcd", // shared `all` row
   TRAY: "safe_catch_tray_split",
   VALVE: "mildred_valve_split",
+  SUPPORT_BASE: "support_base_split", // outside ground tank
   REMOVE_TANK: "remove_old_tank",
 } as const;
 
@@ -152,9 +153,10 @@ export default function SplitSolarWizard({
   const [onTiltFrame, setOnTiltFrame] = useState<"yes" | "no" | null>(null);
   const [tiltReusable, setTiltReusable] = useState<"yes" | "no" | null>(null);
   const [access, setAccess] = useState<"yes" | "no" | "unsure" | null>(null);
-  const [isolator, setIsolator] = useState<"yes" | "no" | null>(null);
+  const [tankLocation, setTankLocation] = useState<"inside" | "outside" | null>(null);
   const [hasTray, setHasTray] = useState<"yes" | "no" | null>(null);
   const [trayReusable, setTrayReusable] = useState<"yes" | "no" | null>(null);
+  const [needsBase, setNeedsBase] = useState<"yes" | "no" | null>(null);
 
   const resetAll = () => {
     setHome(null);
@@ -162,9 +164,10 @@ export default function SplitSolarWizard({
     setOnTiltFrame(null);
     setTiltReusable(null);
     setAccess(null);
-    setIsolator(null);
+    setTankLocation(null);
     setHasTray(null);
     setTrayReusable(null);
+    setNeedsBase(null);
   };
 
   useEffect(() => {
@@ -191,21 +194,31 @@ export default function SplitSolarWizard({
     if (pitch === "steep") codes.push(CODE.PITCH_STEEP);
     if (pitch === "crazy_steep") codes.push(CODE.PITCH_CRAZY);
     if (needsNewTiltFrame) codes.push(CODE.TILT_FRAME);
-    if (isolator === "yes") codes.push(CODE.ISOLATOR);
-    if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
-    else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);
+    codes.push(CODE.ISOLATOR); // mandatory for split solar (ground tank) — always included
+    // Inside tank → tray; outside tank → support base.
+    if (tankLocation === "inside") {
+      if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
+      else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);
+    } else if (tankLocation === "outside") {
+      if (needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
+    }
     return codes.filter((c) => byCode[c]);
-  }, [byCode, home, pitch, needsNewTiltFrame, isolator, hasTray, trayReusable]);
+  }, [byCode, home, pitch, needsNewTiltFrame, tankLocation, hasTray, trayReusable, needsBase]);
 
   const complete = useMemo(() => {
-    if (!home || !pitch || !access || !isolator || !hasTray) return false;
+    if (!home || !pitch || !access || !tankLocation) return false;
     if (pitch === "flat") {
       if (!onTiltFrame) return false;
       if (onTiltFrame === "yes" && !tiltReusable) return false;
     }
-    if (hasTray === "yes" && !trayReusable) return false;
+    if (tankLocation === "inside") {
+      if (!hasTray) return false;
+      if (hasTray === "yes" && !trayReusable) return false;
+    } else if (tankLocation === "outside") {
+      if (!needsBase) return false;
+    }
     return true;
-  }, [home, pitch, access, isolator, hasTray, onTiltFrame, tiltReusable, trayReusable]);
+  }, [home, pitch, access, tankLocation, hasTray, trayReusable, needsBase, onTiltFrame, tiltReusable]);
 
   const selectedIds = useMemo(() => selectedCodes.map((c) => byCode[c].extraId), [selectedCodes, byCode]);
   const idsKey = selectedIds.join(",");
@@ -217,11 +230,11 @@ export default function SplitSolarWizard({
     onCompletionChange?.(complete);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [complete]);
-  // Split-solar tank sits on the ground → treat as "outside" for the CRM location.
+  // Report the chosen tank location (Inside/Outside) for the CRM system-location.
   useEffect(() => {
-    onLocationChange?.("outside");
+    onLocationChange?.(tankLocation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tankLocation]);
 
   if (loading) return <p className="text-slate-400">Loading questions…</p>;
 
@@ -289,34 +302,64 @@ export default function SplitSolarWizard({
         </Question>
       )}
 
-      {/* Ground-tank electrical items — same as electric */}
+      {/* Tank location → Inside = safe tray flow, Outside = support base. The
+          electrical isolator & RCD is mandatory either way (see Standard, below). */}
       {home && pitch && access && (
         <>
-          <Question title="Is an electrical isolator & RCD required?">
-            <ToggleButton value={isolator} onChange={setIsolator} />
+          <Question title="Where is the storage tank located?">
+            <OptionPills
+              options={[
+                { value: "inside", label: "Inside" },
+                { value: "outside", label: "Outside" },
+              ]}
+              value={tankLocation}
+              onChange={(v) => {
+                setTankLocation(v);
+                setHasTray(null);
+                setTrayReusable(null);
+                setNeedsBase(null);
+              }}
+            />
           </Question>
 
-          <Question title="Is there a Safe / Catch Tray?">
-            <div className="flex items-center gap-4 flex-wrap">
-              <ToggleButton value={hasTray} onChange={(v) => { setHasTray(v); setTrayReusable(null); }} />
-              <ExtraInfo extra={byCode[CODE.TRAY]} />
-            </div>
-            {hasTray === "no" && (
-              <Note>May be required to meet regulations: Safe / Catch Tray and Mildred anti-flood valve.</Note>
-            )}
-            {hasTray === "yes" && (
-              <div className="mt-4">
-                <p className="font-semibold text-white">Is it in good condition and reusable?</p>
-                <ToggleButton value={trayReusable} onChange={setTrayReusable} />
+          {tankLocation === "inside" && (
+            <Question title="Is there a Safe / Catch Tray?">
+              <div className="flex items-center gap-4 flex-wrap">
+                <ToggleButton value={hasTray} onChange={(v) => { setHasTray(v); setTrayReusable(null); }} />
+                <ExtraInfo extra={byCode[CODE.TRAY]} />
               </div>
-            )}
-          </Question>
+              {hasTray === "no" && (
+                <Note>May be required to meet regulations: Safe / Catch Tray and Mildred anti-flood valve.</Note>
+              )}
+              {hasTray === "yes" && (
+                <div className="mt-4">
+                  <p className="font-semibold text-white">Is it in good condition and reusable?</p>
+                  <ToggleButton value={trayReusable} onChange={setTrayReusable} />
+                </div>
+              )}
+            </Question>
+          )}
+
+          {tankLocation === "outside" && (
+            <Question title="Will a concrete / poly support base be required?">
+              <div className="flex items-center gap-4 flex-wrap">
+                <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+              </div>
+            </Question>
+          )}
         </>
       )}
 
       {/* Included */}
       <div className="mt-6 pt-4 border-t border-white/10">
         <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">Standard (included)</p>
+        {byCode[CODE.ISOLATOR] && (
+          <div className="flex justify-between text-sm py-0.5">
+            <span className="text-slate-200">{byCode[CODE.ISOLATOR].name}</span>
+            <span className="text-slate-400">Required</span>
+          </div>
+        )}
         {byCode[CODE.REMOVE_TANK] && (
           <div className="flex justify-between text-sm py-0.5">
             <span className="text-slate-200">{byCode[CODE.REMOVE_TANK].name}</span>

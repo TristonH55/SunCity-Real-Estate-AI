@@ -13,7 +13,7 @@ const MAP: { codes: string[]; brochureUrl: string }[] = [
     brochureUrl: "/pdfs/Extras/catch-tray.png",
   },
   {
-    codes: ["support_base_electric", "support_base_heat_pump"],
+    codes: ["support_base_electric", "support_base_heat_pump", "support_base_split"],
     brochureUrl: "/pdfs/Extras/concrete-base.png",
   },
 ];
