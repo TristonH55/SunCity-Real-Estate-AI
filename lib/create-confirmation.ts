@@ -6,6 +6,7 @@ import { resend } from "@/lib/resend";
 import { escapeHtml } from "@/lib/escape-html";
 import {
   CMS_ENQUIRY_TYPES,
+  CMS_LEAD_STATUS,
   CMS_PROPERTY_TYPES,
   CMS_EXISTING_SYSTEM_TYPES,
   CMS_SYSTEM_LOCATIONS,
@@ -75,7 +76,8 @@ export async function pushConfirmationToCMS(
 
     const cms = await sendLeadToCMS({
       lead_data: {
-        status: "d651",
+        // "Quoted" (not "New") so SunCity's CRM skips its New-lead auto-email.
+        status: CMS_LEAD_STATUS.quoted,
         source: "2d2e",
         source_domain: process.env.NEXT_PUBLIC_BASE_URL || "localhost",
         source_url: `${base}/pricing`,

@@ -39,6 +39,13 @@
 export const CMS_ENQUIRY_TYPES = {
     new_system: "f176",  // New System / Replacement
   } as const;
+
+  // Lead status / stage codes. App-created leads go in as "Quoted" (not "New") so
+  // SunCity's CRM doesn't fire its New-lead auto-email (Gary confirmed 2026-07-29).
+  export const CMS_LEAD_STATUS = {
+    new:    "d651",
+    quoted: "ee79",
+  } as const;
   
   export const CMS_PROPERTY_TYPES = {
     House:       "8884",
