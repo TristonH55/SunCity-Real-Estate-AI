@@ -2,24 +2,24 @@
 
 /**
  * SplitSolarWizard — Step 3 for SPLIT SOLAR (tank on the ground, panels on roof).
- * Replaces the flat ExtrasList for solar_split only.
  *
  *   Q1 Home:  Single/Lowset ($0) · Double/Highset (+$450)
- *   Q2 Pitch: Flat · Moderate ($0) · Steep (+$150) · Crazy Steep (+$500)  — image cards
- *             Flat → tilt frame needed: on a tilt frame? Yes → reusable? Yes=$0/No=new (+$675) ; No = new (+$675)
+ *   Q2 Pitch: Flat · Moderate ($0) · Steep (+$150) · Crazy Steep (+$500) — image cards
+ *             Flat → tilt frame: on a tilt frame? Yes → reusable? Yes=$0/No=new (+$675) ; No = new (+$675)
  *   Q3 Access: Yes / No / Unsure (informational)
- *   Same as electric (ground tank):
+ *   Ground tank — same position / relocation model (mirrors electric):
+ *     - Where is the current system? Inside / Outside
+ *     - Same position? YES → inside = Safe/Catch tray · outside = support base
+ *                      NO  → new inside = site-visit note only ; new outside = lineal metres + support base
  *     - Electrical isolator & RCD → mandatory, always included (+$350; not asked)
- *     - Safe / Catch tray → No = tray (+$165) + Mildred valve (+$225) ; Yes → reusable? No = tray (+$165) / Yes = $0
- *   Included: Remove old tank & disposal ($0)
- *
- * No Inside/Outside or Concrete base (tank is on the ground). Costs HIDDEN here.
- * Output → extraIds.
+ *   Included: Remove old tank & disposal ($0). Costs HIDDEN here. Output → extraIds.
  */
 
 import { useEffect, useMemo, useState } from "react";
 import ToggleButton from "./ToggleButton";
 import ExtraInfo from "./ExtraInfo";
+import type { RelocationMeta } from "./ElectricWizard";
+import { isValidRelocationMetres } from "@/lib/relocation-pricing";
 
 type Extra = {
   extraId: string;
@@ -37,6 +37,7 @@ type Props = {
   selectedExtras: string[];
   onChange: (extras: string[]) => void;
   onCompletionChange?: (complete: boolean) => void;
+  onMetaChange?: (relocation: RelocationMeta) => void;
   onLocationChange?: (loc: "inside" | "outside" | null) => void;
 };
 
@@ -143,6 +144,7 @@ export default function SplitSolarWizard({
   systemType,
   onChange,
   onCompletionChange,
+  onMetaChange,
   onLocationChange,
 }: Props) {
   const [byCode, setByCode] = useState<Record<string, Extra>>({});
@@ -153,21 +155,32 @@ export default function SplitSolarWizard({
   const [onTiltFrame, setOnTiltFrame] = useState<"yes" | "no" | null>(null);
   const [tiltReusable, setTiltReusable] = useState<"yes" | "no" | null>(null);
   const [access, setAccess] = useState<"yes" | "no" | "unsure" | null>(null);
-  const [tankLocation, setTankLocation] = useState<"inside" | "outside" | null>(null);
+
+  // Ground-tank position / relocation (mirrors electric)
+  const [currentLocation, setCurrentLocation] = useState<"inside" | "outside" | null>(null);
+  const [samePosition, setSamePosition] = useState<"yes" | "no" | null>(null);
+  const [newLocation, setNewLocation] = useState<"inside" | "outside" | null>(null);
+  const [metres, setMetres] = useState("");
   const [hasTray, setHasTray] = useState<"yes" | "no" | null>(null);
   const [trayReusable, setTrayReusable] = useState<"yes" | "no" | null>(null);
   const [needsBase, setNeedsBase] = useState<"yes" | "no" | null>(null);
 
+  const resetGround = () => {
+    setNewLocation(null);
+    setMetres("");
+    setHasTray(null);
+    setTrayReusable(null);
+    setNeedsBase(null);
+  };
   const resetAll = () => {
     setHome(null);
     setPitch(null);
     setOnTiltFrame(null);
     setTiltReusable(null);
     setAccess(null);
-    setTankLocation(null);
-    setHasTray(null);
-    setTrayReusable(null);
-    setNeedsBase(null);
+    setCurrentLocation(null);
+    setSamePosition(null);
+    resetGround();
   };
 
   useEffect(() => {
@@ -188,37 +201,66 @@ export default function SplitSolarWizard({
   const needsNewTiltFrame =
     pitch === "flat" && (onTiltFrame === "no" || (onTiltFrame === "yes" && tiltReusable === "no"));
 
+  const metresNum = parseInt(metres, 10);
+  const metresValid = isValidRelocationMetres(metresNum);
+
+  // Relocation metadata (lineal-metre pricing / site-visit flag), same as electric.
+  const relocationMeta: RelocationMeta = useMemo(() => {
+    if (samePosition !== "no" || !newLocation) return null;
+    if (newLocation === "inside") return { newLocation: "inside", requiresSiteVisit: true };
+    if (!metresValid) return null;
+    return { newLocation: "outside", metres: metresNum, requiresSiteVisit: false };
+  }, [samePosition, newLocation, metresValid, metresNum]);
+
   const selectedCodes = useMemo(() => {
     const codes: string[] = [CODE.REMOVE_TANK];
     if (home === "double") codes.push(CODE.DOUBLE_STOREY);
     if (pitch === "steep") codes.push(CODE.PITCH_STEEP);
     if (pitch === "crazy_steep") codes.push(CODE.PITCH_CRAZY);
     if (needsNewTiltFrame) codes.push(CODE.TILT_FRAME);
-    codes.push(CODE.ISOLATOR); // mandatory for split solar (ground tank) — always included
-    // Inside tank → tray; outside tank → support base.
-    if (tankLocation === "inside") {
-      if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
-      else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);
-    } else if (tankLocation === "outside") {
-      if (needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
+    codes.push(CODE.ISOLATOR); // mandatory for split solar (ground tank)
+
+    if (currentLocation && samePosition) {
+      if (samePosition === "yes") {
+        if (currentLocation === "inside") {
+          if (hasTray === "no") codes.push(CODE.TRAY, CODE.VALVE);
+          else if (hasTray === "yes" && trayReusable === "no") codes.push(CODE.TRAY);
+        } else {
+          if (needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
+        }
+      } else {
+        // relocation: outside = support base (+ lineal metres via relocationMeta);
+        // inside = site-visit note only, no priced items here.
+        if (newLocation === "outside" && needsBase === "yes") codes.push(CODE.SUPPORT_BASE);
+      }
     }
     return codes.filter((c) => byCode[c]);
-  }, [byCode, home, pitch, needsNewTiltFrame, tankLocation, hasTray, trayReusable, needsBase]);
+  }, [byCode, home, pitch, needsNewTiltFrame, currentLocation, samePosition, newLocation, hasTray, trayReusable, needsBase]);
 
   const complete = useMemo(() => {
-    if (!home || !pitch || !access || !tankLocation) return false;
+    if (!home || !pitch || !access) return false;
     if (pitch === "flat") {
       if (!onTiltFrame) return false;
       if (onTiltFrame === "yes" && !tiltReusable) return false;
     }
-    if (tankLocation === "inside") {
-      if (!hasTray) return false;
-      if (hasTray === "yes" && !trayReusable) return false;
-    } else if (tankLocation === "outside") {
+    if (!currentLocation || !samePosition) return false;
+    if (samePosition === "yes") {
+      if (currentLocation === "inside") {
+        if (!hasTray) return false;
+        if (hasTray === "yes" && !trayReusable) return false;
+      } else {
+        if (!needsBase) return false;
+      }
+      return true;
+    }
+    // relocation
+    if (!newLocation) return false;
+    if (newLocation === "outside") {
+      if (!metresValid) return false;
       if (!needsBase) return false;
     }
-    return true;
-  }, [home, pitch, access, tankLocation, hasTray, trayReusable, needsBase, onTiltFrame, tiltReusable]);
+    return true; // inside → site visit is a valid terminal state
+  }, [home, pitch, access, onTiltFrame, tiltReusable, currentLocation, samePosition, newLocation, metresValid, hasTray, trayReusable, needsBase]);
 
   const selectedIds = useMemo(() => selectedCodes.map((c) => byCode[c].extraId), [selectedCodes, byCode]);
   const idsKey = selectedIds.join(",");
@@ -230,13 +272,38 @@ export default function SplitSolarWizard({
     onCompletionChange?.(complete);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [complete]);
-  // Report the chosen tank location (Inside/Outside) for the CRM system-location.
+  const metaKey = JSON.stringify(relocationMeta);
   useEffect(() => {
-    onLocationChange?.(tankLocation);
+    onMetaChange?.(relocationMeta);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tankLocation]);
+  }, [metaKey]);
+  // CRM system-location: relocation → where the new tank goes; else the existing location.
+  const effectiveLocation = samePosition === "no" ? newLocation : currentLocation;
+  useEffect(() => {
+    onLocationChange?.(effectiveLocation);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveLocation]);
 
   if (loading) return <p className="text-slate-400">Loading questions…</p>;
+
+  // Safe / Catch tray question — reused by the same-position-inside branch.
+  const trayQuestion = (
+    <Question title="Is there a Safe / Catch Tray?">
+      <div className="flex items-center gap-4 flex-wrap">
+        <ToggleButton value={hasTray} onChange={(v) => { setHasTray(v); setTrayReusable(null); }} />
+        <ExtraInfo extra={byCode[CODE.TRAY]} />
+      </div>
+      {hasTray === "no" && (
+        <Note>May be required to meet regulations: Safe / Catch Tray and Mildred anti-flood valve.</Note>
+      )}
+      {hasTray === "yes" && (
+        <div className="mt-4">
+          <p className="font-semibold text-white">Is it in good condition and reusable?</p>
+          <ToggleButton value={trayReusable} onChange={setTrayReusable} />
+        </div>
+      )}
+    </Question>
+  );
 
   return (
     <div>
@@ -302,51 +369,103 @@ export default function SplitSolarWizard({
         </Question>
       )}
 
-      {/* Tank location → Inside = safe tray flow, Outside = support base. The
-          electrical isolator & RCD is mandatory either way (see Standard, below). */}
+      {/* Ground tank — position / relocation (mirrors electric). Isolator mandatory (below). */}
       {home && pitch && access && (
         <>
-          <Question title="Where is the storage tank located?">
+          <Question title="Where is the current system?">
             <OptionPills
               options={[
                 { value: "inside", label: "Inside" },
                 { value: "outside", label: "Outside" },
               ]}
-              value={tankLocation}
+              value={currentLocation}
               onChange={(v) => {
-                setTankLocation(v);
-                setHasTray(null);
-                setTrayReusable(null);
-                setNeedsBase(null);
+                setCurrentLocation(v);
+                setSamePosition(null);
+                resetGround();
               }}
             />
           </Question>
 
-          {tankLocation === "inside" && (
-            <Question title="Is there a Safe / Catch Tray?">
-              <div className="flex items-center gap-4 flex-wrap">
-                <ToggleButton value={hasTray} onChange={(v) => { setHasTray(v); setTrayReusable(null); }} />
-                <ExtraInfo extra={byCode[CODE.TRAY]} />
-              </div>
-              {hasTray === "no" && (
-                <Note>May be required to meet regulations: Safe / Catch Tray and Mildred anti-flood valve.</Note>
-              )}
-              {hasTray === "yes" && (
-                <div className="mt-4">
-                  <p className="font-semibold text-white">Is it in good condition and reusable?</p>
-                  <ToggleButton value={trayReusable} onChange={setTrayReusable} />
-                </div>
-              )}
+          {currentLocation && (
+            <Question title="Same position as the existing system?">
+              <ToggleButton
+                value={samePosition}
+                onChange={(v) => {
+                  setSamePosition(v);
+                  resetGround();
+                }}
+              />
             </Question>
           )}
 
-          {tankLocation === "outside" && (
+          {/* SAME POSITION */}
+          {samePosition === "yes" && currentLocation === "inside" && trayQuestion}
+
+          {samePosition === "yes" && currentLocation === "outside" && (
             <Question title="Will a concrete / poly support base be required?">
               <div className="flex items-center gap-4 flex-wrap">
                 <ToggleButton value={needsBase} onChange={setNeedsBase} />
                 <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
               </div>
             </Question>
+          )}
+
+          {/* RELOCATION */}
+          {samePosition === "no" && (
+            <>
+              <Question title="Will the new system be installed inside or outside?">
+                <OptionPills
+                  options={[
+                    { value: "inside", label: "Inside" },
+                    { value: "outside", label: "Outside" },
+                  ]}
+                  value={newLocation}
+                  onChange={(v) => {
+                    setNewLocation(v);
+                    setMetres("");
+                    setNeedsBase(null);
+                    setHasTray(null);
+                    setTrayReusable(null);
+                  }}
+                />
+              </Question>
+
+              {newLocation === "outside" && (
+                <>
+                  <Question title="How far will the new system move? (lineal metres)">
+                    <div className="flex items-center gap-3 mt-2">
+                      <input
+                        type="number"
+                        min={2}
+                        max={30}
+                        value={metres}
+                        onChange={(e) => setMetres(e.target.value)}
+                        placeholder="e.g. 8"
+                        className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition"
+                      />
+                      <span className="text-sm text-slate-400">metres (2–30)</span>
+                    </div>
+                  </Question>
+
+                  <Question title="Will a concrete / poly support base be required?">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <ToggleButton value={needsBase} onChange={setNeedsBase} />
+                      <ExtraInfo extra={byCode[CODE.SUPPORT_BASE]} />
+                    </div>
+                  </Question>
+                </>
+              )}
+
+              {newLocation === "inside" && (
+                <Note>
+                  Internal relocation — final price subject to a <strong>site visit</strong>. New pipes
+                  and electrical may need to run through walls (assessed on site; in some cases may not
+                  be possible). A SunCity site visit will be arranged. The quote below covers the system
+                  and standard items only.
+                </Note>
+              )}
+            </>
           )}
         </>
       )}

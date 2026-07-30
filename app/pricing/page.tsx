@@ -234,6 +234,7 @@ export default function PricingPage() {
               selectedExtras={selectedExtras}
               onChange={setSelectedExtras}
               onCompletionChange={setExtrasComplete}
+              onMetaChange={setRelocation}
               onLocationChange={setSystemLocation}
             />
           ) : (

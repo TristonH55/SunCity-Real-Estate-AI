@@ -22,6 +22,12 @@ export function checkOrigin(req: Request): NextResponse | null {
     })
     .filter(Boolean) as string[];
 
+  // In local dev, allow localhost too (the env URLs usually point at the deployed
+  // site). Never applied in production, so prod stays locked to the real URL.
+  if (process.env.NODE_ENV !== "production") {
+    allowed.push("http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000");
+  }
+
   if (allowed.length === 0) return null; // not configured → don't lock out
 
   let reqOrigin: string;
