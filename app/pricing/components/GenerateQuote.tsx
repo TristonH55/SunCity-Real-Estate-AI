@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import type { RelocationMeta } from "./ElectricWizard";
 import type { ConversionMeta } from "./HeatPumpWizard";
 
@@ -15,6 +16,30 @@ type CustomerDetails = {
   postcode: string;
   propertyType: string;
 };
+
+const EMPTY_CUSTOMER: CustomerDetails = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  address: "",
+  suburb: "",
+  postcode: "",
+  propertyType: "",
+};
+
+// Admin-only quick-fill for testing (so admins don't retype Step 4 each time).
+const TEST_CUSTOMER: CustomerDetails = {
+  firstName: "Darren",
+  lastName: "Sheldrick",
+  email: "admin@suncityhotwater.com.au",
+  phone: "0413 861 166",
+  address: "2 Tanawha Tourist Dr, Tanawha QLD 4556, Australia",
+  suburb: "Tanawha",
+  postcode: "4556",
+  propertyType: "House",
+};
+const TEST_FILL_KEY = "suncity_admin_testfill"; // remembers the toggle across quotes
 
 const inputClass =
   "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white";
@@ -45,21 +70,38 @@ export default function GenerateQuote({
   existingSizeLabel?: string | null;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [addressInput, setAddressInput] = useState("");
 
-  const [customer, setCustomer] = useState<CustomerDetails>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    suburb: "",
-    postcode: "",
-    propertyType: "",
-  });
+  const [customer, setCustomer] = useState<CustomerDetails>({ ...EMPTY_CUSTOMER });
+
+  // Admin-only test-fill toggle, remembered across quotes via localStorage.
+  const [testFill, setTestFill] = useState(false);
+  useEffect(() => {
+    if (isAdmin && localStorage.getItem(TEST_FILL_KEY) === "1") {
+      setTestFill(true);
+      setCustomer({ ...TEST_CUSTOMER });
+      setAddressInput(TEST_CUSTOMER.address);
+    }
+  }, [isAdmin]);
+
+  const toggleTestFill = (on: boolean) => {
+    setTestFill(on);
+    if (on) {
+      localStorage.setItem(TEST_FILL_KEY, "1");
+      setCustomer({ ...TEST_CUSTOMER });
+      setAddressInput(TEST_CUSTOMER.address);
+    } else {
+      localStorage.removeItem(TEST_FILL_KEY);
+      setCustomer({ ...EMPTY_CUSTOMER });
+      setAddressInput("");
+    }
+  };
 
   const customerComplete = Object.values(customer).every((v) =>
     v?.toString().trim()
@@ -113,6 +155,21 @@ export default function GenerateQuote({
 
   return (
     <div className="space-y-6">
+      {isAdmin && (
+        <label className="flex items-center gap-3 rounded-lg border border-sky-400/30 bg-sky-500/10 px-4 py-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={testFill}
+            onChange={(e) => toggleTestFill(e.target.checked)}
+            className="h-4 w-4"
+          />
+          <span className="text-sm font-semibold text-sky-200">
+            🧪 Fill test details (admin only)
+          </span>
+          <span className="ml-auto text-xs text-sky-300/70">stays on across quotes</span>
+        </label>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
           placeholder="First name"

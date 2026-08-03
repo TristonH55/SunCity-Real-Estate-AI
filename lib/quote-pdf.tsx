@@ -259,6 +259,12 @@ export async function renderQuotePdf(quoteId: string): Promise<
           {quote.createdAt.toISOString().slice(0, 10)} · SunCity Hot Water.
           Prices include GST where shown. Contact SunCity for installation.
         </Text>
+
+        <Text style={{ marginTop: 8, fontSize: 8, color: "#666" }}>
+          Please note: This quote is based on the answers you provided and assumes they are accurate. If
+          site conditions or requirements differ, or additional work or parts are needed, SunCity Hot
+          Water reserves the right to amend the quote. Any changes will be confirmed with you first.
+        </Text>
       </Page>
     </Document>
   );
