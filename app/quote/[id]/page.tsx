@@ -7,6 +7,11 @@ import { redirect, notFound } from "next/navigation";
 import LockQuote from "./LockQuote";
 import HomeownerCard from "./HomeownerCard";
 import { brandBrochures } from "@/lib/brand-brochures";
+import {
+  extraDisplayName,
+  ISOLATOR_RCD_NAME,
+  showsStandardIsolator,
+} from "@/lib/extra-display";
 
 const money = (v: number) =>
   v.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
@@ -65,9 +70,10 @@ export default async function QuoteViewPage({
   const extras = quote.extraIds.length
     ? await prisma.extra.findMany({
         where: { id: { in: quote.extraIds } },
-        select: { name: true, infoText: true, brochureUrl: true },
+        select: { code: true, name: true, infoText: true, brochureUrl: true },
       })
     : [];
+  const standardIsolator = showsStandardIsolator(quote.systemType, extras);
 
   return (
     <div className="min-h-screen text-white px-6 md:px-8 py-10 max-w-5xl mx-auto">
@@ -215,11 +221,12 @@ export default async function QuoteViewPage({
 
         <div className="border-t border-white/10 mt-4 pt-4">
           <p className="text-slate-400 text-sm mb-2">What&apos;s included</p>
-          {extras.length > 0 ? (
+          {extras.length > 0 || standardIsolator ? (
             <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
+              {standardIsolator && <li>{ISOLATOR_RCD_NAME}</li>}
               {extras.map((e, i) => (
                 <li key={i}>
-                  {e.name}
+                  {extraDisplayName(e, customer.existingSystemType)}
                   {e.brochureUrl && (
                     <a
                       href={e.brochureUrl}

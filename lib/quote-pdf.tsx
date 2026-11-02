@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { brandBrochures } from "@/lib/brand-brochures";
 import {
+  extraDisplayName,
+  ISOLATOR_RCD_NAME,
+  showsStandardIsolator,
+} from "@/lib/extra-display";
+import {
   Image,
   Document,
   Page,
@@ -66,9 +71,11 @@ export async function renderQuotePdf(quoteId: string): Promise<
   const extras = quote.extraIds.length
     ? await prisma.extra.findMany({
         where: { id: { in: quote.extraIds } },
-        select: { name: true, brochureUrl: true },
+        select: { code: true, name: true, brochureUrl: true },
       })
     : [];
+
+  const standardIsolator = showsStandardIsolator(quote.systemType, extras);
 
   const customer = (quote.customerSnapshot ?? {}) as Record<string, string>;
   const snapshot = (quote.customerSnapshot ?? {}) as Record<string, any>;
@@ -140,9 +147,16 @@ export async function renderQuotePdf(quoteId: string): Promise<
         </View>
 
         {/* Selected extras (shared across all options) */}
-        {(extras.length > 0 || lineItems.length > 0) && (
+        {(customer.systemLocation ||
+          standardIsolator ||
+          extras.length > 0 ||
+          lineItems.length > 0) && (
           <View style={styles.box}>
             <Text style={styles.boxTitle}>What&apos;s included</Text>
+            {customer.systemLocation ? (
+              <Text>• System location: {customer.systemLocation}</Text>
+            ) : null}
+            {standardIsolator ? <Text>• {ISOLATOR_RCD_NAME}</Text> : null}
             {extras.map((e, i) => {
               const src = e.brochureUrl
                 ? e.brochureUrl.startsWith("http")
@@ -151,7 +165,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
                 : null;
               return (
                 <Text key={i}>
-                  • {e.name}
+                  • {extraDisplayName(e, customer.existingSystemType)}
                   {src ? (
                     <Link src={src} style={{ color: "#2563eb" }}>
                       {"  (view)"}
