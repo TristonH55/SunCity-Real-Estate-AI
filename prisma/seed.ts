@@ -385,6 +385,9 @@ async function seedExtras() {
     // =========================
     // THERMOSIPHON SOLAR — Darren's Step-3 questions (shown only for solar_thermosiphon via API filter)
     // =========================
+    { code: "single_storey_thermosiphon", name: "Single Storey / Lowset", systemType: ExtraSystemType.solar, active: true },
+    { code: "pitch_flat_thermosiphon", name: "Roof pitch: Flat", systemType: ExtraSystemType.solar, active: true },
+    { code: "pitch_moderate_thermosiphon", name: "Roof pitch: Moderate", systemType: ExtraSystemType.solar, active: true },
     { code: "double_storey_thermosiphon", name: "Double storey / highset roof", systemType: ExtraSystemType.solar, active: true },
     { code: "pitch_steep_thermosiphon", name: "Steep roof pitch", systemType: ExtraSystemType.solar, active: true },
     { code: "pitch_crazy_steep_thermosiphon", name: "Very steep roof pitch", systemType: ExtraSystemType.solar, active: true },
@@ -393,6 +396,9 @@ async function seedExtras() {
     // =========================
     // SPLIT SOLAR — Darren's Step-3 questions (shown only for solar_split via API filter)
     // =========================
+    { code: "single_storey_split", name: "Single Storey / Lowset", systemType: ExtraSystemType.solar, active: true },
+    { code: "pitch_flat_split", name: "Roof pitch: Flat", systemType: ExtraSystemType.solar, active: true },
+    { code: "pitch_moderate_split", name: "Roof pitch: Moderate", systemType: ExtraSystemType.solar, active: true },
     { code: "double_storey_split", name: "Double storey / highset roof", systemType: ExtraSystemType.solar, active: true },
     { code: "pitch_steep_split", name: "Steep roof pitch", systemType: ExtraSystemType.solar, active: true },
     { code: "pitch_crazy_steep_split", name: "Very steep roof pitch", systemType: ExtraSystemType.solar, active: true },
@@ -1001,6 +1007,9 @@ async function seedExtraPrices() {
   // THERMOSIPHON SOLAR — Darren's Step-3 add-ons (flat, all regions)
   // =================================================
   const flatThermosiphon = {
+    single_storey_thermosiphon: 0,
+    pitch_flat_thermosiphon: 0,
+    pitch_moderate_thermosiphon: 0,
     double_storey_thermosiphon: 450,
     pitch_steep_thermosiphon: 150,
     pitch_crazy_steep_thermosiphon: 500,
@@ -1021,6 +1030,9 @@ async function seedExtraPrices() {
   // SPLIT SOLAR — Darren's Step-3 add-ons (flat, all regions)
   // =================================================
   const flatSplit = {
+    single_storey_split: 0,
+    pitch_flat_split: 0,
+    pitch_moderate_split: 0,
     double_storey_split: 450,
     pitch_steep_split: 150,
     pitch_crazy_steep_split: 500,

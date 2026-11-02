@@ -42,7 +42,10 @@ type Props = {
 };
 
 const CODE = {
+  SINGLE_STOREY: "single_storey_split",
   DOUBLE_STOREY: "double_storey_split",
+  PITCH_FLAT: "pitch_flat_split",
+  PITCH_MODERATE: "pitch_moderate_split",
   PITCH_STEEP: "pitch_steep_split",
   PITCH_CRAZY: "pitch_crazy_steep_split",
   TILT_FRAME: "tilt_frame_split",
@@ -214,7 +217,10 @@ export default function SplitSolarWizard({
 
   const selectedCodes = useMemo(() => {
     const codes: string[] = [CODE.REMOVE_TANK];
+    if (home === "single") codes.push(CODE.SINGLE_STOREY);
     if (home === "double") codes.push(CODE.DOUBLE_STOREY);
+    if (pitch === "flat") codes.push(CODE.PITCH_FLAT);
+    if (pitch === "moderate") codes.push(CODE.PITCH_MODERATE);
     if (pitch === "steep") codes.push(CODE.PITCH_STEEP);
     if (pitch === "crazy_steep") codes.push(CODE.PITCH_CRAZY);
     if (needsNewTiltFrame) codes.push(CODE.TILT_FRAME);

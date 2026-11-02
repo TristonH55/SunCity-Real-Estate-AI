@@ -31,7 +31,10 @@ type Props = {
 };
 
 const CODE = {
+  SINGLE_STOREY: "single_storey_thermosiphon",
   DOUBLE_STOREY: "double_storey_thermosiphon",
+  PITCH_FLAT: "pitch_flat_thermosiphon",
+  PITCH_MODERATE: "pitch_moderate_thermosiphon",
   PITCH_STEEP: "pitch_steep_thermosiphon",
   PITCH_CRAZY: "pitch_crazy_steep_thermosiphon",
   TILT_FRAME: "tilt_frame_thermosiphon",
@@ -174,7 +177,10 @@ export default function ThermosiphonWizard({
 
   const selectedCodes = useMemo(() => {
     const codes: string[] = [CODE.REMOVE_TANK];
+    if (home === "single") codes.push(CODE.SINGLE_STOREY);
     if (home === "double") codes.push(CODE.DOUBLE_STOREY);
+    if (pitch === "flat") codes.push(CODE.PITCH_FLAT);
+    if (pitch === "moderate") codes.push(CODE.PITCH_MODERATE);
     if (pitch === "steep") codes.push(CODE.PITCH_STEEP);
     if (pitch === "crazy_steep") codes.push(CODE.PITCH_CRAZY);
     if (needsNewTiltFrame) codes.push(CODE.TILT_FRAME);
