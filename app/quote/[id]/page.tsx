@@ -11,6 +11,8 @@ import {
   extraDisplayName,
   ISOLATOR_RCD_NAME,
   showsStandardIsolator,
+  STANDARD_INCLUDED_HEADING,
+  STANDARD_INCLUDED_LINES,
 } from "@/lib/extra-display";
 
 const money = (v: number) =>
@@ -221,31 +223,34 @@ export default async function QuoteViewPage({
 
         <div className="border-t border-white/10 mt-4 pt-4">
           <p className="text-slate-400 text-sm mb-2">What&apos;s included</p>
-          {extras.length > 0 || standardIsolator ? (
-            <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
-              {standardIsolator && <li>{ISOLATOR_RCD_NAME}</li>}
-              {extras.map((e, i) => (
-                <li key={i}>
-                  {extraDisplayName(e, customer.existingSystemType)}
-                  {e.brochureUrl && (
-                    <a
-                      href={e.brochureUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-2 text-xs text-sky-300 hover:text-sky-200 underline"
-                    >
-                      📄 View
-                    </a>
-                  )}
-                  {e.infoText && (
-                    <span className="block ml-5 text-xs text-slate-400">{e.infoText}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-slate-400">None selected</p>
-          )}
+          <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
+            {standardIsolator && <li>{ISOLATOR_RCD_NAME}</li>}
+            {extras.map((e, i) => (
+              <li key={i}>
+                {extraDisplayName(e, customer.existingSystemType)}
+                {e.brochureUrl && (
+                  <a
+                    href={e.brochureUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 text-xs text-sky-300 hover:text-sky-200 underline"
+                  >
+                    📄 View
+                  </a>
+                )}
+                {e.infoText && (
+                  <span className="block ml-5 text-xs text-slate-400">{e.infoText}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <p className="text-slate-400 text-sm mt-4 mb-2">{STANDARD_INCLUDED_HEADING}</p>
+          <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
+            {STANDARD_INCLUDED_LINES.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </div>
 
         {lineItems.length > 0 && (

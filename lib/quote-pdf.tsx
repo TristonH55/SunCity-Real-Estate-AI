@@ -4,6 +4,8 @@ import {
   extraDisplayName,
   ISOLATOR_RCD_NAME,
   showsStandardIsolator,
+  STANDARD_INCLUDED_HEADING,
+  STANDARD_INCLUDED_LINES,
 } from "@/lib/extra-display";
 import {
   Image,
@@ -147,43 +149,42 @@ export async function renderQuotePdf(quoteId: string): Promise<
         </View>
 
         {/* Selected extras (shared across all options) */}
-        {(customer.systemLocation ||
-          standardIsolator ||
-          extras.length > 0 ||
-          lineItems.length > 0) && (
-          <View style={styles.box}>
-            <Text style={styles.boxTitle}>What&apos;s included</Text>
-            {customer.systemLocation ? (
-              <Text>• System location: {customer.systemLocation}</Text>
-            ) : null}
-            {standardIsolator ? <Text>• {ISOLATOR_RCD_NAME}</Text> : null}
-            {extras.map((e, i) => {
-              const src = e.brochureUrl
-                ? e.brochureUrl.startsWith("http")
-                  ? e.brochureUrl
-                  : `${process.env.NEXTAUTH_URL ?? ""}${e.brochureUrl}`
-                : null;
-              return (
-                <Text key={i}>
-                  • {extraDisplayName(e, customer.existingSystemType)}
-                  {src ? (
-                    <Link src={src} style={{ color: "#2563eb" }}>
-                      {"  (view)"}
-                    </Link>
-                  ) : (
-                    ""
-                  )}
-                </Text>
-              );
-            })}
-            {lineItems.map((li, i) => (
-              <Text key={`li-${i}`}>
-                • {li.label}
-                {li.amount > 0 ? ` — ${money(li.amount)}` : ""}
+        <View style={styles.box}>
+          <Text style={styles.boxTitle}>What&apos;s included</Text>
+          {customer.systemLocation ? (
+            <Text>• System location: {customer.systemLocation}</Text>
+          ) : null}
+          {standardIsolator ? <Text>• {ISOLATOR_RCD_NAME}</Text> : null}
+          {extras.map((e, i) => {
+            const src = e.brochureUrl
+              ? e.brochureUrl.startsWith("http")
+                ? e.brochureUrl
+                : `${process.env.NEXTAUTH_URL ?? ""}${e.brochureUrl}`
+              : null;
+            return (
+              <Text key={i}>
+                • {extraDisplayName(e, customer.existingSystemType)}
+                {src ? (
+                  <Link src={src} style={{ color: "#2563eb" }}>
+                    {"  (view)"}
+                  </Link>
+                ) : (
+                  ""
+                )}
               </Text>
-            ))}
-          </View>
-        )}
+            );
+          })}
+          {lineItems.map((li, i) => (
+            <Text key={`li-${i}`}>
+              • {li.label}
+              {li.amount > 0 ? ` — ${money(li.amount)}` : ""}
+            </Text>
+          ))}
+          <Text style={[styles.boxTitle, { marginTop: 8 }]}>{STANDARD_INCLUDED_HEADING}</Text>
+          {STANDARD_INCLUDED_LINES.map((line) => (
+            <Text key={line}>• {line}</Text>
+          ))}
+        </View>
 
         {requiresSiteVisit && (
           <View style={styles.box}>
@@ -275,9 +276,10 @@ export async function renderQuotePdf(quoteId: string): Promise<
         </Text>
 
         <Text style={{ marginTop: 8, fontSize: 8, color: "#666" }}>
-          Please note: This quote is based on the answers you provided and assumes they are accurate. If
-          site conditions or requirements differ, or additional work or parts are needed, SunCity Hot
-          Water reserves the right to amend the quote. Any changes will be confirmed with you first.
+          *All prices quoted are subject to a site inspection and confirmation of the details given. This
+          quote is based on the answers you provided and assumes they are accurate. If site conditions or
+          requirements differ, or additional work or parts are needed, SunCity Hot Water reserves the
+          right to amend the quote. Any changes will be confirmed with you first.
         </Text>
       </Page>
     </Document>

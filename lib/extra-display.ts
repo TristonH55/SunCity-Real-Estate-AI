@@ -11,6 +11,17 @@ const EXISTING_TANK_LABELS: Record<string, string> = {
   "Heat Pump": "heat pump",
 };
 
+// Fixed text listed on every job, not priced extras. Customer totals include GST
+// in both GST modes, so "GST inclusive" holds either way.
+export const STANDARD_INCLUDED_HEADING = "Included on all jobs:";
+
+export const STANDARD_INCLUDED_LINES = [
+  "Plumbing alterations and pipework fully insulated",
+  "Electrical disconnection and reconnection",
+  "QBCC form 4 council fees paid",
+  "GST inclusive",
+] as const;
+
 // Standard on heat pumps, so it's listed without being a priced extra. Some older
 // heat pump quotes saved it as an extra; those already list it.
 export const ISOLATOR_RCD_NAME = "Electrical isolator & RCD";
