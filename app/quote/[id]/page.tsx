@@ -247,6 +247,7 @@ export default async function QuoteViewPage({
 
           <p className="text-slate-400 text-sm mt-4 mb-2">{STANDARD_INCLUDED_HEADING}</p>
           <ul className="list-disc list-inside text-sm text-slate-200 space-y-1">
+            {snapshot.supplyInstallLine && <li>{snapshot.supplyInstallLine}</li>}
             {STANDARD_INCLUDED_LINES.map((line) => (
               <li key={line}>{line}</li>
             ))}

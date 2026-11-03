@@ -181,6 +181,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
             </Text>
           ))}
           <Text style={[styles.boxTitle, { marginTop: 8 }]}>{STANDARD_INCLUDED_HEADING}</Text>
+          {snapshot.supplyInstallLine ? <Text>• {snapshot.supplyInstallLine}</Text> : null}
           {STANDARD_INCLUDED_LINES.map((line) => (
             <Text key={line}>• {line}</Text>
           ))}

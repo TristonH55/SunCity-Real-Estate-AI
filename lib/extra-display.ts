@@ -16,11 +16,44 @@ const EXISTING_TANK_LABELS: Record<string, string> = {
 export const STANDARD_INCLUDED_HEADING = "Included on all jobs:";
 
 export const STANDARD_INCLUDED_LINES = [
+  "All new valves required for regulations",
   "Plumbing alterations and pipework fully insulated",
   "Electrical disconnection and reconnection",
   "QBCC form 4 council fees paid",
   "GST inclusive",
 ] as const;
+
+// The job-specific first line of the list above, saved on the quote when it's
+// created. "same" is only said when there's an existing system in that spot: no
+// system, or a roof Thermosiphon being replaced by a ground tank, has no position
+// to keep. A relocation decides the location over the Step-3 answer because the
+// heat pump flow reports where the old unit was, not where the new one goes.
+export function supplyInstallLine({
+  systemType,
+  existingType,
+  systemLocation,
+  relocation,
+  roofToGround,
+}: {
+  systemType: string;
+  existingType?: string | null;
+  systemLocation: "inside" | "outside";
+  relocation?: { newLocation: "inside" | "outside"; metres?: number } | null;
+  roofToGround?: boolean;
+}): string {
+  if (systemType === "solar_thermosiphon") return "Supply and install new on roof";
+
+  const location = relocation?.newLocation ?? systemLocation;
+  const place = location === "inside" ? "internal" : "external";
+  const noExistingPosition =
+    roofToGround || existingType === "none" || existingType === "solar_thermosiphon";
+
+  if (noExistingPosition) return `Supply and install new in ${place} location`;
+  if (!relocation) return `Supply and install new in same ${place} location`;
+  return relocation.newLocation === "outside"
+    ? `Supply and install new in new ${place} location, ${relocation.metres} metres away`
+    : `Supply and install new in new ${place} location`;
+}
 
 // Standard on heat pumps, so it's listed without being a priced extra. Some older
 // heat pump quotes saved it as an extra; those already list it.

@@ -15,6 +15,7 @@ import {
 } from "@/lib/relocation-pricing";
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 import { computeOptionPricing, getGstMode } from "@/lib/gst";
+import { supplyInstallLine } from "@/lib/extra-display";
 
 const VALID_SYSTEM_TYPES = [
   "gas",
@@ -278,6 +279,14 @@ export async function POST(req: NextRequest) {
           ...(disclaimers.length ? { disclaimers } : {}),
           ...(lineItems.length ? { lineItems } : {}),
           ...(requiresSiteVisit ? { requiresSiteVisit: true } : {}),
+          supplyInstallLine: supplyInstallLine({
+            systemType,
+            existingType,
+            systemLocation,
+            relocation,
+            // Heat pump only: the Thermosiphon conversion is its one site-visit case.
+            roofToGround: systemType === "heat_pump" && !!conversion?.requiresSiteVisit,
+          }),
         },
         status: "presented",
         options: { create: optionData },
