@@ -47,6 +47,16 @@ const emptyProduct = {
   brochureUrl: "",
 };
 
+// Same regions and order as the region picker, for the add form's All Regions tab.
+const ALL_REGIONS = [
+  { code: "sunshine_coast", name: "Sunshine Coast" },
+  { code: "brisbane_northside", name: "Brisbane Northside" },
+  { code: "brisbane_southside", name: "Brisbane Southside" },
+  { code: "gympie", name: "Gympie" },
+  { code: "gold_coast", name: "Gold Coast" },
+  { code: "wide_bay", name: "Wide Bay" },
+];
+
 const isImage = (url: string) => /\.(png|jpe?g|webp|gif)$/i.test(url.split("?")[0]);
 
 function ToggleChip({
@@ -112,6 +122,9 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const [np, setNp] = useState({ ...emptyProduct });
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null); // null = add mode
+  // Add form tab: just the selected region, or a price box per region
+  const [addAllRegions, setAddAllRegions] = useState(false);
+  const [regionPrices, setRegionPrices] = useState<Record<string, string>>({});
 
   // Brochure / info editor (shared for products + add-ons)
   const [media, setMedia] = useState<MediaTarget | null>(null);
@@ -441,8 +454,13 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const openAdd = () => {
     setEditingId(null);
     setNp({ ...emptyProduct });
+    setAddAllRegions(false);
+    setRegionPrices({});
     setAddOpen(true);
   };
+
+  // Regions given a price on the All Regions tab (blank = not added there).
+  const pricedRegions = ALL_REGIONS.filter((r) => (regionPrices[r.code] ?? "").trim() !== "");
 
   const openEdit = (r: Row) => {
     setEditingId(r.systemId);
@@ -470,7 +488,21 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
       return;
     }
     // Price is only entered when adding (editing changes product fields, not the region price).
-    if (!editingId && (np.price === "" || !Number.isFinite(Number(np.price)) || Number(np.price) < 0)) {
+    const allRegions = !editingId && addAllRegions;
+    if (allRegions) {
+      if (pricedRegions.length === 0) {
+        setMessage({ tone: "err", text: "Enter a price for at least one region." });
+        return;
+      }
+      const bad = pricedRegions.find((r) => {
+        const p = Number(regionPrices[r.code]);
+        return !Number.isFinite(p) || p <= 0;
+      });
+      if (bad) {
+        setMessage({ tone: "err", text: `Enter a price above $0 for ${bad.name}.` });
+        return;
+      }
+    } else if (!editingId && (np.price === "" || !Number.isFinite(Number(np.price)) || Number(np.price) < 0)) {
       setMessage({ tone: "err", text: "Enter a valid price." });
       return;
     }
@@ -494,17 +526,34 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         : await fetch("/api/admin/prices", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              regionCode: region,
-              systemType,
-              product: { ...productFields, price: Number(np.price) },
-            }),
+            body: JSON.stringify(
+              allRegions
+                ? {
+                    systemType,
+                    prices: Object.fromEntries(
+                      pricedRegions.map((r) => [r.code, Number(regionPrices[r.code])])
+                    ),
+                    product: productFields,
+                  }
+                : {
+                    regionCode: region,
+                    systemType,
+                    product: { ...productFields, price: Number(np.price) },
+                  }
+            ),
           });
       const data = await res.json();
       if (res.ok) {
         setAddOpen(false);
         setNp({ ...emptyProduct });
-        setMessage({ tone: "ok", text: editingId ? "Product updated." : "Product added." });
+        setMessage({
+          tone: "ok",
+          text: editingId
+            ? "Product updated."
+            : allRegions
+            ? `Product added to ${pricedRegions.length} region${pricedRegions.length === 1 ? "" : "s"}.`
+            : "Product added.",
+        });
         setEditingId(null);
         if (region && systemType) loadSystems(region, systemType);
       } else {
@@ -915,11 +964,68 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
       {/* Add new product modal */}
       {addOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="glass-card w-full max-w-lg p-6 space-y-4">
+          <div
+            className={`glass-card w-full ${
+              editingId ? "max-w-lg" : "max-w-2xl"
+            } max-h-[90vh] overflow-y-auto p-6 space-y-4`}
+          >
+            {!editingId && (
+              <div role="tablist" className="flex gap-1 border-b border-white/10">
+                {[
+                  { all: true, label: "All Regions" },
+                  { all: false, label: regionName },
+                ].map((t) => (
+                  <button
+                    key={t.label}
+                    type="button"
+                    role="tab"
+                    aria-selected={addAllRegions === t.all}
+                    onClick={() => setAddAllRegions(t.all)}
+                    className={`-mb-px rounded-t-lg border px-4 py-2 text-sm font-semibold transition ${
+                      addAllRegions === t.all
+                        ? "border-[#ff5a2c] border-b-transparent bg-white/5 text-white"
+                        : "border-transparent text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <h3 className="text-lg font-bold text-[#ff5a2c]">
-              {editingId ? "Edit product" : "Add product"} — {regionName} ·{" "}
+              {editingId ? "Edit product" : "Add product"} —{" "}
+              {!editingId && addAllRegions ? "All Regions" : regionName} ·{" "}
               {systemType?.replace(/_/g, " ")}
             </h3>
+            {!editingId && addAllRegions && (
+              <div className="border-b border-white/10 pb-4">
+                <p className="text-xs text-slate-400 mb-3">
+                  Enter a price ({gstLabel}) for each region. Leave a region blank to skip it.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {ALL_REGIONS.map((r) => (
+                    <div key={r.code} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <label htmlFor={`price-${r.code}`} className="block text-xs text-slate-300 mb-1">
+                        {r.name}
+                      </label>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          id={`price-${r.code}`}
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={regionPrices[r.code] ?? ""}
+                          onChange={(e) => setRegionPrices((p) => ({ ...p, [r.code]: e.target.value }))}
+                          placeholder="not added"
+                          className={`${formInput} pl-7`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Brand</label>
@@ -953,7 +1059,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                 <label className="block text-xs text-slate-400 mb-1">+ extra warranty (optional)</label>
                 <input type="number" min={0} className={formInput} value={np.warrantySecondary} onChange={(e) => setNp({ ...np, warrantySecondary: e.target.value })} placeholder="e.g. 5" />
               </div>
-              {!editingId && (
+              {!editingId && !addAllRegions && (
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Price ({gstLabel})</label>
                   <input type="number" min={0} className={formInput} value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="e.g. 3200" />
@@ -979,10 +1085,19 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                 {np.brochureUrl && <span className="text-xs text-emerald-300">Attached ✓</span>}
               </div>
             </div>
-            {!editingId && (
+            {!editingId && !addAllRegions && (
               <p className="text-xs text-slate-400">
-                Adds the product to <strong>{regionName}</strong> at this price. It also appears
-                (unpriced) in other regions so you can price it there.
+                Adds the product to <strong>{regionName}</strong> only. Other regions show it as
+                &quot;Not priced&quot; and leave it out of quotes until a price is set there. Use the
+                All Regions tab to price several regions at once.
+              </p>
+            )}
+            {!editingId && addAllRegions && (
+              <p className="text-xs text-slate-400">
+                {pricedRegions.length === 0
+                  ? "No regions priced yet."
+                  : `Adds the product to ${pricedRegions.map((r) => r.name).join(", ")}.`}{" "}
+                Regions left blank show it as &quot;Not priced&quot;.
               </p>
             )}
             {editingId && (
@@ -1002,7 +1117,13 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
                 Cancel
               </button>
               <button onClick={submitProduct} disabled={adding} className="btn-primary">
-                {adding ? "Saving…" : editingId ? "Save changes" : "Add product"}
+                {adding
+                  ? "Saving…"
+                  : editingId
+                  ? "Save changes"
+                  : addAllRegions
+                  ? `Add to ${pricedRegions.length} region${pricedRegions.length === 1 ? "" : "s"}`
+                  : "Add product"}
               </button>
             </div>
           </div>

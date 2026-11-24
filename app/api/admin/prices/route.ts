@@ -92,6 +92,8 @@ export async function GET(req: NextRequest) {
 // POST { regionCode, systemType, product:{ brand, model, capacityLitres,
 // tankMaterial, warrantyPrimaryYears, warrantySecondaryYears?, price } }
 // → creates a new global System + its price for this region.
+// Or POST { systemType, prices:{ [regionCode]: price }, product } (the "All
+// Regions" tab) → the System + a price in each listed region, in one save.
 export async function POST(req: NextRequest) {
   const { error } = await requireApiRole("admin");
   if (error) return error;
@@ -104,18 +106,46 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { regionCode, systemType, product } = body ?? {};
+  const { regionCode, systemType, product, prices } = body ?? {};
+  const multiRegion = prices && typeof prices === "object" && !Array.isArray(prices);
 
-  if (!regionCode || !systemType || !product) {
+  if ((!regionCode && !multiRegion) || !systemType || !product) {
     return NextResponse.json({ error: "Missing regionCode, systemType or product" }, { status: 400 });
   }
   if (!VALID_TYPES.includes(systemType as (typeof VALID_TYPES)[number])) {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }
 
-  const region = await prisma.region.findUnique({ where: { code: regionCode } });
-  if (!region) {
-    return NextResponse.json({ error: "Invalid region" }, { status: 400 });
+  // The region price(s) to create: one region, or each region on the All Regions tab.
+  let regionPrices: { regionId: string; price: number }[];
+  if (multiRegion) {
+    const entries = Object.entries(prices as Record<string, unknown>);
+    if (entries.length === 0) {
+      return NextResponse.json({ error: "Enter a price for at least one region." }, { status: 400 });
+    }
+    const regions = await prisma.region.findMany({ where: { code: { in: entries.map(([c]) => c) } } });
+    regionPrices = [];
+    for (const [code, value] of entries) {
+      const r = regions.find((x) => x.code === code);
+      const p = Number(value);
+      if (!r) {
+        return NextResponse.json({ error: `Invalid region: ${code}` }, { status: 400 });
+      }
+      if (!Number.isFinite(p) || p <= 0) {
+        return NextResponse.json({ error: `Enter a price above $0 for ${r.name}.` }, { status: 400 });
+      }
+      regionPrices.push({ regionId: r.id, price: p });
+    }
+  } else {
+    const region = await prisma.region.findUnique({ where: { code: regionCode } });
+    if (!region) {
+      return NextResponse.json({ error: "Invalid region" }, { status: 400 });
+    }
+    const price = Number(product.price);
+    if (!Number.isFinite(price) || price < 0) {
+      return NextResponse.json({ error: "Price must be a number ≥ 0" }, { status: 400 });
+    }
+    regionPrices = [{ regionId: region.id, price }];
   }
 
   const brand = String(product.brand ?? "").trim();
@@ -127,7 +157,6 @@ export async function POST(req: NextRequest) {
     product.warrantySecondaryYears === "" || product.warrantySecondaryYears == null
       ? null
       : Number(product.warrantySecondaryYears);
-  const price = Number(product.price);
 
   if (!brand || !model) {
     return NextResponse.json({ error: "Brand and model are required" }, { status: 400 });
@@ -144,10 +173,6 @@ export async function POST(req: NextRequest) {
   if (warrantySecondaryYears !== null && (!Number.isInteger(warrantySecondaryYears) || warrantySecondaryYears < 0)) {
     return NextResponse.json({ error: "Secondary warranty must be a whole number ≥ 0" }, { status: 400 });
   }
-  if (!Number.isFinite(price) || price < 0) {
-    return NextResponse.json({ error: "Price must be a number ≥ 0" }, { status: 400 });
-  }
-
   const brochureUrl =
     product.brochureUrl && String(product.brochureUrl).trim() !== ""
       ? String(product.brochureUrl).trim()
@@ -164,7 +189,7 @@ export async function POST(req: NextRequest) {
       warrantySecondaryYears,
       brochureUrl,
       active: true,
-      systemPrices: { create: { regionId: region.id, price, active: true } },
+      systemPrices: { create: regionPrices.map((rp) => ({ ...rp, active: true })) },
     },
   });
 
