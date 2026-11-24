@@ -55,6 +55,8 @@ export function supplyInstallLine({
     : `Supply and install new in new ${place} location`;
 }
 
+export const REGIONAL_SERVICE_FEE_LABEL = "Regional service fee";
+
 // Standard on heat pumps, so it's listed without being a priced extra. Some older
 // heat pump quotes saved it as an extra; those already list it.
 export const ISOLATOR_RCD_NAME = "Electrical isolator & RCD";

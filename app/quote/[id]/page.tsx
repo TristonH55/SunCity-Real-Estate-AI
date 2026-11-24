@@ -6,10 +6,16 @@ import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import LockQuote from "./LockQuote";
 import HomeownerCard from "./HomeownerCard";
+import CustomItems from "./CustomItems";
+import ChangeBrand from "./ChangeBrand";
+import RemoveOption from "./RemoveOption";
+import { getGstMode } from "@/lib/gst";
+import { customItemsOf, MAX_QUOTE_OPTIONS, type ChangeLogEntry } from "@/lib/quote-adjust";
 import { brandBrochures } from "@/lib/brand-brochures";
 import {
   extraDisplayName,
   ISOLATOR_RCD_NAME,
+  REGIONAL_SERVICE_FEE_LABEL,
   showsStandardIsolator,
   STANDARD_INCLUDED_HEADING,
   STANDARD_INCLUDED_LINES,
@@ -77,6 +83,13 @@ export default async function QuoteViewPage({
     : [];
   const standardIsolator = showsStandardIsolator(quote.systemType, extras);
 
+  // Admin adjustments (custom items, brand changes) until the quote is locked.
+  const canEdit = isAdmin && quote.status !== "locked";
+  const approved = quote.status === "approved";
+  const customItems = customItemsOf(snapshot);
+  const changeLog: ChangeLogEntry[] = Array.isArray(snapshot.changeLog) ? snapshot.changeLog : [];
+  const gstLabel = (await getGstMode()) === "exclusive" ? "ex-GST" : "inc GST";
+
   return (
     <div className="min-h-screen text-white px-6 md:px-8 py-10 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
@@ -124,7 +137,17 @@ export default async function QuoteViewPage({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {canEdit && options.length < MAX_QUOTE_OPTIONS && (
+        <div className="flex justify-end mb-3">
+          <ChangeBrand quoteId={quote.id} approved={approved} />
+        </div>
+      )}
+
+      <div
+        className={`grid grid-cols-1 gap-5 ${
+          options.length > 3 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"
+        }`}
+      >
         {options.map((o) => (
           <div key={o.id} className="glass-card p-5 space-y-2">
             <h2 className="text-lg font-semibold text-[#ff5a2c]">
@@ -193,6 +216,25 @@ export default async function QuoteViewPage({
                 </span>
               </div>
             </div>
+
+            {canEdit && (
+              <div className="flex flex-wrap gap-2 border-t border-white/10 pt-3">
+                <ChangeBrand
+                  quoteId={quote.id}
+                  optionId={o.id}
+                  currentName={`${o.system.brand} ${o.system.model}`}
+                  approved={approved}
+                />
+                {options.length > 1 && (
+                  <RemoveOption
+                    quoteId={quote.id}
+                    optionId={o.id}
+                    name={`${o.system.brand} ${o.system.model}`}
+                    approved={approved}
+                  />
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -243,6 +285,11 @@ export default async function QuoteViewPage({
                 )}
               </li>
             ))}
+            {snapshot.regionalServiceFee > 0 && (
+              <li>
+                {REGIONAL_SERVICE_FEE_LABEL} — {money(Number(snapshot.regionalServiceFee))}
+              </li>
+            )}
           </ul>
 
           <p className="text-slate-400 text-sm mt-4 mb-2">{STANDARD_INCLUDED_HEADING}</p>
@@ -252,6 +299,14 @@ export default async function QuoteViewPage({
               <li key={line}>{line}</li>
             ))}
           </ul>
+
+          <CustomItems
+            quoteId={quote.id}
+            items={customItems}
+            canEdit={canEdit}
+            approved={approved}
+            gstLabel={gstLabel}
+          />
         </div>
 
         {lineItems.length > 0 && (
@@ -262,6 +317,20 @@ export default async function QuoteViewPage({
                 <li key={i} className="flex justify-between">
                   <span>{li.label}</span>
                   <span>{li.amount > 0 ? money(li.amount) : "Site visit"}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {isAdmin && changeLog.length > 0 && (
+          <div className="border-t border-white/10 mt-4 pt-4">
+            <p className="text-slate-400 text-sm mb-2">Quote changes (admin only)</p>
+            <ul className="text-xs text-slate-300 space-y-1">
+              {changeLog.map((c, i) => (
+                <li key={i}>
+                  {new Date(c.at).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}{" "}
+                  · {c.by} · {c.text}
                 </li>
               ))}
             </ul>

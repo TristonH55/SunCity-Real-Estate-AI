@@ -155,6 +155,16 @@ export async function pushConfirmationToCMS(
                   .join("; ")}`,
               ]
             : []),
+          ...(Number(customer.regionalServiceFee) > 0
+            ? [`Regional service fee: ${fmt(Number(customer.regionalServiceFee))}`]
+            : []),
+          ...(Array.isArray(customer.customItems) && customer.customItems.length
+            ? [
+                `Additional items: ${customer.customItems
+                  .map((i: any) => `${i.label} (${fmt(Number(i.amount))})`)
+                  .join("; ")}`,
+              ]
+            : []),
           ...(customer.requiresSiteVisit
             ? ["** Internal relocation — final price subject to site visit. **"]
             : []),

@@ -25,6 +25,9 @@ model Region {
   id    String @id @default(uuid())
   code  String @unique
   name  String
+  // Flat fee added to every quote in this region, entered on the same GST basis
+  // as the other prices. 0 = no fee line on the quote.
+  serviceFee Decimal @default(0)
 
   systemPrices SystemPrice[]
   extraPrices  ExtraPrice[]

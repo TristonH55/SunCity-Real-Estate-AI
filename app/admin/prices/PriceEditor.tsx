@@ -94,6 +94,11 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const [extraRows, setExtraRows] = useState<ExtraRow[]>([]);
   const [extraEdits, setExtraEdits] = useState<Record<string, string>>({});
 
+  // Region service fee (flat, added to every quote in the region)
+  const [serviceFee, setServiceFee] = useState<number | null>(null);
+  const [feeEdit, setFeeEdit] = useState("");
+  const [feeSaving, setFeeSaving] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -218,8 +223,50 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
     else loadExtras(regionCode, type);
   };
 
+  const loadServiceFee = (regionCode: string) => {
+    setServiceFee(null);
+    setFeeEdit("");
+    fetch(`/api/admin/region-fee?region=${encodeURIComponent(regionCode)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.serviceFee !== "number") return;
+        setServiceFee(data.serviceFee);
+        setFeeEdit(String(data.serviceFee));
+      })
+      .catch(() => setMessage({ tone: "err", text: "Failed to load the regional service fee." }));
+  };
+
+  const saveServiceFee = async () => {
+    const fee = Number(feeEdit);
+    if (feeEdit.trim() === "" || !Number.isFinite(fee) || fee < 0) {
+      setMessage({ tone: "err", text: "Fee must be a number of 0 or more." });
+      return;
+    }
+    setFeeSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/region-fee", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regionCode: region, serviceFee: fee }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setServiceFee(fee);
+        setMessage({ tone: "ok", text: `Regional service fee for ${regionName} saved.` });
+      } else {
+        setMessage({ tone: "err", text: data.error || "Save failed." });
+      }
+    } catch {
+      setMessage({ tone: "err", text: "Save failed. Please try again." });
+    } finally {
+      setFeeSaving(false);
+    }
+  };
+
   const onSelectRegion = (val: string) => {
     setRegion(val);
+    loadServiceFee(val);
     if (systemType) loadTab(val, systemType, tab);
   };
   const onSelectType = (val: string) => {
@@ -514,13 +561,38 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
               {regionName} · {systemType.replace(/_/g, " ")} — {visibleRows.length} product
               {visibleRows.length === 1 ? "" : "s"}
             </h2>
-            <button
-              type="button"
-              onClick={openAdd}
-              className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
-            >
-              + Add new product
-            </button>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label htmlFor="region-service-fee" className="text-sm text-slate-300">
+                  Regional service fee ({gstLabel})
+                </label>
+                <input
+                  id="region-service-fee"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={feeEdit}
+                  onChange={(e) => setFeeEdit(e.target.value)}
+                  disabled={serviceFee === null}
+                  className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                />
+                <button
+                  type="button"
+                  onClick={saveServiceFee}
+                  disabled={serviceFee === null || feeSaving || feeEdit === String(serviceFee)}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {feeSaving ? "Saving…" : "Save fee"}
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={openAdd}
+                className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+              >
+                + Add new product
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

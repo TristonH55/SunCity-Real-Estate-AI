@@ -89,12 +89,12 @@ async function seedRegions() {
   console.log("🌱 Seeding regions...");
 
   const regions = [
-    { code: "sunshine_coast", name: "Sunshine Coast" },
-    { code: "brisbane_northside", name: "Brisbane Northside" },
-    { code: "brisbane_southside", name: "Brisbane Southside" },
-    { code: "gympie", name: "Gympie" },
-    { code: "gold_coast", name: "Gold Coast" },
-    { code: "wide_bay", name: "Wide Bay" },
+    { code: "sunshine_coast", name: "Sunshine Coast", serviceFee: 0 },
+    { code: "brisbane_northside", name: "Brisbane Northside", serviceFee: 75 },
+    { code: "brisbane_southside", name: "Brisbane Southside", serviceFee: 175 },
+    { code: "gympie", name: "Gympie", serviceFee: 175 },
+    { code: "gold_coast", name: "Gold Coast", serviceFee: 300 },
+    { code: "wide_bay", name: "Wide Bay", serviceFee: 75 },
   ];
 
   for (const region of regions) {

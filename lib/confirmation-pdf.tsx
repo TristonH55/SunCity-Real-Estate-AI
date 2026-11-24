@@ -208,6 +208,27 @@ export async function buildConfirmationPdf(
           </View>
         </View>
 
+        {Number(snapshot.regionalServiceFee) > 0 && (
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <Text>Regional service fee</Text>
+              <Text>${money(Number(snapshot.regionalServiceFee))}</Text>
+            </View>
+          </View>
+        )}
+
+        {Array.isArray(snapshot.customItems) && snapshot.customItems.length > 0 && (
+          <View style={styles.section}>
+            <Text style={{ fontWeight: "bold", marginBottom: 4 }}>Additional items</Text>
+            {snapshot.customItems.map((item: { id: string; label: string; amount: number }) => (
+              <View key={item.id} style={styles.row}>
+                <Text>{item.label}</Text>
+                <Text>${money(Number(item.amount))}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {lineItems.length > 0 && (
           <View style={styles.section}>
             <Text style={{ fontWeight: "bold", marginBottom: 4 }}>Relocation</Text>

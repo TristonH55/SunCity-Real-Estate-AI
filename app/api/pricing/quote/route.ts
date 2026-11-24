@@ -229,6 +229,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ---- Regional service fee: flat per region, on every quote there. Saved on
+    // the quote so a later fee change in admin doesn't alter existing quotes. ----
+    const regionalServiceFee = Number(region.serviceFee);
+    extrasTotal += regionalServiceFee;
+
     // ---- Heat-pump conversion metadata (existing type override + disclaimers + site visit) ----
     const disclaimers: string[] = Array.isArray(conversion?.disclaimers)
       ? conversion.disclaimers.filter((d: any) => typeof d === "string")
@@ -279,6 +284,9 @@ export async function POST(req: NextRequest) {
           ...(disclaimers.length ? { disclaimers } : {}),
           ...(lineItems.length ? { lineItems } : {}),
           ...(requiresSiteVisit ? { requiresSiteVisit: true } : {}),
+          ...(regionalServiceFee > 0 ? { regionalServiceFee } : {}),
+          // Entered extras total, for pricing a brand swapped in later by admin.
+          extrasEntered: extrasTotal,
           supplyInstallLine: supplyInstallLine({
             systemType,
             existingType,

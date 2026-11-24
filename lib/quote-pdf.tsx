@@ -3,10 +3,12 @@ import { brandBrochures } from "@/lib/brand-brochures";
 import {
   extraDisplayName,
   ISOLATOR_RCD_NAME,
+  REGIONAL_SERVICE_FEE_LABEL,
   showsStandardIsolator,
   STANDARD_INCLUDED_HEADING,
   STANDARD_INCLUDED_LINES,
 } from "@/lib/extra-display";
+import { customItemsOf } from "@/lib/quote-adjust";
 import {
   Image,
   Document,
@@ -84,6 +86,7 @@ export async function renderQuotePdf(quoteId: string): Promise<
   const lineItems = Array.isArray(snapshot.lineItems)
     ? (snapshot.lineItems as { code: string; label: string; amount: number }[])
     : [];
+  const customItems = customItemsOf(snapshot);
   const requiresSiteVisit = !!snapshot.requiresSiteVisit;
   const disclaimers = Array.isArray(snapshot.disclaimers)
     ? (snapshot.disclaimers as string[])
@@ -180,11 +183,26 @@ export async function renderQuotePdf(quoteId: string): Promise<
               {li.amount > 0 ? ` — ${money(li.amount)}` : ""}
             </Text>
           ))}
+          {snapshot.regionalServiceFee > 0 ? (
+            <Text>
+              • {REGIONAL_SERVICE_FEE_LABEL} — {money(Number(snapshot.regionalServiceFee))}
+            </Text>
+          ) : null}
           <Text style={[styles.boxTitle, { marginTop: 8 }]}>{STANDARD_INCLUDED_HEADING}</Text>
           {snapshot.supplyInstallLine ? <Text>• {snapshot.supplyInstallLine}</Text> : null}
           {STANDARD_INCLUDED_LINES.map((line) => (
             <Text key={line}>• {line}</Text>
           ))}
+          {customItems.length > 0 ? (
+            <>
+              <Text style={[styles.boxTitle, { marginTop: 8 }]}>Additional items</Text>
+              {customItems.map((item) => (
+                <Text key={item.id}>
+                  • {item.label} — {money(Number(item.amount))}
+                </Text>
+              ))}
+            </>
+          ) : null}
         </View>
 
         {requiresSiteVisit && (
