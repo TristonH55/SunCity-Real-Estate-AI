@@ -99,6 +99,9 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
   const [feeEdit, setFeeEdit] = useState("");
   const [feeSaving, setFeeSaving] = useState(false);
 
+  // Bulk adjust: a $ amount added to the saved price of every listed system
+  const [bulkAmount, setBulkAmount] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -186,6 +189,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         setRows(systems);
         setRegionName(data.region ?? "");
         setSizeFilter("all");
+        setBulkAmount("");
         const initE: Record<string, string> = {};
         const initA: Record<string, Avail> = {};
         for (const s of systems) {
@@ -301,6 +305,41 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
 
   const changed = rows.filter((r) => priceChanged(r) || availChanged(r));
 
+  // Fills the price boxes of the listed systems with saved price + amount. Always
+  // works from the saved price, so applying again doesn't add it twice. Nothing
+  // is saved until Save; unpriced systems are left alone.
+  const applyBulk = () => {
+    const amount = Number(bulkAmount);
+    if (bulkAmount.trim() === "" || !Number.isFinite(amount) || amount === 0) {
+      setMessage({ tone: "err", text: "Enter a $ amount to add, or a minus amount to take off." });
+      return;
+    }
+    const priced = visibleRows.filter((r) => r.price != null);
+    if (priced.some((r) => Number(r.price) + amount < 0)) {
+      setMessage({ tone: "err", text: "That would take some prices below $0." });
+      return;
+    }
+    setEdits((prev) => {
+      const next = { ...prev };
+      for (const r of priced) next[r.systemId] = String(Math.round((Number(r.price) + amount) * 100) / 100);
+      return next;
+    });
+    setMessage({
+      tone: "ok",
+      text: `${amount > 0 ? "Added" : "Took off"} $${Math.abs(amount)} on ${priced.length} price${
+        priced.length === 1 ? "" : "s"
+      }. Check them, then Save.`,
+    });
+  };
+
+  const resetPrices = () => {
+    const init: Record<string, string> = {};
+    for (const r of rows) init[r.systemId] = r.price != null ? String(r.price) : "";
+    setEdits(init);
+    setBulkAmount("");
+    setMessage(null);
+  };
+
   const changedExtras = extraRows.filter((e) => {
     const original = e.price != null ? String(e.price) : "";
     return (extraEdits[e.extraId] ?? "") !== original && (extraEdits[e.extraId] ?? "") !== "";
@@ -339,6 +378,7 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
         const data = await res.json();
         if (res.ok) {
           setMessage({ tone: "ok", text: `Saved ${data.updated} change${data.updated === 1 ? "" : "s"}.` });
+          setBulkAmount("");
           setRows((prev) =>
             prev.map((r) => {
               const a = availOf(r.systemId);
@@ -561,37 +601,87 @@ export default function PriceEditor({ gstMode }: { gstMode?: "inclusive" | "excl
               {regionName} · {systemType.replace(/_/g, " ")} — {visibleRows.length} product
               {visibleRows.length === 1 ? "" : "s"}
             </h2>
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <label htmlFor="region-service-fee" className="text-sm text-slate-300">
-                  Regional service fee ({gstLabel})
-                </label>
-                <input
-                  id="region-service-fee"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={feeEdit}
-                  onChange={(e) => setFeeEdit(e.target.value)}
-                  disabled={serviceFee === null}
-                  className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
-                />
+            <button
+              type="button"
+              onClick={openAdd}
+              className="px-4 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
+            >
+              + Add new product
+            </button>
+          </div>
+
+          {/* Region-wide price tools */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="rounded-xl border border-[#ff5a2c]/30 bg-[#ff5a2c]/5 p-5">
+              <label htmlFor="region-service-fee" className="block font-semibold text-white">
+                Regional service fee
+              </label>
+              <p className="text-xs text-slate-400 mt-1 mb-3">
+                Added to every quote in {regionName}, shown as its own line. {gstLabel}. 0 = no fee.
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <input
+                    id="region-service-fee"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={feeEdit}
+                    onChange={(e) => setFeeEdit(e.target.value)}
+                    disabled={serviceFee === null}
+                    className="w-40 rounded-lg border border-white/15 bg-white/5 py-2.5 pl-7 pr-3 text-base font-semibold text-white"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={saveServiceFee}
                   disabled={serviceFee === null || feeSaving || feeEdit === String(serviceFee)}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {feeSaving ? "Saving…" : "Save fee"}
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={openAdd}
-                className="px-3 py-2 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition"
-              >
-                + Add new product
-              </button>
+            </div>
+
+            <div className="rounded-xl border border-[#ff5a2c]/30 bg-[#ff5a2c]/5 p-5">
+              <label htmlFor="bulk-adjust" className="block font-semibold text-white">
+                Bulk adjust prices
+              </label>
+              <p className="text-xs text-slate-400 mt-1 mb-3">
+                Adds a $ amount ({gstLabel}) to every listed system&apos;s saved price. Use a minus
+                amount to lower them. Check the prices, then Save.
+              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                  <input
+                    id="bulk-adjust"
+                    type="number"
+                    step="1"
+                    value={bulkAmount}
+                    onChange={(e) => setBulkAmount(e.target.value)}
+                    placeholder="200 or -200"
+                    className="w-40 rounded-lg border border-white/15 bg-white/5 py-2.5 pl-7 pr-3 text-base font-semibold text-white placeholder:font-normal placeholder:text-slate-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={applyBulk}
+                  disabled={bulkAmount.trim() === ""}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+                <button
+                  type="button"
+                  onClick={resetPrices}
+                  disabled={!rows.some(priceChanged)}
+                  className="px-4 py-2.5 rounded-lg text-sm font-semibold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
           </div>
 
