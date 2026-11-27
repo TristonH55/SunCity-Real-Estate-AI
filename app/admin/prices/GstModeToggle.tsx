@@ -10,6 +10,7 @@ export default function GstModeToggle({ initialMode }: { initialMode: GstMode })
   const [mode, setMode] = useState<GstMode>(initialMode);
   const [pending, setPending] = useState<GstMode | null>(null);
   const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
   const [message, setMessage] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
   const apply = async (next: GstMode) => {
@@ -52,8 +53,34 @@ export default function GstModeToggle({ initialMode }: { initialMode: GstMode })
     </button>
   );
 
+  const tab = (show: boolean, label: string) => (
+    <button
+      type="button"
+      onClick={() => setOpen(show)}
+      aria-pressed={open === show}
+      className={`px-5 py-1.5 rounded-t-xl text-sm font-semibold border border-b-0 transition ${
+        open === show
+          ? "bg-[#db231f] border-[#db231f] text-white shadow-[0_0_16px_rgba(219,35,31,0.45)]"
+          : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="glass-card p-6 space-y-3">
+    <div>
+      {/* Show / Hide tabs — hidden by default (GST mode is rarely changed) */}
+      <div className="flex items-end gap-1 border-b border-white/10 lg:justify-end">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 mr-3 pb-2">
+          GST handling
+        </span>
+        {tab(true, "Show")}
+        {tab(false, "Hide")}
+      </div>
+
+      {open && (
+    <div className="glass-card p-6 space-y-3 rounded-t-none border-t-0">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-sm font-semibold text-slate-300">GST handling (site-wide):</span>
         {btn("inclusive", "Prices include GST")}
@@ -102,6 +129,8 @@ export default function GstModeToggle({ initialMode }: { initialMode: GstMode })
             </div>
           </div>
         </div>
+      )}
+    </div>
       )}
     </div>
   );

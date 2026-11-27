@@ -781,7 +781,7 @@ export default async function AdminPage() {
         )}
 
         {/* STATS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="glass-card p-6">
             <h2 className="text-sm text-slate-400">Total Users</h2>
             <p className="text-3xl font-bold text-white">{totalUsers}</p>
@@ -796,6 +796,21 @@ export default async function AdminPage() {
             <h2 className="text-sm text-slate-400">Locked Orders</h2>
             <p className="text-3xl font-bold text-white">{totalOrders}</p>
           </div>
+
+          {/* Approved by homeowner/customer, waiting for admin to confirm */}
+          <a
+            href="/dashboard?status=approved"
+            className={`glass-card p-6 block transition hover:-translate-y-0.5 ${
+              awaitingQuotes.length > 0 ? "!border-orange-400/60 !bg-orange-500/15" : ""
+            }`}
+          >
+            <h2 className={`text-sm ${awaitingQuotes.length > 0 ? "text-orange-200" : "text-slate-400"}`}>
+              Approved — Waiting to Confirm
+            </h2>
+            <p className={`text-3xl font-bold ${awaitingQuotes.length > 0 ? "text-orange-300" : "text-white"}`}>
+              {awaitingQuotes.length}
+            </p>
+          </a>
         </div>
 
         {/* USERS */}
