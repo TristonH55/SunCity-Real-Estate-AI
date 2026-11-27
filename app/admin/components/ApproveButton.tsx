@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AdminIcon from "./AdminIcon";
 
 export default function ApproveButton({
   userId,
@@ -32,10 +33,13 @@ export default function ApproveButton({
     <button
       onClick={toggle}
       disabled={loading}
-      className={`px-3 py-1 rounded-md text-white text-xs font-medium transition hover:brightness-110 disabled:opacity-50 ${
-        approved ? "bg-[#db231f]" : "bg-emerald-500"
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition disabled:opacity-50 ${
+        approved
+          ? "bg-red-900/40 border-red-500/50 text-red-100 hover:bg-red-800/50"
+          : "bg-emerald-600/30 border-emerald-400/50 text-emerald-100 hover:bg-emerald-600/45"
       }`}
     >
+      <AdminIcon name={approved ? "x" : "check"} size={14} className={approved ? "text-red-400" : "text-emerald-300"} />
       {approved ? "Reject" : "Approve"}
     </button>
   );

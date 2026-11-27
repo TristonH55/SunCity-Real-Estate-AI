@@ -103,10 +103,10 @@ export default function SystemTypeSelect({
         <select
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full appearance-none rounded-xl border bg-white/5 px-4 py-3 pr-10 text-white shadow-sm focus:border-[#db231f] focus:ring-2 focus:ring-[#db231f]/30 transition [&_option]:bg-[#0d1220] [&_option]:text-white ${
+          className={`w-full appearance-none rounded-xl border bg-white/5 px-4 py-3 pr-10 text-white transition [&_option]:bg-[#0d1220] [&_option]:text-white ${
             glow
-              ? "border-sky-400/50 shadow-[0_0_18px_rgba(56,189,248,0.45)]"
-              : "border-white/10"
+              ? "border-sky-400/50 shadow-[0_0_18px_rgba(56,189,248,0.45)] focus:outline-none"
+              : "select-glow"
           }`}
         >
           <option value="" disabled>

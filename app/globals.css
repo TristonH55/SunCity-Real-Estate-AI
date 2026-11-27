@@ -172,6 +172,46 @@ body {
   }
 }
 
+/* Red glowing top edge for cards (same look as /admin + /dashboard).
+   Pure pseudo-elements, no overflow clipping, so dropdowns inside still work. */
+.glow-edge::before,
+.glow-edge::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.glow-edge::before {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, #ff3b2f, transparent);
+}
+.glow-edge::after {
+  top: 0;
+  left: 16%;
+  right: 16%;
+  height: 40px;
+  background: radial-gradient(ellipse at top, rgba(255, 59, 47, 0.2), transparent 70%);
+}
+
+/* Red outline glow for dropdowns (pricing Step 1). Brighter on hover/focus. */
+.select-glow {
+  border-color: rgba(255, 59, 47, 0.7);
+  box-shadow:
+    0 0 14px rgba(255, 59, 47, 0.35),
+    inset 0 0 10px rgba(255, 59, 47, 0.08);
+  outline: none;
+}
+.select-glow:hover,
+.select-glow:focus {
+  border-color: #ff3b2f;
+  box-shadow:
+    0 0 22px rgba(255, 59, 47, 0.55),
+    inset 0 0 12px rgba(255, 59, 47, 0.12);
+}
+
 /* Gold "STEP" wordmark — matches the hero image's gold STEP text */
 .step-gold {
   font-family: "Oswald", ui-sans-serif, system-ui, sans-serif;

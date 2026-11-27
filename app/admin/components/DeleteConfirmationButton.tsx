@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import AdminIcon from "./AdminIcon";
 
 export default function DeleteConfirmationButton({ id }: { id: string }) {
   const router = useRouter();
@@ -23,8 +24,9 @@ export default function DeleteConfirmationButton({ id }: { id: string }) {
   return (
     <button
       onClick={handleDelete}
-      className="text-red-400 hover:text-red-300 hover:underline"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-200 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 text-xs font-semibold transition"
     >
+      <AdminIcon name="trash" size={14} />
       Delete
     </button>
   );

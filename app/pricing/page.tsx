@@ -103,7 +103,7 @@ export default function PricingPage() {
       </div>
 
       {/* Step 1 — Region & system type */}
-      <div className="glass-card p-6 mb-6">
+      <div className="glass-card glow-edge p-6 mb-6">
         <h2 className="step-gold text-lg font-semibold mb-4">
           <span className="text-xl">Step 1</span> — Region &amp; System Type
         </h2>
@@ -130,7 +130,7 @@ export default function PricingPage() {
             }}
             label="What type of hot water system do you have?"
             includeNone
-            glow={!!existingType && existingType !== "none"}
+            glow={!!existingType}
           />
           <SystemTypeSelect
             value={systemType}
@@ -139,13 +139,14 @@ export default function PricingPage() {
               resetBelowType();
             }}
             label="What type of hot water system do you want?"
+            glow={!!systemType}
           />
         </div>
       </div>
 
       {/* Step 2 — Size (gated on the required "have" answer too) */}
       {region && existingType && systemType && (
-        <div className="glass-card p-6 mb-6">
+        <div className="glass-card glow-edge p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 2</span> — Tank Size
           </h2>
@@ -208,7 +209,7 @@ export default function PricingPage() {
 
       {/* Step 3 — Installation questions (electric) / Extras (other types) */}
       {region && systemType && capacityLitres && (
-        <div className="glass-card p-6 mb-6">
+        <div className="glass-card glow-edge p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 3</span> —{" "}
             {systemType === "gas" ||
@@ -276,7 +277,7 @@ export default function PricingPage() {
 
       {/* Step 4 — Homeowner details + generate */}
       {region && systemType && capacityLitres && (
-        <div className="glass-card p-6 mb-6">
+        <div className="glass-card glow-edge p-6 mb-6">
           <h2 className="step-gold text-lg font-semibold mb-4">
             <span className="text-xl">Step 4</span> — Homeowner &amp; Property Details
           </h2>

@@ -689,7 +689,8 @@
 // }
 
 /// TEST V 1.2  use last...
-import React from "react"; 
+import React from "react";
+import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "../../lib/auth";
@@ -698,6 +699,7 @@ import { prisma } from "../../lib/prisma";
 import ApproveButton from "./components/ApproveButton";
 import DeleteUserButton from "./components/DeleteUserButton";
 import DeleteConfirmationButton from "./components/DeleteConfirmationButton";
+import AdminIcon, { type AdminIconName } from "./components/AdminIcon";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -756,9 +758,24 @@ export default async function AdminPage() {
       <div className="w-full max-w-[1200px] space-y-10">
 
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="text-3xl heading text-gradient">
-            Admin Dashboard
-          </h1>
+          {/* Logo | divider | title */}
+          <div className="flex items-center gap-5 md:gap-6">
+            <Image
+              src="/images/SunCity-Hot-Water-Logo-white-300-size.png"
+              alt="SunCity Hot Water"
+              width={300}
+              height={200}
+              priority
+              className="w-[200px] md:w-[300px] h-auto"
+            />
+            <span aria-hidden="true" className="h-16 md:h-24 w-px bg-white/20" />
+            <div>
+              <h1 className="text-2xl md:text-3xl heading text-white leading-tight">
+                Admin Dashboard
+              </h1>
+              <p className="text-sm text-slate-400 mt-1">Quote &amp; Customer Management</p>
+            </div>
+          </div>
           <a href="/admin/prices" className="btn-primary whitespace-nowrap">
             ⚙ Settings — Prices
           </a>
@@ -781,90 +798,88 @@ export default async function AdminPage() {
         )}
 
         {/* STATS */}
+        {/* Glow stat cards (old plain version backed up; easy to revert) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="glass-card p-6">
-            <h2 className="text-sm text-slate-400">Total Users</h2>
-            <p className="text-3xl font-bold text-white">{totalUsers}</p>
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-sm text-slate-400">Total Quotes</h2>
-            <p className="text-3xl font-bold text-white">{totalQuotes}</p>
-          </div>
-
-          <div className="glass-card p-6">
-            <h2 className="text-sm text-slate-400">Locked Orders</h2>
-            <p className="text-3xl font-bold text-white">{totalOrders}</p>
-          </div>
-
-          {/* Approved by homeowner/customer, waiting for admin to confirm */}
-          <a
+          <StatCard color="blue" icon="users" label="Total Users" value={totalUsers} />
+          <StatCard color="red" icon="doc" label="Total Quotes" value={totalQuotes} />
+          <StatCard color="orange" icon="lock" label="Locked Orders" value={totalOrders} />
+          {/* Approved by homeowner/customer, waiting for admin to confirm.
+              Green when 0; orange + slow pulse when something needs confirming. */}
+          <StatCard
+            color={awaitingQuotes.length > 0 ? "orange" : "green"}
+            icon="check"
+            label="Approved — Waiting to Confirm"
+            value={awaitingQuotes.length}
             href="/dashboard?status=approved"
-            className={`glass-card p-6 block transition hover:-translate-y-0.5 ${
-              awaitingQuotes.length > 0 ? "!border-orange-400/60 !bg-orange-500/15" : ""
-            }`}
-          >
-            <h2 className={`text-sm ${awaitingQuotes.length > 0 ? "text-orange-200" : "text-slate-400"}`}>
-              Approved — Waiting to Confirm
-            </h2>
-            <p className={`text-3xl font-bold ${awaitingQuotes.length > 0 ? "text-orange-300" : "text-white"}`}>
-              {awaitingQuotes.length}
-            </p>
-          </a>
+            pulse={awaitingQuotes.length > 0}
+          />
         </div>
 
         {/* USERS */}
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
-            Registered Agents
-          </h2>
-
-          <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[640px]">
+        <Section icon="users" title="Registered Agents">
+          <table className="w-full text-sm min-w-[760px]">
             <thead>
-              <tr className="border-b border-white/10 text-slate-200">
-                <th className="text-left py-2">Email</th>
-                <th className="text-left py-2">Company</th>
-                <th className="text-left py-2">Role</th>
-                <th className="text-left py-2">Approved</th>
-                <th className="text-left py-2">Actions</th>
+              <tr>
+                <th className={TH}>Email</th>
+                <th className={TH}>Company</th>
+                <th className={TH}>Role</th>
+                <th className={TH}>Approved</th>
+                <th className={TH}>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-white/10 text-slate-200">
-                  <td className="py-2">{u.email}</td>
-                  <td>{u.role === "customer" ? `${u.name ?? ""} · ${u.phone ?? ""}` : u.companyName}</td>
-                  <td>{u.role}</td>
-                  <td>{u.approved ? "Yes" : "No"}</td>
-                  <td className="flex gap-2 py-2">
-                    <ApproveButton userId={u.id} approved={u.approved} />
-                    <DeleteUserButton id={u.id} />
+                <tr key={u.id} className={TR}>
+                  <td className={TD}>
+                    <span className="flex items-center gap-2.5">
+                      <AdminIcon name="mail" className="text-sky-400" />
+                      <span className="truncate">{u.email}</span>
+                    </span>
+                  </td>
+                  <td className={TD}>
+                    <span className="flex items-center gap-2.5">
+                      <AdminIcon name="building" className="text-sky-400" />
+                      {u.role === "customer" ? `${u.name ?? ""} · ${u.phone ?? ""}` : u.companyName}
+                    </span>
+                  </td>
+                  <td className={TD}>
+                    <RolePill role={u.role} />
+                  </td>
+                  <td className={TD}>
+                    {u.approved ? (
+                      <span className={`${PILL} bg-green-600/25 text-green-200 border-green-500/40`}>
+                        <AdminIcon name="check" size={13} /> Yes
+                      </span>
+                    ) : (
+                      <span className={`${PILL} bg-amber-500/20 text-amber-200 border-amber-400/40`}>
+                        <AdminIcon name="clock" size={13} /> Pending
+                      </span>
+                    )}
+                  </td>
+                  <td className={TD}>
+                    <span className="flex gap-2">
+                      <ApproveButton userId={u.id} approved={u.approved} />
+                      <DeleteUserButton id={u.id} />
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          </div>
-        </div>
+        </Section>
 
         {/* QUOTES (proposal side) */}
-        <div id="all-quotes" className="glass-card p-6 scroll-mt-6">
-          <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
-            All Quotes
-          </h2>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[720px]">
+        <Section id="all-quotes" icon="doc" title="All Quotes">
+            <table className="w-full text-sm min-w-[760px]">
               <thead>
-                <tr className="border-b border-white/10 text-slate-200">
-                  <th className="text-left py-2">Agent</th>
-                  <th className="text-left py-2">Customer</th>
-                  <th className="text-left py-2">System</th>
-                  <th className="text-left py-2">Options</th>
-                  <th className="text-left py-2">Status</th>
-                  <th className="text-left py-2">View</th>
+                <tr>
+                  <th className={TH}>Agent</th>
+                  <th className={TH}>Customer</th>
+                  <th className={TH}>System</th>
+                  <th className={TH}>Options</th>
+                  <th className={TH}>Status</th>
+                  <th className={TH}>View</th>
                 </tr>
               </thead>
               <tbody>
@@ -874,54 +889,56 @@ export default async function AdminPage() {
                     string
                   >;
                   return (
-                    <tr
-                      key={q.id}
-                      className="border-b border-white/10 text-slate-200"
-                    >
-                      <td className="py-2">
+                    <tr key={q.id} className={TR}>
+                      <td className={TD}>
                         {q.agent?.role === "customer" ? (
-                          <span className="inline-block text-xs font-semibold border rounded-full px-2 py-0.5 bg-violet-500/15 text-violet-200 border-violet-500/30">
+                          <span className={`${PILL} bg-violet-500/20 text-violet-200 border-violet-500/40`}>
                             Customer
                           </span>
                         ) : (
-                          q.agent?.companyName || q.agent?.email || "—"
+                          <span className={`${PILL} bg-white/5 text-slate-200 border-white/10 max-w-[180px]`}>
+                            <span className="truncate">{q.agent?.companyName || q.agent?.email || "—"}</span>
+                          </span>
                         )}
                       </td>
-                      <td>
-                        {cust.firstName} {cust.lastName}
+                      <td className={TD}>
+                        <span className="flex items-center gap-2.5">
+                          <AdminIcon name="user" className="text-sky-400" />
+                          {cust.firstName} {cust.lastName}
+                        </span>
                       </td>
-                      <td>
-                        {q.capacityLitres} L · {q.systemType.replace(/_/g, " ")}
+                      <td className={TD}>
+                        <span className="flex items-center gap-2.5">
+                          <SystemIcon type={q.systemType} />
+                          {q.capacityLitres} L · {q.systemType.replace(/_/g, " ")}
+                        </span>
                       </td>
-                      <td>{q.options.length}</td>
-                      <td className="py-2">
+                      <td className={TD}>{q.options.length}</td>
+                      <td className={TD}>
                         {q.status === "approved" ? (
                           <a
                             href={`/quote/${q.id}`}
-                            className="inline-block rounded-lg bg-orange-500 hover:bg-orange-400 px-3 py-1.5 text-xs font-semibold text-white animate-pulse hover:animate-none transition whitespace-nowrap"
+                            className={`${STATUS} bg-orange-500 hover:bg-orange-400 text-white shadow-[0_0_14px_rgba(251,146,60,0.55)] animate-pulse hover:animate-none`}
                           >
                             Confirm order →
                           </a>
                         ) : q.status === "locked" ? (
-                          <span className="inline-block rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap">
-                            ✓ Confirmed
+                          <span className={`${STATUS} bg-green-600 text-white shadow-[0_0_14px_rgba(22,163,74,0.45)]`}>
+                            <AdminIcon name="check" size={14} /> Confirmed
                           </span>
                         ) : q.status === "cancelled" ? (
-                          <span className="inline-block rounded-lg bg-slate-600/70 px-3 py-1.5 text-xs font-semibold text-slate-200 whitespace-nowrap">
-                            Cancelled
+                          <span className={`${STATUS} bg-slate-600/70 text-slate-200`}>
+                            <AdminIcon name="ban" size={14} /> Cancelled
                           </span>
                         ) : (
-                          <span className="inline-block rounded-lg bg-sky-600/80 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap">
-                            Quoted
+                          <span className={`${STATUS} bg-sky-600 text-white shadow-[0_0_14px_rgba(2,132,199,0.45)]`}>
+                            <AdminIcon name="file" size={14} /> Quoted
                           </span>
                         )}
                       </td>
-                      <td>
-                        <a
-                          href={`/quote/${q.id}`}
-                          className="text-sky-300 hover:text-sky-200 underline"
-                        >
-                          View
+                      <td className={TD}>
+                        <a href={`/quote/${q.id}`} className={LINK}>
+                          <AdminIcon name="eye" /> View
                         </a>
                       </td>
                     </tr>
@@ -929,25 +946,19 @@ export default async function AdminPage() {
                 })}
               </tbody>
             </table>
-          </div>
-        </div>
+        </Section>
 
         {/* CONFIRMATIONS */}
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
-            Locked Orders
-          </h2>
-
-          <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[720px]">
+        <Section icon="lock" title="Locked Orders">
+          <table className="w-full text-sm min-w-[760px]">
             <thead>
-              <tr className="border-b border-white/10 text-slate-200">
-                <th className="text-left py-2">Confirmation</th>
-                <th className="text-left py-2">Total</th>
-                <th className="text-left py-2">Date</th>
-                <th className="text-left py-2">View</th>
-                <th className="text-left py-2">Open</th>
-                <th className="text-left py-2">Delete</th>
+              <tr>
+                <th className={TH}>Confirmation</th>
+                <th className={TH}>Total</th>
+                <th className={TH}>Date</th>
+                <th className={TH}>View</th>
+                <th className={TH}>Open</th>
+                <th className={TH}>Delete</th>
               </tr>
             </thead>
 
@@ -968,31 +979,35 @@ export default async function AdminPage() {
                   <React.Fragment key={c.id}>
 
                     {/* MAIN ROW */}
-                    <tr className="border-b border-white/10 text-slate-200">
-                      <td className="py-2">{c.id}</td>
+                    <tr className={TR}>
+                      <td className={TD}>
+                        <span className="flex items-center gap-2.5">
+                          <AdminIcon name="lock" className="text-orange-400" />
+                          <span className="font-mono text-xs text-slate-300">{c.id}</span>
+                        </span>
+                      </td>
 
-                      <td>${Number(c.totalIncGst).toLocaleString()}</td>
+                      <td className={`${TD} font-bold text-white`}>
+                        ${Number(c.totalIncGst).toLocaleString()}
+                      </td>
 
-                      <td>
+                      <td className={TD}>
                         {new Date(c.createdAt).toLocaleDateString("en-AU")}
                       </td>
 
-                      <td>
+                      <td className={TD}>
                         <a
                           href={`/pricing/confirmation/${c.id}`}
                           target="_blank"
-                          className="text-sky-300 hover:text-sky-200 underline"
+                          className={LINK}
                         >
-                          View PDF
+                          <AdminIcon name="file" /> View PDF
                         </a>
                       </td>
 
-                      <td className="relative">
-                        <a
-                          href={`/dashboard/jobs/${c.id}`} 
-                          className="text-sky-300 hover:text-sky-200 underline"
-                        >
-                          Open Job
+                      <td className={`${TD} relative whitespace-nowrap`}>
+                        <a href={`/dashboard/jobs/${c.id}`} className={LINK}>
+                          <AdminIcon name="open" /> Open Job
                         </a>
 
                         {/* ✅ WHATSAPP STYLE BADGE */}
@@ -1003,14 +1018,14 @@ export default async function AdminPage() {
                         )}
                       </td>
 
-                      <td>
+                      <td className={TD}>
                         <DeleteConfirmationButton id={c.id} />
                       </td>
                     </tr>
 
                     {/* ✅ MESSAGE PREVIEW + IMAGES */}
-                    <tr className="bg-white/5">
-                      <td colSpan={6} className="p-4 space-y-3">
+                    <tr className="bg-white/[0.02]">
+                      <td colSpan={6} className="p-3 space-y-3">
 
                         {/* MESSAGE PREVIEW */}
                         {/* {latestMessage && (
@@ -1046,7 +1061,11 @@ export default async function AdminPage() {
               })}
             </tbody>
           </table>
-          </div>
+        </Section>
+
+        {/* Decorative red glow line */}
+        <div aria-hidden="true" className="relative h-16 -mx-4 overflow-hidden pointer-events-none">
+          <div className="absolute left-1/2 -translate-x-1/2 top-6 w-[140%] h-40 rounded-[50%] border-t-2 border-[#ff3b2f] shadow-[0_-6px_30px_rgba(255,59,47,0.7)]" />
         </div>
 
       </div>
@@ -1054,4 +1073,192 @@ export default async function AdminPage() {
   );
 }
 
+// ---- Shared table styling ----
+const TH =
+  "text-left py-3 px-3 font-semibold text-slate-200 bg-white/[0.05] first:rounded-l-lg last:rounded-r-lg whitespace-nowrap";
+const TR = "border-b border-white/5 text-slate-200 transition-colors hover:bg-white/[0.04]";
+const TD = "py-3 px-3 align-middle";
+const PILL =
+  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap";
+const STATUS =
+  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition";
+const LINK =
+  "inline-flex items-center gap-1.5 text-sky-300 hover:text-sky-200 underline underline-offset-2";
+
+// Section card with a red glowing top edge and a round heading icon.
+function Section({
+  id,
+  icon,
+  title,
+  children,
+}: {
+  id?: string;
+  icon: AdminIconName;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div id={id} className="glass-card relative overflow-hidden p-6 scroll-mt-6">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0">
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#ff3b2f] to-transparent" />
+        <div className="mx-auto h-10 w-2/3 bg-[#ff3b2f]/20 blur-2xl -mt-5" />
+      </div>
+      <h2 className="relative flex items-center gap-3 text-xl font-bold text-white mb-5">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#db231f]/20 border border-[#db231f]/40 text-[#ff5a2c] shadow-[0_0_14px_rgba(219,35,31,0.35)]">
+          <AdminIcon name={icon} size={20} />
+        </span>
+        {title}
+      </h2>
+      <div className="relative overflow-x-auto">{children}</div>
+    </div>
+  );
+}
+
+function RolePill({ role }: { role: string }) {
+  if (role === "customer")
+    return (
+      <span className={`${PILL} bg-violet-500/20 text-violet-200 border-violet-500/40`}>
+        <AdminIcon name="user" size={13} /> Customer
+      </span>
+    );
+  if (role === "admin")
+    return (
+      <span className={`${PILL} bg-amber-500/20 text-amber-200 border-amber-400/40`}>
+        <AdminIcon name="crown" size={13} className="text-amber-300" /> Admin
+      </span>
+    );
+  return (
+    <span className={`${PILL} bg-sky-500/20 text-sky-200 border-sky-400/40`}>
+      <AdminIcon name="building" size={13} /> Agent
+    </span>
+  );
+}
+
+function SystemIcon({ type }: { type: string }) {
+  if (type === "electric") return <AdminIcon name="bolt" className="text-yellow-400" />;
+  if (type === "heat_pump") return <AdminIcon name="fan" className="text-sky-300" />;
+  if (type === "gas") return <AdminIcon name="flame" className="text-orange-400" />;
+  return <AdminIcon name="sun" className="text-amber-300" />; // solar
+}
+
 //claude
+
+// ---- Stat card (coloured glow + round icon) ----
+type StatColor = "blue" | "red" | "orange" | "green";
+type StatIcon = "users" | "doc" | "lock" | "check";
+
+// Static class strings so Tailwind picks them up.
+const STAT_STYLES: Record<StatColor, { card: string; circle: string; label: string }> = {
+  blue: {
+    card: "border-sky-400/50 bg-gradient-to-br from-sky-500/20 via-sky-500/5 to-transparent shadow-[0_0_28px_-6px_rgba(56,189,248,0.55)] hover:shadow-[0_0_38px_-4px_rgba(56,189,248,0.7)]",
+    circle: "bg-sky-500 shadow-[0_0_18px_rgba(56,189,248,0.7)]",
+    label: "text-sky-100",
+  },
+  red: {
+    card: "border-red-500/50 bg-gradient-to-br from-red-600/25 via-red-600/5 to-transparent shadow-[0_0_28px_-6px_rgba(239,68,68,0.55)] hover:shadow-[0_0_38px_-4px_rgba(239,68,68,0.7)]",
+    circle: "bg-[#db231f] shadow-[0_0_18px_rgba(219,35,31,0.75)]",
+    label: "text-red-100",
+  },
+  orange: {
+    card: "border-orange-400/55 bg-gradient-to-br from-orange-500/25 via-orange-500/5 to-transparent shadow-[0_0_28px_-6px_rgba(251,146,60,0.55)] hover:shadow-[0_0_38px_-4px_rgba(251,146,60,0.7)]",
+    circle: "bg-orange-500 shadow-[0_0_18px_rgba(251,146,60,0.75)]",
+    label: "text-orange-100",
+  },
+  green: {
+    card: "border-emerald-400/50 bg-gradient-to-br from-emerald-500/20 via-emerald-500/5 to-transparent shadow-[0_0_28px_-6px_rgba(52,211,153,0.5)] hover:shadow-[0_0_38px_-4px_rgba(52,211,153,0.65)]",
+    circle: "bg-emerald-500 shadow-[0_0_18px_rgba(52,211,153,0.7)]",
+    label: "text-emerald-100",
+  },
+};
+
+function StatIconSvg({ icon }: { icon: StatIcon }) {
+  const p = {
+    width: 26,
+    height: 26,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  switch (icon) {
+    case "users":
+      return (
+        <svg {...p}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      );
+    case "doc":
+      return (
+        <svg {...p}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+          <path d="M8 13h8M8 17h5" />
+        </svg>
+      );
+    case "lock":
+      return (
+        <svg {...p}>
+          <rect x="4" y="11" width="16" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          <circle cx="12" cy="16" r="1" />
+        </svg>
+      );
+    case "check":
+      return (
+        <svg {...p}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="m8 12 3 3 5-6" />
+        </svg>
+      );
+  }
+}
+
+function StatCard({
+  color,
+  icon,
+  label,
+  value,
+  href,
+  pulse,
+}: {
+  color: StatColor;
+  icon: StatIcon;
+  label: string;
+  value: number;
+  href?: string;
+  pulse?: boolean;
+}) {
+  const s = STAT_STYLES[color];
+  const inner = (
+    <>
+      <span
+        className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-white ${s.circle}`}
+      >
+        {pulse && (
+          <span className="absolute inset-0 rounded-full bg-orange-400/60 animate-ping [animation-duration:2s]" />
+        )}
+        <span className="relative">
+          <StatIconSvg icon={icon} />
+        </span>
+      </span>
+      <span className="min-w-0">
+        <span className={`block text-sm font-semibold leading-snug ${s.label}`}>{label}</span>
+        <span className="block text-3xl font-bold text-white mt-0.5">{value}</span>
+      </span>
+    </>
+  );
+  const cls = `relative flex items-center gap-4 rounded-2xl border p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 ${s.card}`;
+  return href ? (
+    <a href={href} className={cls}>
+      {inner}
+    </a>
+  ) : (
+    <div className={cls}>{inner}</div>
+  );
+}

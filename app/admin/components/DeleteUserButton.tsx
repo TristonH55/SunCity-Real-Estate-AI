@@ -1,5 +1,7 @@
 "use client";
 
+import AdminIcon from "./AdminIcon";
+
 export default function DeleteUserButton({ id }: { id: string }) {
   const remove = async () => {
     if (!confirm("Delete this user? This cannot be undone.")) return;
@@ -14,8 +16,9 @@ export default function DeleteUserButton({ id }: { id: string }) {
   return (
     <button
       onClick={remove}
-      className="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-slate-200 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 text-sm transition"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-200 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 text-xs font-semibold transition"
     >
+      <AdminIcon name="trash" size={14} />
       Delete
     </button>
   );
