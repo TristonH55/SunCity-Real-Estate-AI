@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import TrustedBrands from "./components/TrustedBrands";
 
 // Public customers' home page. Real estate agents have their own landing page
 // at /real-estate-hot-water-quotes (logged-in agents are sent there).
@@ -188,6 +189,9 @@ export default async function HomePage() {
   </div>
 </section>
 
+
+      {/* TRUSTED BRANDS */}
+      <TrustedBrands />
 
       {/* CALL TO ACTION */}
       <section className="text-center py-16 px-6">

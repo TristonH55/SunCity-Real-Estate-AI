@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import TrustedBrands from "../components/TrustedBrands";
 
 // Real estate agents' landing page (the old home page; "/" is now for public customers).
 export const metadata = {
@@ -44,7 +45,7 @@ export default function RealEstatePage() {
         <p className="max-w-xl mx-auto text-slate-400 mb-8 text-lg">
           Fast and accurate hot water replacement pricing for real estate
           agents. Generate a 3-option quote in seconds and send it to the
-          homeowner to review and approve.
+          homeowner to review and approve instantly.
         </p>
 
         <Link
@@ -173,11 +174,14 @@ export default function RealEstatePage() {
 </section>
 
 
+      {/* TRUSTED BRANDS */}
+      <TrustedBrands />
+
       {/* CALL TO ACTION */}
       <section className="text-center py-16 px-6">
         <div className="glass-card-strong max-w-3xl mx-auto py-12 px-6">
           <h2 className="text-2xl md:text-3xl heading mb-4">
-            Join SunCity Pricing Portal
+            SunCity Real Estate Hot Water Pricing Portal
           </h2>
 
           <Link
