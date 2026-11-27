@@ -10,6 +10,7 @@ const money = (v: number) =>
 
 export default function LockQuote({
   quoteId,
+  isAdmin = false,
   status,
   selectedOptionId,
   confirmationId,
@@ -18,6 +19,7 @@ export default function LockQuote({
   approvedAt,
 }: {
   quoteId: string;
+  isAdmin?: boolean;
   status: string;
   selectedOptionId: string | null;
   confirmationId: string | null;
@@ -112,6 +114,13 @@ export default function LockQuote({
             ? "Confirming…"
             : "Homeowner Has Selected — Confirm order"}
         </button>
+        {isAdmin && (
+          <p className="text-xs text-slate-400">
+            Need to change something? Use <strong>Change brand</strong> or{" "}
+            <strong>Additional items</strong> above. This clears the homeowner&apos;s
+            selection. Then use <strong>Email quote to homeowner</strong> to resend.
+          </p>
+        )}
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm font-semibold text-red-300">
             {error}

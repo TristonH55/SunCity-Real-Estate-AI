@@ -46,6 +46,9 @@ async function adjust(
   if (quote.status === "locked") {
     return NextResponse.json({ error: "This quote is locked and can't be changed." }, { status: 409 });
   }
+  if (quote.status === "cancelled") {
+    return NextResponse.json({ error: "This quote has been cancelled and can't be changed." }, { status: 409 });
+  }
 
   const snapshot = (quote.customerSnapshot ?? {}) as Record<string, any>;
   const result = change(customItemsOf(snapshot));

@@ -1,9 +1,35 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
 
-export default function HomePage() {
+// Public customers' home page. Real estate agents have their own landing page
+// at /real-estate-hot-water-quotes (logged-in agents are sent there).
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Hot Water Quotes in Minutes | SunCity Hot Water",
+  description:
+    "Get an instant price on a new hot water system for your home. Compare up to 3 options, then approve online.",
+};
+
+export default async function HomePage() {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.role === "agent") redirect("/real-estate-hot-water-quotes");
+
   return (
-    <div className="min-h-screen text-white pb-24">
+    <div className="min-h-screen text-white pb-24 relative">
+
+      {/* Top-right: link to the real estate agents' page */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-8">
+        <Link
+          href="/real-estate-hot-water-quotes"
+          className="text-sm font-semibold text-slate-300 hover:text-white border border-white/15 bg-white/5 hover:bg-white/10 rounded-lg px-4 py-2 transition"
+        >
+          Real Estate Agents →
+        </Link>
+      </div>
 
       {/* HERO */}
 
@@ -21,21 +47,28 @@ export default function HomePage() {
       </div>
 
         <h1 className="text-4xl md:text-5xl heading mb-4">
-          <span className="text-gradient">Real Estate Quoting Portal</span>
+          <span className="text-gradient">Hot Water Quotes in Minutes</span>
         </h1>
 
         <p className="max-w-xl mx-auto text-slate-400 mb-8 text-lg">
-          Fast and accurate hot water replacement pricing for real estate
-          agents. Generate a 3-option quote in seconds and send it to the
-          homeowner to review and approve.
+          Get an instant price on a new hot water system for your home.
+          Compare up to 3 options, then approve online.
         </p>
 
-        <Link
-          href="/register"
-          className="btn-primary px-8 py-4"
-        >
-          Register Now
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/signup"
+            className="btn-primary px-8 py-4"
+          >
+            Get a quote
+          </Link>
+          <Link
+            href="/login?customer=1"
+            className="px-8 py-4 rounded-xl font-semibold border border-white/20 bg-white/5 text-white hover:bg-white/10 transition"
+          >
+            Log in
+          </Link>
+        </div>
       </section>
 
       {/* FEATURES */}
@@ -160,14 +193,14 @@ export default function HomePage() {
       <section className="text-center py-16 px-6">
         <div className="glass-card-strong max-w-3xl mx-auto py-12 px-6">
           <h2 className="text-2xl md:text-3xl heading mb-4">
-            Join SunCity Pricing Portal
+            Get Your Hot Water Quote
           </h2>
 
           <Link
-            href="/register"
+            href="/signup"
             className="btn-primary px-8 py-4"
           >
-            Get Approved
+            Get a quote
           </Link>
         </div>
       </section>

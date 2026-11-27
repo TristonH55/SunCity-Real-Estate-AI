@@ -133,6 +133,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (quote.status === "locked") {
     return NextResponse.json({ error: "This quote is locked and can't be changed." }, { status: 409 });
   }
+  if (quote.status === "cancelled") {
+    return NextResponse.json({ error: "This quote has been cancelled and can't be changed." }, { status: 409 });
+  }
 
   const replacing = optionId ? quote.options.find((o) => o.id === optionId) : null;
   if (optionId && !replacing) {
@@ -195,6 +198,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
   if (quote.status === "locked") {
     return NextResponse.json({ error: "This quote is locked and can't be changed." }, { status: 409 });
+  }
+  if (quote.status === "cancelled") {
+    return NextResponse.json({ error: "This quote has been cancelled and can't be changed." }, { status: 409 });
   }
   const removing = quote.options.find((o) => o.id === optionId);
   if (!removing) {

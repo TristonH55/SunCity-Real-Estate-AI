@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { verifyQuoteApprovalToken } from "@/lib/quote-approval-token";
 import ApproveForm from "./ApproveForm";
+import { OFFICE_PHONE } from "@/lib/customer";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -27,7 +28,7 @@ export default async function ApprovePage({
           <h1 className="text-xl font-bold mb-2">Link invalid or expired</h1>
           <p className="text-slate-400">
             This approval link is no longer valid. Please ask your agent to
-            re-send your quote.
+            re-send your quote, or call SunCity on {OFFICE_PHONE}.
           </p>
         </div>
       </Shell>
@@ -37,6 +38,7 @@ export default async function ApprovePage({
   const quote = await prisma.quote.findUnique({
     where: { id: quoteId },
     include: {
+      agent: { select: { role: true } },
       options: {
         include: {
           system: {
@@ -59,13 +61,30 @@ export default async function ApprovePage({
       <Shell>
         <div className="glass-card p-6">
           <h1 className="text-xl font-bold mb-2">Quote not found</h1>
-          <p className="text-slate-400">Please ask your agent to re-send your quote.</p>
+          <p className="text-slate-400">Please ask your agent to re-send your quote, or call SunCity on {OFFICE_PHONE}.</p>
         </div>
       </Shell>
     );
   }
 
   const customer = (quote.customerSnapshot ?? {}) as Record<string, string>;
+  // Public customer quotes: SunCity (not an agent) finalises.
+  const isCustomerQuote = quote.agent.role === "customer";
+  const who = isCustomerQuote ? `call SunCity on ${OFFICE_PHONE}` : "contact your agent";
+  const finaliser = isCustomerQuote ? "SunCity" : "Your agent";
+
+  if (quote.status === "cancelled") {
+    return (
+      <Shell>
+        <div className="glass-card p-6">
+          <h1 className="text-xl font-bold mb-2">This quote has been cancelled</h1>
+          <p className="text-slate-400">
+            If you&apos;d like to go ahead after all, please {who}.
+          </p>
+        </div>
+      </Shell>
+    );
+  }
 
   if (quote.status === "locked") {
     return (
@@ -76,7 +95,7 @@ export default async function ApprovePage({
           </h1>
           <p className="text-slate-400">
             This quote has already been confirmed. If you need to make a change,
-            please contact your agent.
+            please {who}.
           </p>
         </div>
       </Shell>
@@ -102,7 +121,7 @@ export default async function ApprovePage({
         <h1 className="text-2xl font-bold mb-1">Approve your hot water quote</h1>
         <p className="text-slate-400">
           Hi {customer.firstName || "there"} — choose your preferred system below
-          and approve it. Your agent will then finalise the order.
+          and approve it. {finaliser} will then finalise the order.
         </p>
       </div>
       <ApproveForm
@@ -112,6 +131,7 @@ export default async function ApprovePage({
         alreadyApproved={quote.status === "approved"}
         approvedByName={quote.approvedByName}
         address={customer.address ?? ""}
+        isCustomerQuote={isCustomerQuote}
       />
     </Shell>
   );

@@ -9,7 +9,10 @@ import HomeownerCard from "./HomeownerCard";
 import CustomItems from "./CustomItems";
 import ChangeBrand from "./ChangeBrand";
 import RemoveOption from "./RemoveOption";
+import CancelQuote from "./CancelQuote";
 import { getGstMode } from "@/lib/gst";
+import { OFFICE_PHONE } from "@/lib/customer";
+import { createQuoteApprovalToken } from "@/lib/quote-approval-token";
 import { customItemsOf, MAX_QUOTE_OPTIONS, type ChangeLogEntry } from "@/lib/quote-adjust";
 import { brandBrochures } from "@/lib/brand-brochures";
 import {
@@ -60,6 +63,8 @@ export default async function QuoteViewPage({
   const isOwner = quote.agentId === session.user.id;
   const isAdmin = session.user.role === "admin";
   if (!isOwner && !isAdmin) notFound();
+  // A public customer viewing their own quote: no agent tools, approve button instead.
+  const isCustomerViewer = session.user.role === "customer";
 
   const customer = (quote.customerSnapshot ?? {}) as Record<string, string>;
   const snapshot = (quote.customerSnapshot ?? {}) as Record<string, any>;
@@ -84,7 +89,8 @@ export default async function QuoteViewPage({
   const standardIsolator = showsStandardIsolator(quote.systemType, extras);
 
   // Admin adjustments (custom items, brand changes) until the quote is locked.
-  const canEdit = isAdmin && quote.status !== "locked";
+  const cancelled = quote.status === "cancelled";
+  const canEdit = isAdmin && quote.status !== "locked" && !cancelled;
   const approved = quote.status === "approved";
   const customItems = customItemsOf(snapshot);
   const changeLog: ChangeLogEntry[] = Array.isArray(snapshot.changeLog) ? snapshot.changeLog : [];
@@ -110,13 +116,28 @@ export default async function QuoteViewPage({
         </a>
       </div>
 
-      <HomeownerCard
-        quoteId={quote.id}
-        name={`${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim()}
-        address={customer.address ?? ""}
-        phone={customer.phone ?? ""}
-        email={customer.email ?? ""}
-      />
+      {isCustomerViewer ? (
+        <div className="glass-card p-5 mb-6 text-sm">
+          <h2 className="text-lg font-semibold mb-3">Your details</h2>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-slate-300">
+            <div><dt className="text-slate-500 text-xs">Name</dt><dd>{`${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim()}</dd></div>
+            <div><dt className="text-slate-500 text-xs">Address</dt><dd>{customer.address ?? ""}</dd></div>
+            <div><dt className="text-slate-500 text-xs">Mobile</dt><dd>{customer.phone ?? ""}</dd></div>
+            <div><dt className="text-slate-500 text-xs">Email</dt><dd>{customer.email ?? ""}</dd></div>
+          </dl>
+          <p className="text-xs text-slate-500 mt-3">
+            We&apos;ve emailed this quote to you as a PDF. Questions? Call us on {OFFICE_PHONE}.
+          </p>
+        </div>
+      ) : (
+        <HomeownerCard
+          quoteId={quote.id}
+          name={`${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim()}
+          address={customer.address ?? ""}
+          phone={customer.phone ?? ""}
+          email={customer.email ?? ""}
+        />
+      )}
 
       {requiresSiteVisit && (
         <div className="mb-5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-amber-200">
@@ -338,8 +359,45 @@ export default async function QuoteViewPage({
         )}
       </div>
 
+      {cancelled ? (
+        <div className="glass-card p-5 mt-6 space-y-2 border border-slate-500/30">
+          <p className="text-slate-200 font-semibold">✕ This quote has been cancelled</p>
+          <p className="text-sm text-slate-400">
+            {isCustomerViewer
+              ? `If you'd like to go ahead after all, call us on ${OFFICE_PHONE}.`
+              : "It can no longer be approved, changed or confirmed."}
+          </p>
+        </div>
+      ) : isCustomerViewer ? (
+        <div className="glass-card p-5 mt-6 space-y-3">
+          {quote.status === "presented" ? (
+            <>
+              <h2 className="text-lg font-semibold">Ready to go ahead?</h2>
+              <p className="text-sm text-slate-300">
+                Choose your preferred system and approve it online. SunCity will then
+                confirm your order and be in touch to book the install.
+              </p>
+              <a
+                href={`/approve/${createQuoteApprovalToken(quote.id)}`}
+                className="w-full inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold text-white bg-green-600 hover:bg-green-500 transition"
+              >
+                Approve my quote
+              </a>
+            </>
+          ) : (
+            <p className="text-green-300 font-semibold">
+              {quote.status === "locked"
+                ? "✓ Your order is confirmed. SunCity will be in touch to book the install."
+                : `✓ Approved${quote.approvedByName ? ` by ${quote.approvedByName}` : ""}. SunCity will confirm your order shortly.`}
+            </p>
+          )}
+          <p className="text-xs text-slate-500">Questions? Call us on {OFFICE_PHONE}.</p>
+        </div>
+      ) : (
+      <>
       <LockQuote
         quoteId={quote.id}
+        isAdmin={isAdmin}
         status={quote.status}
         selectedOptionId={quote.selectedOptionId}
         confirmationId={quote.confirmationId}
@@ -351,6 +409,11 @@ export default async function QuoteViewPage({
           total: Number(o.totalIncGst),
         }))}
       />
+      {isAdmin && quote.status !== "locked" && (
+        <CancelQuote quoteId={quote.id} approved={approved} homeownerEmail={customer.email ?? ""} />
+      )}
+      </>
+      )}
     </div>
   );
 }

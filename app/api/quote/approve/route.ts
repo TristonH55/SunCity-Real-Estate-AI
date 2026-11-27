@@ -7,6 +7,34 @@ import { verifyQuoteApprovalToken } from "@/lib/quote-approval-token";
 import { allow, limiters } from "@/lib/ratelimit";
 import { checkOrigin } from "@/lib/origin-check";
 import { clientIp } from "@/lib/client-ip";
+import { resend } from "@/lib/resend";
+
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+async function notifyOfficeOfCustomerApproval(quoteId: string, approvedBy: string, snapshot: unknown) {
+  const to = process.env.ORDER_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL;
+  if (!to) return;
+  try {
+    const c = (snapshot ?? {}) as Record<string, any>;
+    const base = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || "SunCity <no-reply@suncityhotwater.com.au>",
+      to,
+      subject: `Customer approved a quote – ${String(c.firstName ?? "")} ${String(c.lastName ?? "")}`.trim(),
+      html: `
+        <p>A public customer has approved their quote and it's ready to confirm.</p>
+        <p><strong>Approved by:</strong> ${esc(approvedBy)}<br/>
+        <strong>Address:</strong> ${esc(c.address)}<br/>
+        <strong>Mobile:</strong> ${esc(c.phone)}<br/>
+        <strong>Email:</strong> ${esc(c.email)}</p>
+        <p><a href="${base}/quote/${quoteId}">Open the quote</a> and press Confirm order.</p>
+      `,
+    });
+  } catch (e) {
+    console.error("Customer approval email failed (non-blocking):", e);
+  }
+}
 
 // PUBLIC, token-authenticated (NO session). The homeowner records their choice
 // + typed-name e-signature. Record-only: does NOT lock or push to CRM — the
@@ -49,10 +77,16 @@ export async function POST(req: NextRequest) {
 
     const quote = await prisma.quote.findUnique({
       where: { id: quoteId },
-      include: { options: { select: { id: true } } },
+      include: { options: { select: { id: true } }, agent: { select: { role: true } } },
     });
     if (!quote) {
       return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    }
+    if (quote.status === "cancelled") {
+      return NextResponse.json(
+        { error: "This quote has been cancelled. Please contact SunCity on 1300 728 122." },
+        { status: 409 }
+      );
     }
     if (quote.status === "locked") {
       return NextResponse.json(
@@ -79,6 +113,12 @@ export async function POST(req: NextRequest) {
         approvalIp: ip,
       },
     });
+
+    // Public customer quotes have no agent to finalise them, so let the office
+    // know it's ready to confirm. Non-blocking.
+    if (quote.agent.role === "customer") {
+      await notifyOfficeOfCustomerApproval(quoteId, fullName, quote.customerSnapshot);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

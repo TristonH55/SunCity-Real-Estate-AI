@@ -8,7 +8,7 @@ import { clientIp } from "@/lib/client-ip";
 
 export async function GET(req: Request) {
   // Auth: agents only (route is outside the middleware matcher).
-  const { error } = await requireApiRole("agent");
+  const { error } = await requireApiRole(["agent", "customer"]);
   if (error) return error;
 
   if (!(await allow(limiters.google, clientIp(req)))) {

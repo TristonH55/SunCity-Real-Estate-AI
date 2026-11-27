@@ -14,6 +14,11 @@ model User {
   companyName   String
   role          UserRole
   approved      Boolean  @default(false)
+  // Public customers (role = customer): log in with an SMS code to their mobile.
+  // They have no password ("" in passwordHash, which never matches) and no company ("").
+  name            String?
+  phone           String?   @unique // E.164, e.g. +61412345678
+  phoneVerifiedAt DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -173,12 +178,14 @@ model JobNote {
 enum UserRole {
   admin
   agent
+  customer
 }
 
 enum QuoteStatus {
   presented
   approved
   locked
+  cancelled // admin cancelled it: can't be approved, edited or confirmed
 }
 enum SystemType {
   electric

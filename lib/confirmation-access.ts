@@ -16,6 +16,12 @@ export async function getOwnedConfirmation(id: string | undefined | null) {
       error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
     };
   }
+  // Public customers never see job notes / job pages.
+  if (session.user.role === "customer") {
+    return {
+      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
   if (!id) {
     return {
       error: NextResponse.json({ error: "Missing job id" }, { status: 400 }),

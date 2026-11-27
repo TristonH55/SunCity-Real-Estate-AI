@@ -30,6 +30,10 @@ export const limiters = {
   updateContact: make(30, "1 m", "update-contact"),
   google: make(60, "1 m", "google"),
   adminPrices: make(60, "1 m", "admin-prices"),
+  // Public customers: SMS codes (protects the SMS bill) and code checks.
+  smsPhone: make(5, "1 h", "sms-phone"),
+  smsIp: make(15, "1 h", "sms-ip"),
+  codeCheck: make(10, "15 m", "code-check"),
 };
 
 /**

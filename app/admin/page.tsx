@@ -714,15 +714,26 @@ export default async function AdminPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Proposal side: all agents' quotes.
-  const quotes = await prisma.quote.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: {
-      options: { select: { totalIncGst: true } },
-      agent: { select: { email: true, companyName: true } },
-    },
-  });
+  // Proposal side: all agents' and customers' quotes. Approved quotes (waiting
+  // for admin to confirm) are always listed first, oldest approval first.
+  const quoteInclude = {
+    options: { select: { totalIncGst: true } },
+    agent: { select: { email: true, companyName: true, role: true } },
+  } as const;
+  const [awaitingQuotes, otherQuotes] = await Promise.all([
+    prisma.quote.findMany({
+      where: { status: "approved" },
+      orderBy: { approvedAt: "asc" },
+      include: quoteInclude,
+    }),
+    prisma.quote.findMany({
+      where: { status: { not: "approved" } },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: quoteInclude,
+    }),
+  ]);
+  const quotes = [...awaitingQuotes, ...otherQuotes];
 
   // Order side: locked-order confirmations (+ latest message).
   const confirmations = await prisma.pricingConfirmation.findMany({
@@ -752,6 +763,22 @@ export default async function AdminPage() {
             ⚙ Settings — Prices
           </a>
         </div>
+
+        {/* Approved quotes waiting for admin to confirm */}
+        {awaitingQuotes.length > 0 && (
+          <a
+            href="#all-quotes"
+            className="flex items-center justify-between gap-4 flex-wrap rounded-xl border border-orange-400/50 bg-orange-500/15 px-5 py-4 hover:bg-orange-500/25 transition"
+          >
+            <span className="text-orange-100 font-semibold">
+              🔔 {awaitingQuotes.length} quote{awaitingQuotes.length === 1 ? "" : "s"} approved — waiting
+              for you to confirm
+            </span>
+            <span className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white">
+              View
+            </span>
+          </a>
+        )}
 
         {/* STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -793,7 +820,7 @@ export default async function AdminPage() {
               {users.map((u) => (
                 <tr key={u.id} className="border-b border-white/10 text-slate-200">
                   <td className="py-2">{u.email}</td>
-                  <td>{u.companyName}</td>
+                  <td>{u.role === "customer" ? `${u.name ?? ""} · ${u.phone ?? ""}` : u.companyName}</td>
                   <td>{u.role}</td>
                   <td>{u.approved ? "Yes" : "No"}</td>
                   <td className="flex gap-2 py-2">
@@ -808,7 +835,7 @@ export default async function AdminPage() {
         </div>
 
         {/* QUOTES (proposal side) */}
-        <div className="glass-card p-6">
+        <div id="all-quotes" className="glass-card p-6 scroll-mt-6">
           <h2 className="text-xl font-bold mb-4 text-[#ff5a2c]">
             All Quotes
           </h2>
@@ -837,7 +864,13 @@ export default async function AdminPage() {
                       className="border-b border-white/10 text-slate-200"
                     >
                       <td className="py-2">
-                        {q.agent?.companyName || q.agent?.email || "—"}
+                        {q.agent?.role === "customer" ? (
+                          <span className="inline-block text-xs font-semibold border rounded-full px-2 py-0.5 bg-violet-500/15 text-violet-200 border-violet-500/30">
+                            Customer
+                          </span>
+                        ) : (
+                          q.agent?.companyName || q.agent?.email || "—"
+                        )}
                       </td>
                       <td>
                         {cust.firstName} {cust.lastName}
@@ -846,18 +879,27 @@ export default async function AdminPage() {
                         {q.capacityLitres} L · {q.systemType.replace(/_/g, " ")}
                       </td>
                       <td>{q.options.length}</td>
-                      <td>
-                        <span
-                          className={
-                            q.status === "locked"
-                              ? "text-green-300"
-                              : q.status === "approved"
-                              ? "text-sky-300"
-                              : "text-amber-300"
-                          }
-                        >
-                          {q.status}
-                        </span>
+                      <td className="py-2">
+                        {q.status === "approved" ? (
+                          <a
+                            href={`/quote/${q.id}`}
+                            className="inline-block rounded-lg bg-orange-500 hover:bg-orange-400 px-3 py-1.5 text-xs font-semibold text-white animate-pulse hover:animate-none transition whitespace-nowrap"
+                          >
+                            Confirm order →
+                          </a>
+                        ) : q.status === "locked" ? (
+                          <span className="inline-block rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap">
+                            ✓ Confirmed
+                          </span>
+                        ) : q.status === "cancelled" ? (
+                          <span className="inline-block rounded-lg bg-slate-600/70 px-3 py-1.5 text-xs font-semibold text-slate-200 whitespace-nowrap">
+                            Cancelled
+                          </span>
+                        ) : (
+                          <span className="inline-block rounded-lg bg-sky-600/80 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap">
+                            Quoted
+                          </span>
+                        )}
                       </td>
                       <td>
                         <a

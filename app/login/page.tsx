@@ -4,10 +4,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import CustomerOtp from "../components/CustomerOtp";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { update } = useSession();
 
+  // "Agent / Staff" (email + password, unchanged) or "Customer" (mobile + SMS code).
+  const [tab, setTab] = useState<"agent" | "customer">("agent");
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("expired")) {
+      setExpired(true);
+      setTab("customer");
+    }
+    if (q.get("customer")) setTab("customer");
+  }, []);
 
 
 // async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -82,6 +94,51 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 }
 
 
+  const tabs = (
+    <div className="grid grid-cols-2 gap-1 rounded-xl bg-white/5 p-1 text-sm font-semibold">
+      <button
+        type="button"
+        onClick={() => setTab("agent")}
+        className={`rounded-lg py-2 transition ${tab === "agent" ? "bg-[#ff5a2c] text-white" : "text-slate-300 hover:text-white"}`}
+      >
+        Agent / Staff
+      </button>
+      <button
+        type="button"
+        onClick={() => setTab("customer")}
+        className={`rounded-lg py-2 transition ${tab === "customer" ? "bg-[#ff5a2c] text-white" : "text-slate-300 hover:text-white"}`}
+      >
+        Customer
+      </button>
+    </div>
+  );
+
+  const expiredNote = expired && (
+    <p className="text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+      You were logged out after 4 hours of inactivity. Please log in again.
+    </p>
+  );
+
+  if (tab === "customer") {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="glass-card-strong p-8 w-full max-w-md space-y-5">
+          <h1 className="text-2xl heading">Sign in</h1>
+          {tabs}
+          {expiredNote}
+          <p className="text-sm text-slate-400">Log in with your mobile. We&apos;ll text you a code.</p>
+          <CustomerOtp mode="login" />
+          <p className="text-sm text-slate-400 text-center pt-2">
+            New customer?{" "}
+            <Link href="/signup" className="text-[#ff5a2c] font-medium hover:underline">
+              Sign up here
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <form
@@ -89,6 +146,9 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         className="glass-card-strong p-8 w-full max-w-md space-y-5"
       >
         <h1 className="text-2xl heading">Sign in</h1>
+
+        {tabs}
+        {expiredNote}
 
         {error && (
           <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">

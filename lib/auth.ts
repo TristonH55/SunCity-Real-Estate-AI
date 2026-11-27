@@ -214,6 +214,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import type { AuthOptions } from "next-auth";
 import { allow, limiters } from "@/lib/ratelimit";
+import { checkVerificationCode } from "@/lib/twilio-verify";
+import { CUSTOMER_IDLE_MS, isValidEmail, normaliseAuMobile } from "@/lib/customer";
 
 export const authOptions: AuthOptions = {
   session: {
@@ -268,6 +270,8 @@ export const authOptions: AuthOptions = {
         });
 
         if (!user) return null;
+        // Customers log in with an SMS code only, never email + password.
+        if (user.role === "customer") return null;
         if (!user.approved) return null;
 
         const valid = await bcrypt.compare(
@@ -276,6 +280,67 @@ export const authOptions: AuthOptions = {
         );
 
         if (!valid) return null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          approved: user.approved,
+          companyName: user.companyName,
+        };
+      },
+    }),
+
+    // Public customers: mobile + SMS code (no password). mode "signup" also
+    // creates the account once the code is verified.
+    Credentials({
+      id: "customer-otp",
+      name: "Mobile code",
+      credentials: {
+        mode: { type: "text" },
+        phone: { type: "text" },
+        code: { type: "text" },
+        firstName: { type: "text" },
+        lastName: { type: "text" },
+        email: { type: "text" },
+      },
+      async authorize(credentials, req) {
+        const phone = normaliseAuMobile(credentials?.phone);
+        const code = String(credentials?.code ?? "").trim();
+        const mode = credentials?.mode === "signup" ? "signup" : "login";
+        if (!phone || !code) return null;
+
+        const ip =
+          ((req?.headers?.["x-forwarded-for"] as string) || "")
+            .split(",")[0]
+            .trim() || "unknown";
+        if (!(await allow(limiters.codeCheck, `${ip}:${phone}`))) return null;
+
+        if (!(await checkVerificationCode(phone, code))) return null;
+
+        let user = await prisma.user.findUnique({ where: { phone } });
+
+        if (mode === "signup" && !user) {
+          const firstName = String(credentials?.firstName ?? "").trim();
+          const lastName = String(credentials?.lastName ?? "").trim();
+          const email = String(credentials?.email ?? "").trim().toLowerCase();
+          if (!firstName || !lastName || !isValidEmail(email)) return null;
+          if (await prisma.user.findUnique({ where: { email } })) return null;
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: `${firstName} ${lastName}`,
+              phone,
+              phoneVerifiedAt: new Date(),
+              passwordHash: "", // never matches: customers can't use email login
+              companyName: "",
+              role: "customer",
+              approved: true, // verified by SMS, no admin approval
+            },
+          });
+        }
+
+        if (!user || user.role !== "customer") return null;
 
         return {
           id: user.id,
@@ -297,13 +362,29 @@ export const authOptions: AuthOptions = {
         token.companyName = user.companyName;
       }
 
+      // Customers: logged out after 4 hours without using the site.
+      // Agents and admins are unaffected.
+      if (token.role === "customer") {
+        const now = Date.now();
+        const last = typeof token.lastSeen === "number" ? token.lastSeen : now;
+        if (token.expired || now - last > CUSTOMER_IDLE_MS) {
+          token.expired = true;
+        } else {
+          token.lastSeen = now;
+        }
+      }
+
       return token;
     },
 
     async session({ session, token }) {
+      // Expired customer login → no user, so every page/API treats it as logged out.
+      if (token.expired) {
+        return { expires: session.expires } as typeof session;
+      }
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as "admin" | "agent";
+        session.user.role = token.role as "admin" | "agent" | "customer";
         session.user.approved = token.approved as boolean;
         session.user.companyName = token.companyName as string;
       }

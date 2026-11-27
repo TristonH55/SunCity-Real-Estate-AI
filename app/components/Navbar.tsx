@@ -200,6 +200,7 @@
 //v4 test
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -215,6 +216,23 @@ import {
 export default function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+
+  // Admin: count of approved quotes waiting to be confirmed (orange badge).
+  const isAdmin = session?.user?.role === "admin";
+  const [awaiting, setAwaiting] = useState(0);
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    fetch("/api/admin/awaiting-count")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d) setAwaiting(Number(d.count) || 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, pathname]);
 
   if (status === "loading") {
     return null;
@@ -241,7 +259,12 @@ export default function Navbar() {
           <span className="text-xs">Prices</span>
         </button>
 
-        {session && (
+        {session?.user?.role === "customer" ? (
+          <Link href="/my-quotes" className={`flex flex-col items-center ${pathname.startsWith("/my-quotes") ? active : inactive}`}>
+            <LayoutDashboard size={22} />
+            <span className="text-xs">My quotes</span>
+          </Link>
+        ) : session && (
           <Link href="/dashboard" className={`flex flex-col items-center ${pathname.startsWith("/dashboard") ? active : inactive}`}>
             <LayoutDashboard size={22} />
             <span className="text-xs">Dashboard</span>
@@ -249,7 +272,15 @@ export default function Navbar() {
         )}
 
         {session?.user?.role === "admin" && (
-          <Link href="/admin" className={`flex flex-col items-center ${pathname.startsWith("/admin") ? active : inactive}`}>
+          <Link href="/admin" className={`relative flex flex-col items-center ${pathname.startsWith("/admin") ? active : inactive}`}>
+            {awaiting > 0 && (
+              <span
+                className="absolute -top-1.5 right-0 translate-x-1/2 min-w-[18px] h-[18px] rounded-full bg-orange-500 px-1 text-[10px] font-bold leading-[18px] text-white text-center"
+                title={`${awaiting} approved quote${awaiting === 1 ? "" : "s"} to confirm`}
+              >
+                {awaiting}
+              </span>
+            )}
             <Shield size={22} />
             <span className="text-xs">Admin</span>
           </Link>

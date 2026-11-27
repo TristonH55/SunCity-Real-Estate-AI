@@ -21,7 +21,8 @@ import GenerateQuote from "./components/GenerateQuote";
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 
 export default function PricingPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const isCustomer = session?.user?.role === "customer";
 
   const [region, setRegion] = useState<string | null>(null);
   const [existingType, setExistingType] = useState<string | null>(null); // "what do you have?" — CRM only, optional
@@ -66,16 +67,39 @@ export default function PricingPage() {
         />
       </div>
 
-      {/* Hero banner */}
+      {/* Hero banner — public customers get their own image; agents/admins keep the real estate one */}
       <div className="mb-8">
-        <Image
-          src="/images/SunCity-Real-Estate-App.png"
-          alt="SunCity Hot Water — real estate agents app"
-          width={1376}
-          height={768}
-          priority
-          className="w-full h-auto rounded-2xl"
-        />
+        {isCustomer ? (
+          <>
+            {/* Desktop + iPad landscape (1024px and wider) */}
+            <Image
+              src="/images/customer-images/Hot-Water-quotes.jpg"
+              alt="SunCity Hot Water — get your hot water quote"
+              width={1648}
+              height={928}
+              priority
+              className="hidden lg:block w-full h-auto rounded-2xl"
+            />
+            {/* Mobile + iPad portrait */}
+            <Image
+              src="/images/customer-images/Hot-Water-quotes-mobile.jpg"
+              alt="SunCity Hot Water — get your hot water quote"
+              width={1200}
+              height={1200}
+              priority
+              className="block lg:hidden w-full h-auto rounded-2xl"
+            />
+          </>
+        ) : (
+          <Image
+            src="/images/SunCity-Real-Estate-App.png"
+            alt="SunCity Hot Water — real estate agents app"
+            width={1376}
+            height={768}
+            priority
+            className="w-full h-auto rounded-2xl"
+          />
+        )}
       </div>
 
       {/* Step 1 — Region & system type */}
@@ -278,6 +302,28 @@ export default function PricingPage() {
                 ? `${existingSize} L`
                 : null
             }
+          />
+        </div>
+      )}
+
+      {/* Customers only: service-area banner under the step cards */}
+      {isCustomer && (
+        <div className="mt-8">
+          {/* Desktop + iPad landscape (1024px and wider) */}
+          <Image
+            src="/images/hot-water-quotes-brisbane-sunshine-coast.jpg"
+            alt="SunCity hot water quotes — Brisbane and Sunshine Coast"
+            width={1648}
+            height={450}
+            className="hidden lg:block w-full h-auto rounded-2xl"
+          />
+          {/* Mobile + iPad portrait */}
+          <Image
+            src="/images/hot-water-quotes-brisbane-sunshine-coast-mobile.jpg"
+            alt="SunCity hot water quotes — Brisbane and Sunshine Coast"
+            width={1200}
+            height={1200}
+            className="block lg:hidden w-full h-auto rounded-2xl"
           />
         </div>
       )}

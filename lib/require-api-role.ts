@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-type Role = "admin" | "agent";
+type Role = "admin" | "agent" | "customer";
 
 /**
  * Auth guard for API routes (returns JSON, never redirects).
@@ -15,7 +15,8 @@ type Role = "admin" | "agent";
  * - Logged in, wrong role -> 403 Forbidden
  * - Admins are allowed through to any role-gated route.
  */
-export async function requireApiRole(role: Role) {
+export async function requireApiRole(role: Role | Role[]) {
+  const roles = Array.isArray(role) ? role : [role];
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -30,7 +31,7 @@ export async function requireApiRole(role: Role) {
     return { session, error: null };
   }
 
-  if (session.user.role !== role) {
+  if (!roles.includes(session.user.role)) {
     return {
       session,
       error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),

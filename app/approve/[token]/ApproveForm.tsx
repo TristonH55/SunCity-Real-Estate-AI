@@ -24,6 +24,7 @@ export default function ApproveForm({
   alreadyApproved,
   approvedByName,
   address,
+  isCustomerQuote = false,
 }: {
   token: string;
   options: Opt[];
@@ -31,6 +32,7 @@ export default function ApproveForm({
   alreadyApproved: boolean;
   approvedByName: string | null;
   address: string;
+  isCustomerQuote?: boolean;
 }) {
   const [choice, setChoice] = useState<string>(
     selectedOptionId || options[0]?.id || ""
@@ -75,8 +77,9 @@ export default function ApproveForm({
           Thank you, {name.trim()} ✓
         </h2>
         <p className="text-slate-300">
-          Your choice has been recorded and your agent has been notified. They'll
-          be in touch to finalise your order.
+          {isCustomerQuote
+            ? "Your choice has been recorded and SunCity has been notified. We'll be in touch to finalise your order."
+            : "Your choice has been recorded and your agent has been notified. They'll be in touch to finalise your order."}
         </p>
         {selected && (
           <p className="text-slate-400 text-sm mt-3">
@@ -92,7 +95,7 @@ export default function ApproveForm({
       {alreadyApproved && (
         <div className="glass-card p-4 text-sm text-sky-200">
           You've already approved this quote — you can change your choice below
-          and re-submit until your agent finalises it.
+          and re-submit until {isCustomerQuote ? "SunCity finalises" : "your agent finalises"} it.
         </div>
       )}
 
@@ -200,7 +203,7 @@ export default function ApproveForm({
           disabled={submitting}
           className="btn-primary w-full"
         >
-          {submitting ? "Submitting…" : "Approve & notify my agent"}
+          {submitting ? "Submitting…" : isCustomerQuote ? "Approve my quote" : "Approve & notify my agent"}
         </button>
 
         {error && (

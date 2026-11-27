@@ -90,6 +90,27 @@ export default function GenerateQuote({
     }
   }, [isAdmin]);
 
+  // Public customers: name, email and mobile come from their account (locked).
+  const isCustomer = session?.user?.role === "customer";
+  useEffect(() => {
+    if (!isCustomer) return;
+    fetch("/api/customer/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => {
+        if (me) {
+          setCustomer((s) => ({
+            ...s,
+            firstName: me.firstName,
+            lastName: me.lastName,
+            email: me.email,
+            phone: me.phone,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, [isCustomer]);
+  const lockedClass = isCustomer ? " opacity-70 cursor-not-allowed" : "";
+
   const toggleTestFill = (on: boolean) => {
     setTestFill(on);
     if (on) {
@@ -174,36 +195,40 @@ export default function GenerateQuote({
         <input
           placeholder="First name"
           value={customer.firstName}
+          readOnly={isCustomer}
           onChange={(e) =>
             setCustomer((s) => ({ ...s, firstName: e.target.value }))
           }
-          className={inputClass}
+          className={inputClass + lockedClass}
         />
         <input
           placeholder="Last name"
           value={customer.lastName}
+          readOnly={isCustomer}
           onChange={(e) =>
             setCustomer((s) => ({ ...s, lastName: e.target.value }))
           }
-          className={inputClass}
+          className={inputClass + lockedClass}
         />
         <input
           placeholder="Email"
           type="email"
           value={customer.email}
+          readOnly={isCustomer}
           onChange={(e) =>
             setCustomer((s) => ({ ...s, email: e.target.value }))
           }
-          className={inputClass}
+          className={inputClass + lockedClass}
         />
         <input
           placeholder="Mobile"
           type="tel"
           value={customer.phone}
+          readOnly={isCustomer}
           onChange={(e) =>
             setCustomer((s) => ({ ...s, phone: e.target.value }))
           }
-          className={inputClass}
+          className={inputClass + lockedClass}
         />
 
         {/* Google address autocomplete */}

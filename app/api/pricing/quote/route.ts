@@ -16,6 +16,14 @@ import {
 import { findHeatPumpBand } from "@/lib/heat-pump-bands";
 import { computeOptionPricing, getGstMode } from "@/lib/gst";
 import { supplyInstallLine } from "@/lib/extra-display";
+import {
+  addressKey,
+  CUSTOMER_QUOTES_PER_WEEK,
+  displayAuMobile,
+  QUOTE_CAP_MESSAGE,
+  splitName,
+} from "@/lib/customer";
+import { sendQuoteEmail } from "@/lib/send-quote-email";
 
 const VALID_SYSTEM_TYPES = [
   "gas",
@@ -39,9 +47,10 @@ const REQUIRED_CUSTOMER_FIELDS = [
 ] as const;
 
 export async function POST(req: NextRequest) {
-  // 🔒 Agents only (admins pass through).
-  const { session, error } = await requireApiRole("agent");
+  // 🔒 Agents and public customers (admins pass through).
+  const { session, error } = await requireApiRole(["agent", "customer"]);
   if (error) return error;
+  const isCustomer = session!.user.role === "customer";
 
   try {
     const body = await req.json();
@@ -50,7 +59,7 @@ export async function POST(req: NextRequest) {
       systemType,
       capacityLitres,
       extraIds = [],
-      customer,
+      customer: submittedCustomer,
       relocation, // optional (electric "different position"): { newLocation, metres?, requiresSiteVisit? }
       systemLocation, // Step-3 Inside/Outside ("inside" | "outside") — replaces old Step-4 dropdown
       sizeBandId, // heat pump only: a HEAT_PUMP_BANDS id (size range) instead of an exact size
@@ -58,6 +67,49 @@ export async function POST(req: NextRequest) {
       existingType, // Step-1 "what do you have?" (optional): a SystemType value or "none"
       existingSizeLabel, // Step-2 existing-system size (optional, informational)
     } = body ?? {};
+
+    // Public customers: name, email and mobile always come from their verified
+    // account (so the quote emails go to them), and the weekly cap applies.
+    let customer = submittedCustomer;
+    let customerAccount: { name: string | null; email: string; phone: string | null } | null = null;
+    if (isCustomer && submittedCustomer && typeof submittedCustomer === "object") {
+      customerAccount = await prisma.user.findUnique({
+        where: { id: session!.user.id },
+        select: { name: true, email: true, phone: true },
+      });
+      if (!customerAccount) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      customer = {
+        ...submittedCustomer,
+        ...splitName(customerAccount.name),
+        email: customerAccount.email,
+        phone: displayAuMobile(customerAccount.phone),
+      };
+
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const recent = await prisma.quote.findMany({
+        // Cancelled quotes don't count, so a cancel frees up a slot.
+        where: {
+          createdAt: { gte: since },
+          agent: { role: "customer" },
+          status: { not: "cancelled" },
+        },
+        select: { agentId: true, customerSnapshot: true },
+      });
+      const key = addressKey(
+        submittedCustomer.address || submittedCustomer.fullAddress || ""
+      );
+      const byMe = recent.filter((q) => q.agentId === session!.user.id).length;
+      const atAddress = key
+        ? recent.filter(
+            (q) => addressKey((q.customerSnapshot as Record<string, any>)?.address) === key
+          ).length
+        : 0;
+      if (byMe >= CUSTOMER_QUOTES_PER_WEEK || atAddress >= CUSTOMER_QUOTES_PER_WEEK) {
+        return NextResponse.json({ error: QUOTE_CAP_MESSAGE, code: "quote_cap" }, { status: 429 });
+      }
+    }
 
     // ---- Validate selection ----
     if (!regionCode || !systemType || capacityLitres == null || !customer) {
@@ -301,6 +353,21 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true },
     });
+
+    // Public customers get their quote PDF emailed straight away. Non-blocking:
+    // the quote still opens if the email fails (it's always on their dashboard).
+    if (isCustomer && customerAccount) {
+      try {
+        await sendQuoteEmail({
+          quoteId: quote.id,
+          to: customerAccount.email,
+          firstName: customer.firstName,
+          forCustomer: true,
+        });
+      } catch (e) {
+        console.error("Customer quote email failed (non-blocking):", e);
+      }
+    }
 
     return NextResponse.json({
       success: true,

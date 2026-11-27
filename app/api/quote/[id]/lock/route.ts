@@ -63,6 +63,13 @@ export async function POST(
       );
     }
 
+    if (quote.status === "cancelled") {
+      return NextResponse.json(
+        { error: "This quote has been cancelled and can't be confirmed." },
+        { status: 409 }
+      );
+    }
+
     // Idempotency: already locked → no-op, return the existing confirmation.
     if (quote.status === "locked") {
       return NextResponse.json({

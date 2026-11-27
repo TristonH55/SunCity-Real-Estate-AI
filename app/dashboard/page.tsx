@@ -110,6 +110,8 @@ export default async function Dashboard() {
                               ? "text-green-300"
                               : q.status === "approved"
                               ? "text-sky-300"
+                              : q.status === "cancelled"
+                              ? "text-slate-400"
                               : "text-amber-300"
                           }
                         >
