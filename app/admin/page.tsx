@@ -701,7 +701,11 @@ import DeleteUserButton from "./components/DeleteUserButton";
 import DeleteConfirmationButton from "./components/DeleteConfirmationButton";
 import AdminIcon, { type AdminIconName } from "./components/AdminIcon";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -712,9 +716,19 @@ export default async function AdminPage() {
     redirect("/pricing");
   }
 
-  const users = await prisma.user.findMany({
+  const allUsers = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
   });
+
+  // Registered users tabs: Customers (default) / Agents / Admins.
+  const sp = await searchParams;
+  const usersParam = Array.isArray(sp.users) ? sp.users[0] : sp.users;
+  const userTab = USER_TABS.some((t) => t.role === usersParam)
+    ? (usersParam as UserTabRole)
+    : "customer";
+  const users = userTab === "all" ? allUsers : allUsers.filter((u) => u.role === userTab);
+  const roleCount = (r: UserTabRole) =>
+    r === "all" ? allUsers.length : allUsers.filter((u) => u.role === r).length;
 
   // Proposal side: all agents' and customers' quotes. Approved quotes (waiting
   // for admin to confirm) are always listed first, oldest approval first.
@@ -816,12 +830,39 @@ export default async function AdminPage() {
         </div>
 
         {/* USERS */}
-        <Section icon="users" title="Registered Agents">
+        <Section id="registered-users" icon="users" title="Registered Agents">
+          {/* Role tabs (Customers default) */}
+          <div className="flex gap-1 border-b border-white/10 mb-4">
+            {USER_TABS.map((t) => {
+              const on = t.role === userTab;
+              return (
+                <a
+                  key={t.role}
+                  href={t.role === "customer" ? "/admin#registered-users" : `/admin?users=${t.role}#registered-users`}
+                  className={`-mb-px inline-flex items-center gap-2 rounded-t-xl border border-b-0 px-4 py-2 text-sm font-semibold transition ${
+                    on
+                      ? "bg-[#db231f] border-[#db231f] text-white shadow-[0_0_16px_rgba(219,35,31,0.45)]"
+                      : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                  }`}
+                >
+                  {t.label}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                      on ? "bg-white/25 text-white" : "bg-white/10 text-slate-300"
+                    }`}
+                  >
+                    {roleCount(t.role)}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+
           <table className="w-full text-sm min-w-[760px]">
             <thead>
               <tr>
                 <th className={TH}>Email</th>
-                <th className={TH}>Company</th>
+                <th className={TH}>{userTab === "customer" ? "Name · Mobile" : "Company"}</th>
                 <th className={TH}>Role</th>
                 <th className={TH}>Approved</th>
                 <th className={TH}>Actions</th>
@@ -829,6 +870,13 @@ export default async function AdminPage() {
             </thead>
 
             <tbody>
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-6 px-3 text-center text-slate-400">
+                    No {USER_TABS.find((t) => t.role === userTab)?.label.toLowerCase()} yet.
+                  </td>
+                </tr>
+              )}
               {users.map((u) => (
                 <tr key={u.id} className={TR}>
                   <td className={TD}>
@@ -1072,6 +1120,15 @@ export default async function AdminPage() {
     </div>
   );
 }
+
+// ---- Registered users tabs ----
+type UserTabRole = "customer" | "agent" | "admin" | "all";
+const USER_TABS: { role: UserTabRole; label: string }[] = [
+  { role: "customer", label: "Customers" },
+  { role: "agent", label: "Agents" },
+  { role: "admin", label: "Admins" },
+  { role: "all", label: "All" },
+];
 
 // ---- Shared table styling ----
 const TH =
