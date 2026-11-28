@@ -374,14 +374,18 @@ export default async function QuoteViewPage({
             <>
               <h2 className="text-lg font-semibold">Ready to go ahead?</h2>
               <p className="text-sm text-slate-300">
-                Choose your preferred system and approve it online. SunCity will then
-                confirm your order and be in touch to book the install.
+                On the next page you&apos;ll see your quoted systems side by side. Pick the
+                one you want and approve it.
+              </p>
+              <p className="text-sm text-slate-300">
+                <strong className="text-white">No payment is taken now.</strong> SunCity will
+                confirm your order and contact you to book the install Date + Time that suits.
               </p>
               <a
                 href={`/approve/${createQuoteApprovalToken(quote.id)}`}
                 className="w-full inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold text-white bg-green-600 hover:bg-green-500 transition"
               >
-                Approve my quote
+                Choose my system →
               </a>
             </>
           ) : (
